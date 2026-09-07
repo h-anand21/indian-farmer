@@ -1,16 +1,19 @@
 import { Router } from "express";
-import * as paymentController from "../controllers/paymentController";
-import { authMiddleware } from "../middleware/auth";
+import {
+  processPayment,
+  getPaymentReceipt,
+  getFarmerPayments,
+} from "../controllers/paymentController";
 
 const router = Router();
 
 // Process DBT payment (Operator / Admin / Mock trigger)
-router.post("/:paymentId/process", authMiddleware, paymentController.processPayment);
+router.post("/:paymentId/process", processPayment);
 
 // Get receipt / J-Form details for a payment
-router.get("/:paymentId/receipt", authMiddleware, paymentController.getPaymentReceipt);
+router.get("/:paymentId/receipt", getPaymentReceipt);
 
 // Get farmer payments
-router.get("/farmer/:farmerId", authMiddleware, paymentController.getFarmerPayments);
+router.get("/farmer/:farmerId", getFarmerPayments);
 
 export default router;

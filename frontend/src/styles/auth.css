@@ -722,17 +722,23 @@
   padding: clamp(24px, 4vw, 36px);
   box-shadow: 0 12px 36px rgba(22, 58, 45, 0.06);
   border: 1px solid rgba(22, 58, 45, 0.06);
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .form-grid-2 {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 
@@ -740,6 +746,9 @@
   display: flex;
   flex-direction: column;
   margin-bottom: 18px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .wizard-field label {
@@ -747,19 +756,32 @@
   font-weight: 600;
   color: var(--deep-forest);
   margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wizard-field input,
 .wizard-field select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   height: 48px;
   padding: 0 14px;
   background: #F8FAFC;
   border: 1.5px solid #E2E8F0;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 14px;
   color: #0F172A;
   outline: none;
   transition: all 0.2s ease;
+  text-overflow: ellipsis;
+}
+
+.wizard-field select {
+  cursor: pointer;
+  background-color: #F8FAFC;
 }
 
 .wizard-field input:focus,

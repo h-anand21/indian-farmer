@@ -26,7 +26,7 @@ import LanguageSelector from "@/components/common/LanguageSelector";
 
 
 export default function RegisterPage() {
-  const { firebaseUser, isRegistered, role, setUser } = useAuth();
+  const { firebaseUser, isRegistered, role, setUser, logout } = useAuth();
   const navigate = useNavigate();
 
   // Redirect logic
@@ -221,6 +221,55 @@ export default function RegisterPage() {
       </div>
 
       <div className="register-container">
+        {/* Navigation & Header Bar */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+          <button
+            type="button"
+            onClick={async () => {
+              await logout();
+              navigate({ to: "/login" });
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "#ffffff",
+              border: "1px solid #E2E8F0",
+              borderRadius: "10px",
+              padding: "8px 14px",
+              fontSize: "12.5px",
+              fontWeight: 700,
+              color: "#475569",
+              cursor: "pointer",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+            }}
+          >
+            <ArrowLeft size={14} /> Sign In / Switch Account
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              navigate({ to: "/farmer/dashboard" });
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(79, 125, 69, 0.12)",
+              border: "1px solid var(--leaf-green)",
+              borderRadius: "10px",
+              padding: "8px 14px",
+              fontSize: "12.5px",
+              fontWeight: 700,
+              color: "var(--deep-forest)",
+              cursor: "pointer",
+            }}
+          >
+            ⚡ Quick Skip & Enter Portal <ArrowRight size={14} />
+          </button>
+        </div>
+
         {/* Header */}
         <div className="register-header">
           <div

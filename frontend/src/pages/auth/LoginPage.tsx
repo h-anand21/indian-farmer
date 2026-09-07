@@ -16,6 +16,9 @@ import {
   Loader2,
   CheckCircle2,
   Sparkles,
+  UserCheck,
+  Building2,
+  ShieldCheck,
 } from "lucide-react";
 import LanguageSelector from "@/components/common/LanguageSelector";
 
@@ -23,7 +26,7 @@ import LanguageSelector from "@/components/common/LanguageSelector";
 type AuthRole = "FARMER" | "OPERATOR" | "ADMIN";
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isRegistered, role } = useAuth();
+  const { login, loginAsDemo, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
 
   // ── State ──
@@ -31,21 +34,17 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Redirect if already authenticated ──
+  // ── Redirect if already authenticated with active role ──
   useEffect(() => {
-    if (isAuthenticated) {
-      if (!isRegistered) {
-        navigate({ to: "/register" });
-      } else if (role) {
-        const redirectMap: Record<string, string> = {
-          FARMER: "/farmer/dashboard",
-          OPERATOR: "/operator/dashboard",
-          ADMIN: "/admin/dashboard",
-        };
-        navigate({ to: redirectMap[role] || "/farmer/dashboard" });
-      }
+    if (isAuthenticated && role) {
+      const redirectMap: Record<string, string> = {
+        FARMER: "/farmer/dashboard",
+        OPERATOR: "/operator/dashboard",
+        ADMIN: "/admin/dashboard",
+      };
+      navigate({ to: redirectMap[role] || "/farmer/dashboard" });
     }
-  }, [isAuthenticated, isRegistered, role, navigate]);
+  }, [isAuthenticated, role, navigate]);
 
   // ── Google Sign In Handler ──
   const handleGoogleLogin = async () => {
@@ -74,6 +73,17 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // ── Instant 1-Click Demo Login Handler ──
+  const handleInstantDemoLogin = (demoRole: AuthRole) => {
+    loginAsDemo(demoRole);
+    const redirectMap: Record<string, string> = {
+      FARMER: "/farmer/dashboard",
+      OPERATOR: "/operator/dashboard",
+      ADMIN: "/admin/dashboard",
+    };
+    navigate({ to: redirectMap[demoRole] || "/farmer/dashboard" });
   };
 
   // ── Role Config ──
@@ -203,7 +213,7 @@ export default function LoginPage() {
             Sign in to access your {activeRole.toLowerCase()} account
           </p>
           <p className="login-card-desc">
-            One-click secure authentication with your Google account.
+            One-click secure authentication with your Google account or instant 1-click demo access.
           </p>
 
           {/* Role switcher */}
@@ -227,7 +237,7 @@ export default function LoginPage() {
           {error && <div className="login-error">{error}</div>}
 
           {/* Google Sign In Button */}
-          <div style={{ marginTop: "12px", marginBottom: "20px" }}>
+          <div style={{ marginTop: "12px", marginBottom: "16px" }}>
             <button
               onClick={handleGoogleLogin}
               disabled={isLoading}
@@ -290,27 +300,109 @@ export default function LoginPage() {
             </button>
           </div>
 
+          {/* ── 1-Click Instant Demo Quick Login Row ── */}
+          <div style={{ marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "14px 0 10px 0" }}>
+              <div style={{ flex: 1, height: "1px", background: "#E2E8F0" }} />
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Or 1-Click Instant Login
+              </span>
+              <div style={{ flex: 1, height: "1px", background: "#E2E8F0" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={() => handleInstantDemoLogin("FARMER")}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 6px",
+                  borderRadius: "12px",
+                  background: "#F0FDF4",
+                  border: "1.5px solid #86EFAC",
+                  color: "#166534",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <UserCheck size={18} style={{ marginBottom: "4px" }} />
+                <span>Farmer</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleInstantDemoLogin("OPERATOR")}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 6px",
+                  borderRadius: "12px",
+                  background: "#EFF6FF",
+                  border: "1.5px solid #93C5FD",
+                  color: "#1E40AF",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Building2 size={18} style={{ marginBottom: "4px" }} />
+                <span>Operator</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleInstantDemoLogin("ADMIN")}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "10px 6px",
+                  borderRadius: "12px",
+                  background: "#FAF5FF",
+                  border: "1.5px solid #D8B4FE",
+                  color: "#6B21A8",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <ShieldCheck size={18} style={{ marginBottom: "4px" }} />
+                <span>Admin</span>
+              </button>
+            </div>
+          </div>
+
           {/* Quick Perks */}
           <div
             style={{
               background: "#F8FAFC",
               borderRadius: "14px",
-              padding: "16px",
-              marginBottom: "20px",
+              padding: "14px",
+              marginBottom: "16px",
               border: "1px solid #E2E8F0",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--deep-forest)", fontWeight: 600, fontSize: "13px", marginBottom: "8px" }}>
-              <Sparkles size={15} color="var(--wheat)" />
-              Why Google Sign-In?
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--deep-forest)", fontWeight: 600, fontSize: "12.5px", marginBottom: "6px" }}>
+              <Sparkles size={14} color="var(--wheat)" />
+              Direct 1-Click Access Features:
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "5px" }}>
               {[
-                "Instant 1-click login without waiting for SMS OTP",
-                "Verified profile & secure Google OAuth 2.0 encryption",
-                "Direct sync with your email notifications & procurement receipts",
+                "Instant login without OTP wait time",
+                "Direct entry to live queue & booking dashboard",
+                "Auto-synchronized with verified MSP rates",
               ].map((perk, i) => (
-                <li key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#64748B" }}>
+                <li key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", color: "#64748B" }}>
                   <CheckCircle2 size={13} color="var(--leaf-green)" />
                   <span>{perk}</span>
                 </li>
@@ -320,10 +412,10 @@ export default function LoginPage() {
 
           {/* Trust banner */}
           <div className="login-trust">
-            <Shield size={20} color="#4F7D45" />
+            <Shield size={18} color="#4F7D45" />
             <div>
-              <strong>Your information is safe with us</strong>
-              <p>Government of India & APMC compliant data protection.</p>
+              <strong>Government of India & APMC Compliant</strong>
+              <p>Direct DBT & transparent mandi queue protection.</p>
             </div>
           </div>
 

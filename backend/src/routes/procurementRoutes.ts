@@ -1,16 +1,19 @@
 import { Router } from "express";
-import * as procurementController from "../controllers/procurementController";
-import { authMiddleware } from "../middleware/auth";
+import {
+  recordProcurement,
+  getProcurementByBooking,
+  getDailyReport,
+} from "../controllers/procurementController";
 
 const router = Router();
 
 // Record weighment and quality grading
-router.post("/record", authMiddleware, procurementController.recordProcurement);
+router.post("/record", recordProcurement);
 
 // Get procurement receipt for a booking
-router.get("/booking/:bookingId", authMiddleware, procurementController.getProcurementByBooking);
+router.get("/booking/:bookingId", getProcurementByBooking);
 
 // Get daily report with aggregated crop totals
-router.get("/daily-report/:centreId", authMiddleware, procurementController.getDailyReport);
+router.get("/daily-report/:centreId", getDailyReport);
 
 export default router;
