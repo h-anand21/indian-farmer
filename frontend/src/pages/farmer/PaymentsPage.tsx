@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import PaymentCard, { type PaymentData } from "../../components/farmer/PaymentCard";
-import { IndianRupee, ShieldCheck, RefreshCw, Landmark } from "lucide-react";
+import { Search } from "lucide-react";
 import api from "../../services/api";
 import EmptyState from "../../components/common/EmptyState";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
+import "../../styles/dbtPayments.css";
 
 export const PaymentsPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [payments, setPayments] = useState<PaymentData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [filter, setFilter] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [dateRange, setDateRange] = useState<string>("Last 6 Months");
 
   const fetchPayments = async () => {
     try {
@@ -24,6 +29,7 @@ export const PaymentsPage: React.FC = () => {
             amount: p.amount,
             status: p.status,
             cropName: p.booking?.crop?.name || "Sharbati Wheat",
+            season: p.booking?.crop?.season || "Rabi Season 2026",
             quantity: p.booking?.procurement?.actualWeight || p.booking?.quantity || 45,
             mspRate: p.booking?.procurement?.mspRate || 2275,
             bankAccount: p.bankAccount || "State Bank of India (••••4821)",
@@ -37,7 +43,7 @@ export const PaymentsPage: React.FC = () => {
         throw new Error("Empty list");
       }
     } catch {
-      // Fallback demo data
+      // Demo dataset matching the exact design
       setPayments([
         {
           id: "pay-1",
@@ -45,13 +51,14 @@ export const PaymentsPage: React.FC = () => {
           amount: 103513,
           status: "DISBURSED",
           cropName: "Sharbati Wheat",
-          quantity: 45.5,
+          season: "Rabi Season 2026",
+          quantity: 45,
           mspRate: 2275,
           bankAccount: "State Bank of India (••••4821)",
           utrNumber: "DBT-2026-948210",
           receiptNumber: "PR-KHN-10482",
           disbursedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-          createdAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+          createdAt: new Date(2026, 8, 7).toISOString(),
         },
         {
           id: "pay-2",
@@ -59,13 +66,14 @@ export const PaymentsPage: React.FC = () => {
           amount: 92000,
           status: "PROCESSING",
           cropName: "Basmati Paddy",
-          quantity: 40.0,
+          season: "Kharif Season 2026",
+          quantity: 32,
           mspRate: 2300,
           bankAccount: "Punjab National Bank (••••1903)",
           utrNumber: "DBT-2026-948212",
           receiptNumber: "PR-KHN-10484",
           disbursedAt: null,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(2026, 8, 7).toISOString(),
         },
         {
           id: "pay-3",
@@ -73,13 +81,14 @@ export const PaymentsPage: React.FC = () => {
           amount: 118300,
           status: "PENDING",
           cropName: "Mustard Seed",
-          quantity: 21.0,
+          season: "Rabi Season 2026",
+          quantity: 28,
           mspRate: 5650,
           bankAccount: "State Bank of India (••••4821)",
           utrNumber: null,
           receiptNumber: "PR-KHN-10488",
           disbursedAt: null,
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
+          createdAt: new Date(2026, 8, 6).toISOString(),
         },
       ]);
     } finally {
@@ -92,117 +101,253 @@ export const PaymentsPage: React.FC = () => {
   }, []);
 
   const totalDisbursed = payments
-    .filter((p) => p.status === "DISBURSED" || p.status === "PAID")
+    .filter((p) => ["DISBURSED", "PAID", "COMPLETED"].includes((p.status || "").toUpperCase()))
     .reduce((sum, p) => sum + p.amount, 0);
 
   const totalPending = payments
-    .filter((p) => ["PENDING", "PROCESSING"].includes(p.status))
+    .filter((p) => ["PENDING", "PROCESSING"].includes((p.status || "").toUpperCase()))
     .reduce((sum, p) => sum + p.amount, 0);
 
   const filtered = payments.filter((p) => {
-    if (filter === "ALL") return true;
-    if (filter === "COMPLETED") return p.status === "DISBURSED" || p.status === "PAID";
-    if (filter === "PENDING") return ["PENDING", "PROCESSING"].includes(p.status);
+    const norm = (p.status || "").toUpperCase();
+    if (filter === "COMPLETED" && !(norm === "DISBURSED" || norm === "PAID" || norm === "COMPLETED")) return false;
+    if (filter === "PROCESSING" && norm !== "PROCESSING") return false;
+    if (filter === "PENDING" && norm !== "PENDING") return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (
+        p.cropName.toLowerCase().includes(q) ||
+        p.amount.toString().includes(q) ||
+        (p.utrNumber && p.utrNumber.toLowerCase().includes(q)) ||
+        (p.bankAccount && p.bankAccount.toLowerCase().includes(q))
+      );
+    }
+
     return true;
   });
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Direct DBT Settlements & Receipts
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Government MSP payments transferred directly into your Aadhaar-linked bank account.
-          </p>
-        </div>
-
-        <button
-          onClick={fetchPayments}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs w-fit"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh Payouts
-        </button>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50/50 p-6 shadow-xs">
-          <div className="flex items-center justify-between text-emerald-800">
-            <span className="text-xs font-bold uppercase tracking-wider">Total Received (DBT)</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-              <Landmark size={16} />
+    <div className="dbt-page">
+      <div className="dbt-container">
+        {/* ======================================
+            HEADER
+        ====================================== */}
+        <header className="dbt-header">
+          <div className="dbt-heading">
+            <h1>Direct DBT Settlements &amp; Receipts</h1>
+            <p>Government MSP payments transferred directly into your Aadhaar-linked bank account.</p>
+            <div className="trust-points">
+              <span>&#10003; Transparent Payments</span>
+              <i></i>
+              <span>Secure Transfers</span>
+              <i></i>
+              <span>Farmers First</span>
             </div>
           </div>
-          <p className="mt-3 font-mono text-3xl font-black text-emerald-950">
-            ₹{totalDisbursed.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[11px] text-emerald-700 mt-1 block">
-            100% Guaranteed MSP Rate Payout
-          </span>
-        </div>
 
-        <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/40 p-6 shadow-xs">
-          <div className="flex items-center justify-between text-amber-800">
-            <span className="text-xs font-bold uppercase tracking-wider">In Clearing Pipeline</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-              <IndianRupee size={16} />
+          <div className="header-art">
+            <div className="header-cloud"></div>
+            <div className="header-mountains"></div>
+            <div className="header-fields"></div>
+            <div className="header-tractor">🚜</div>
+            <div className="header-farmer">👨‍🌾</div>
+          </div>
+
+          <div className="phone-art">
+            <span>&#10003;</span>
+            <strong>DBT</strong>
+            <small>Payment<br />Received</small>
+          </div>
+
+          <div className="header-message">
+            Harvest Today<br />Prosper Tomorrow
+          </div>
+        </header>
+
+        {/* ======================================
+            SUMMARY GRID
+        ====================================== */}
+        <div className="summary-grid">
+          {/* Received Card */}
+          <div className="summary-card received">
+            <div className="summary-icon">
+              <svg viewBox="0 0 48 48" className="w-11 h-11" fill="none">
+                <rect width="48" height="48" rx="14" fill="#d3f4e3" />
+                {/* Money bag sack */}
+                <path
+                  d="M24 12C20 12 18 14 17 17L14 34C14 36.5 18 38 24 38C30 38 34 36.5 34 34L31 17C30 14 28 12 24 12Z"
+                  fill="#008c63"
+                />
+                <path d="M20 14C22 15 26 15 28 14" stroke="#d3f4e3" strokeWidth="2" strokeLinecap="round" />
+                <path
+                  d="M21 24H27M24 21V31M21 28C22 29.5 26 29.5 27 28"
+                  stroke="#ffffff"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+            <div className="summary-details">
+              <span>Total Received (DBT)</span>
+              <strong>₹{totalDisbursed.toLocaleString("en-IN")}</strong>
+              <p>100% Guaranteed MSP Rate Payout</p>
+            </div>
+            <div className="growth">&uarr; +12%</div>
+          </div>
+
+          {/* Pipeline Card */}
+          <div className="summary-card pipeline">
+            <div className="summary-icon">
+              <svg viewBox="0 0 48 48" className="w-11 h-11" fill="none">
+                <rect width="48" height="48" rx="14" fill="#ffedbd" />
+                <path
+                  d="M17 14H31M17 34H31M19 14V19C19 21.5 21.5 24 24 24C26.5 24 29 21.5 29 19V14M19 34V29C19 26.5 21.5 24 24 24C26.5 24 29 26.5 29 29V34"
+                  stroke="#e89400"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="24" cy="30" r="2.5" fill="#e89400" />
+              </svg>
+            </div>
+            <div className="summary-details">
+              <span>In Clearing Pipeline</span>
+              <strong>₹{totalPending.toLocaleString("en-IN")}</strong>
+              <p>&#9201; Usually clears in 24&ndash;48 Bank Hours</p>
             </div>
           </div>
-          <p className="mt-3 font-mono text-3xl font-black text-amber-950">
-            ₹{totalPending.toLocaleString("en-IN")}
-          </p>
-          <span className="text-[11px] text-amber-700 mt-1 block">
-            Usually clears in 24–48 Bank Hours
-          </span>
-        </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider">Linked Bank A/c</span>
-            <ShieldCheck size={18} className="text-emerald-600" />
+          {/* Bank Card */}
+          <div className="summary-card bank">
+            <div className="summary-icon">
+              <svg viewBox="0 0 48 48" className="w-11 h-11" fill="none">
+                <rect width="48" height="48" rx="14" fill="#d5e9ff" />
+                <path
+                  d="M14 21V31M20 21V31M28 21V31M34 21V31M12 34H36M24 13L12 18V20H36V18L24 13Z"
+                  stroke="#1675dc"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="summary-details">
+              <span>Linked Bank A/C</span>
+              <strong>SBI &bull;&bull;&bull;&bull;4821</strong>
+              <p>PM-Kisan Aadhaar-Linked Direct Transfer</p>
+            </div>
+            <div className="verified">&#10003; Verified</div>
           </div>
-          <p className="mt-3 font-mono text-lg font-bold text-slate-900">
-            SBI ••••4821
-          </p>
-          <span className="text-[11px] text-slate-400 mt-1 block">
-            PM-Kisan Aadhaar-Linked Direct Transfer
-          </span>
         </div>
-      </div>
 
-      {/* Tabs Filter */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-        {["ALL", "COMPLETED", "PENDING"].map((t) => (
-          <button
-            key={t}
-            onClick={() => setFilter(t)}
-            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-              filter === t
-                ? "bg-slate-900 text-white shadow-xs"
-                : "text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            {t === "ALL" ? "All Payouts" : t === "COMPLETED" ? "Credited (DBT)" : "In Process"}
-          </button>
-        ))}
-      </div>
+        {/* ======================================
+            FILTER BAR
+        ====================================== */}
+        <div className="filter-bar">
+          <div className="filter-tabs">
+            <button
+              className={`filter ${filter === "ALL" ? "active" : ""}`}
+              onClick={() => setFilter("ALL")}
+            >
+              All Payouts ({payments.length})
+            </button>
+            <button
+              className={`filter ${filter === "COMPLETED" ? "active" : ""}`}
+              onClick={() => setFilter("COMPLETED")}
+            >
+              Credited ({payments.filter((p) => ["DISBURSED", "PAID", "COMPLETED"].includes((p.status || "").toUpperCase())).length})
+            </button>
+            <button
+              className={`filter ${filter === "PROCESSING" ? "active" : ""}`}
+              onClick={() => setFilter("PROCESSING")}
+            >
+              In Process ({payments.filter((p) => (p.status || "").toUpperCase() === "PROCESSING").length})
+            </button>
+            <button
+              className={`filter ${filter === "PENDING" ? "active" : ""}`}
+              onClick={() => setFilter("PENDING")}
+            >
+              Pending ({payments.filter((p) => (p.status || "").toUpperCase() === "PENDING").length})
+            </button>
+          </div>
 
-      {/* List */}
-      {filtered.length === 0 ? (
-        <EmptyState
-          title="No Payment Records Found"
-          description="Completed crop procurements will show direct government DBT payout tracking here."
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((payment) => (
-            <PaymentCard key={payment.id} payment={payment} />
-          ))}
+          <div className="filter-actions">
+            <div className="search">
+              <Search size={16} />
+              <input
+                type="text"
+                placeholder="Search by crop, amount, or date..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <button className="date-filter">
+              &#128197; {dateRange} &#9662;
+            </button>
+
+            <button
+              className="refresh"
+              onClick={fetchPayments}
+              disabled={loading}
+            >
+              &#8635; {loading ? "Refreshing..." : "Refresh Payouts"}
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* ======================================
+            PAYOUT LIST
+        ====================================== */}
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="No Payment Records Found"
+            description="Completed crop procurements will show direct government DBT payout tracking here."
+          />
+        ) : (
+          <div className="payout-list">
+            {filtered.map((payment) => (
+              <PaymentCard key={payment.id} payment={payment} />
+            ))}
+          </div>
+        )}
+
+        {/* ======================================
+            DBT GUARANTEE INFO
+        ====================================== */}
+        <div className="dbt-info">
+          <div className="shield">&#128737;</div>
+          <div>
+            <strong>Payments are made directly by Government of India to your Aadhaar-linked bank account under DBT (Direct Benefit Transfer).</strong>
+            <p>For any mismatch or delay, please contact support.</p>
+          </div>
+          <button>&#127911; Need Help? &gt;</button>
+        </div>
+
+        {/* ======================================
+            FOOTER
+        ====================================== */}
+        <footer className="dbt-footer">
+          <div>
+            <span>&#127793;</span>
+            <strong>KisanQueue</strong>
+            <i></i>
+            <span>Department of Agriculture</span>
+            <i></i>
+            <span>Government of India</span>
+          </div>
+
+          <div>
+            <span>Digital Farming</span>
+            <i></i>
+            <span>Prosperous Farmers</span>
+            <i></i>
+            <span>Stronger India</span>
+            <span>&#127793;</span>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

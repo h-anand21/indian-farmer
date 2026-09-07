@@ -111,7 +111,7 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking }) => {
       {/* Gate Pass QR Modal */}
       {showQrModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white p-6 text-center shadow-2xl animate-in zoom-in-95">
+          <div className="relative w-full max-w-sm max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 text-center shadow-2xl animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <span className="text-xs font-bold tracking-wider text-emerald-700 uppercase">
                 Mandi Gate Entry Pass

@@ -27,7 +27,7 @@ export default function MandiStatusModal({ isOpen, onClose }: MandiStatusModalPr
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 10 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="relative w-full max-w-lg bg-[#163A2D] text-white border border-emerald-500/30 rounded-3xl shadow-2xl overflow-hidden p-6"
+          className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto bg-[#163A2D] text-white border border-emerald-500/30 rounded-3xl shadow-2xl p-6"
         >
           {/* Close button */}
           <button

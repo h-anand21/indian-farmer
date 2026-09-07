@@ -1,6 +1,19 @@
 import React, { useState } from "react";
-import { FileText, ShieldCheck, Landmark } from "lucide-react";
-import StatusBadge from "../common/StatusBadge";
+import {
+  FileText,
+  ShieldCheck,
+  Calendar,
+  Tag,
+  Scale,
+  CheckCircle2,
+  RotateCw,
+  Clock,
+  Printer,
+  X,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
+import FormJReceipt from "./FormJReceipt";
 
 export interface PaymentData {
   id: string;
@@ -8,6 +21,7 @@ export interface PaymentData {
   amount: number;
   status: "PENDING" | "PROCESSING" | "DISBURSED" | "FAILED" | string;
   cropName: string;
+  season?: string;
   quantity: number;
   mspRate?: number;
   bankAccount: string;
@@ -21,134 +35,186 @@ interface PaymentCardProps {
   payment: PaymentData;
 }
 
+// High-definition Vector Artwork for Crops matching the user mockup
+const CropVector: React.FC<{ cropName: string }> = ({ cropName }) => {
+  const norm = cropName.toLowerCase();
+  if (norm.includes("wheat") || norm.includes("gehun")) {
+    return (
+      <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none">
+        <rect width="64" height="64" rx="16" fill="#dcf7e9" />
+        <path
+          d="M32 50V14M32 14C29 18 24 20 20 22C24 24 28 24 32 24M32 14C35 18 40 20 44 22C40 24 36 24 32 24M32 24C28 28 23 30 19 32C23 34 28 34 32 34M32 24C36 28 41 30 45 32C41 34 36 34 32 34M32 34C28 38 23 40 20 41C24 43 28 42 32 42M32 34C36 38 41 40 44 41C40 43 36 42 32 42"
+          stroke="#059669"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle cx="21" cy="22" r="2" fill="#10b981" />
+        <circle cx="43" cy="22" r="2" fill="#10b981" />
+        <circle cx="20" cy="32" r="2" fill="#10b981" />
+        <circle cx="44" cy="32" r="2" fill="#10b981" />
+      </svg>
+    );
+  } else if (norm.includes("paddy") || norm.includes("rice") || norm.includes("dhan")) {
+    return (
+      <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none">
+        <rect width="64" height="64" rx="16" fill="#fff4d9" />
+        <path
+          d="M18 48C24 40 32 26 48 16M48 16C43 21 38 28 34 34M48 16C45 25 39 33 30 40M40 22C35 26 31 31 28 37M34 28C30 32 26 37 23 42M26 35C23 39 20 43 18 47"
+          stroke="#d97706"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <ellipse cx="44" cy="19" rx="3" ry="5" transform="rotate(35 44 19)" fill="#f59e0b" />
+        <ellipse cx="37" cy="25" rx="3" ry="5" transform="rotate(35 37 25)" fill="#f59e0b" />
+        <ellipse cx="30" cy="32" rx="3" ry="5" transform="rotate(35 30 32)" fill="#f59e0b" />
+        <ellipse cx="24" cy="39" rx="3" ry="5" transform="rotate(35 24 39)" fill="#f59e0b" />
+      </svg>
+    );
+  } else {
+    // Mustard / Oilseeds
+    return (
+      <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none">
+        <rect width="64" height="64" rx="16" fill="#fff9db" />
+        <path d="M32 20V50" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" />
+        <path d="M32 36C26 32 20 34 16 38C20 40 26 38 32 38" fill="#22c55e" />
+        <path d="M32 42C38 38 44 40 48 44C44 46 38 44 32 44" fill="#22c55e" />
+        {/* Flower petals */}
+        <circle cx="32" cy="18" r="4.5" fill="#eab308" />
+        <circle cx="26" cy="24" r="4" fill="#facc15" />
+        <circle cx="38" cy="24" r="4" fill="#facc15" />
+        <circle cx="32" cy="28" r="4" fill="#eab308" />
+        <circle cx="32" cy="23" r="2.5" fill="#ca8a04" />
+      </svg>
+    );
+  }
+};
+
 export const PaymentCard: React.FC<PaymentCardProps> = ({ payment }) => {
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
 
-  const isDisbursed = payment.status === "DISBURSED" || payment.status === "PAID";
+  const norm = (payment.status || "").toUpperCase();
+  const isDisbursed = norm === "DISBURSED" || norm === "PAID" || norm === "COMPLETED";
+  const isProcessing = norm === "PROCESSING";
+
+  const statusClass = isDisbursed ? "credited" : isProcessing ? "processing" : "pending";
+
+  const seasonText =
+    payment.season ||
+    (payment.cropName.toLowerCase().includes("wheat") || payment.cropName.toLowerCase().includes("mustard")
+      ? "Rabi Season 2026"
+      : "Kharif Season 2026");
 
   return (
     <>
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md transition">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-                isDisbursed
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-amber-100 text-amber-700"
-              }`}
-            >
-              <Landmark size={22} />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                Govt MSP Direct Bank Transfer
-              </span>
-              <h4 className="text-base font-bold text-slate-900">{payment.cropName}</h4>
-            </div>
+      <div className={`payout-card ${statusClass}`}>
+        {/* 1. Crop Section */}
+        <div className="crop-section">
+          <div className="crop-icon">
+            <CropVector cropName={payment.cropName} />
           </div>
-
-          <StatusBadge status={payment.status} size="md" />
-        </div>
-
-        {/* Amount & Bank Details */}
-        <div className="my-4 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-          <div>
-            <span className="text-xs text-slate-500">Net Settlement Amount</span>
-            <div className="font-mono text-2xl sm:text-3xl font-black text-slate-900">
-              ₹{payment.amount?.toLocaleString("en-IN")}
-            </div>
-          </div>
-
-          <div className="text-left sm:text-right text-xs">
-            <span className="text-slate-400 block">Credited to A/c:</span>
-            <span className="font-mono font-bold text-slate-800">{payment.bankAccount || "••••4821"}</span>
-            {payment.utrNumber && (
-              <span className="font-mono text-[11px] text-emerald-600 block">
-                UTR: {payment.utrNumber}
+          <div className="crop-info">
+            <span className="government-label">Govt MSP Direct Bank Transfer</span>
+            <h2>{payment.cropName}</h2>
+            <div className="crop-meta">
+              <span>
+                <Calendar size={13} style={{ display: "inline", verticalAlign: "middle" }} /> Initiated on{" "}
+                {new Date(payment.createdAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
               </span>
-            )}
+              <span>
+                <Tag size={12} style={{ display: "inline", verticalAlign: "middle" }} /> {seasonText}
+              </span>
+              <span>
+                <Scale size={12} style={{ display: "inline", verticalAlign: "middle" }} /> {payment.quantity} Qtl
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-          <span className="text-slate-400">
-            {payment.disbursedAt
-              ? `Credited on ${new Date(payment.disbursedAt).toLocaleDateString("en-IN")}`
-              : `Initiated on ${new Date(payment.createdAt).toLocaleDateString("en-IN")}`}
-          </span>
+        {/* 2. Settlement Section */}
+        <div className="settlement-section">
+          <div className="status-line">
+            <span className="status-badge">
+              {isDisbursed ? (
+                <>
+                  <CheckCircle2 size={13} /> DBT Credited
+                </>
+              ) : isProcessing ? (
+                <>
+                  <RotateCw size={12} className="animate-spin" /> Processing
+                </>
+              ) : (
+                <>
+                  <Clock size={12} /> Pending
+                </>
+              )}
+            </span>
+            <p>
+              {isDisbursed
+                ? "Payment successfully transferred"
+                : isProcessing
+                ? "Payment under processing"
+                : "Payment yet to be credited"}
+            </p>
+          </div>
 
-          <button
-            onClick={() => setShowReceiptModal(true)}
-            className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:text-emerald-800"
-          >
-            <FileText size={13} /> View J-Form Receipt
+          <span className="amount-label">Net Settlement Amount</span>
+          <strong className="settlement-amount">₹{payment.amount?.toLocaleString("en-IN")}</strong>
+        </div>
+
+        {/* 3. Bank Section */}
+        <div className="bank-section">
+          <span>Credited to A/c</span>
+          <strong>{payment.bankAccount || "State Bank of India (••••4821)"}</strong>
+          <b>UTR: {payment.utrNumber || "--"}</b>
+        </div>
+
+        {/* 4. Receipt Action Button */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>
+          <button className="receipt-button" onClick={() => setShowReceiptModal(true)}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <FileText size={15} />
+              View J-Form Receipt
+            </span>
+            <ChevronRight size={16} />
+          </button>
+
+          <button className="payout-more" title="More options">
+            &#8942;
           </button>
         </div>
       </div>
 
-      {/* J-Form Official Receipt Modal */}
+      {/* Official Form J APMC Mandi Modal */}
       {showReceiptModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white p-6 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={18} className="text-emerald-600" />
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-900">
-                  Form J — Mandi Payout Receipt
-                </span>
-              </div>
-              <button
-                onClick={() => setShowReceiptModal(false)}
-                className="h-7 w-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="my-5 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 text-center">
-              <span className="text-xs text-emerald-800 font-semibold uppercase">
-                Govt MSP Disbursement Completed
-              </span>
-              <h2 className="mt-1 font-mono text-3xl font-black text-emerald-950">
-                ₹{payment.amount?.toLocaleString("en-IN")}
-              </h2>
-              <p className="font-mono text-xs text-slate-500 mt-1">
-                Ref UTR: {payment.utrNumber || "DBT-2026-948210"}
-              </p>
-            </div>
-
-            <div className="space-y-2.5 text-xs text-slate-700">
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-400">Crop Procured:</span>
-                <span className="font-bold">{payment.cropName}</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-400">Weighed Quantity:</span>
-                <span className="font-mono font-bold">{payment.quantity || 45} Quintals</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-400">MSP Benchmark Rate:</span>
-                <span className="font-mono font-bold">₹{payment.mspRate || 2275} / Qtl</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-100 pb-1.5">
-                <span className="text-slate-400">Beneficiary Bank A/c:</span>
-                <span className="font-mono font-bold">{payment.bankAccount || "State Bank of India (••••4821)"}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Receipt ID:</span>
-                <span className="font-mono font-bold">{payment.receiptNumber || "PR-KHN-10482"}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowReceiptModal(false)}
-              className="mt-6 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800"
-            >
-              Close Receipt
-            </button>
-          </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0">
+          <FormJReceipt
+            data={{
+              cropName: payment.cropName,
+              weight: payment.quantity,
+              mspRate: payment.mspRate,
+              receiptNumber: payment.receiptNumber,
+              bankAccount: payment.bankAccount,
+              totalAmount: payment.amount,
+              utrNumber: payment.utrNumber || undefined,
+              settlementTimestamp: payment.disbursedAt
+                ? new Date(payment.disbursedAt).toLocaleString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  })
+                : undefined,
+            }}
+            onClose={() => setShowReceiptModal(false)}
+          />
         </div>
       )}
     </>
