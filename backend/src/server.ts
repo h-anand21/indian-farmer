@@ -43,11 +43,14 @@ import bookingRoutes from "./routes/bookingRoutes";
 import queueRoutes from "./routes/queueRoutes";
 import operatorRoutes from "./routes/operatorRoutes";
 import adminRoutes from "./routes/adminRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
+
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/queue", queueRoutes);
 app.use("/api/operator", operatorRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ── Error Handler (must be last middleware) ──
 app.use(errorHandler);
