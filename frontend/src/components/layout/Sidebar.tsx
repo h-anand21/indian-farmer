@@ -154,8 +154,12 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
 
           {!isCollapsed && (
             <div className="sidebar-user-info flex-1 min-w-0">
-              <span className="sidebar-user-name truncate">{user?.name || "Farmer"}</span>
-              <span className="sidebar-user-role">{role || "FARMER"}</span>
+              <div className="sidebar-user-name truncate" title={user?.name || "Farmer"}>
+                {user?.name || "Farmer"}
+              </div>
+              <div className="sidebar-user-role">
+                {role || "FARMER"}
+              </div>
             </div>
           )}
 
@@ -163,7 +167,8 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
             <button
               className="sidebar-logout-btn shrink-0"
               onClick={handleLogout}
-              title="Sign Out"
+              title="Sign Out / Log Out"
+              aria-label="Sign out"
             >
               <LogOut size={16} />
             </button>
