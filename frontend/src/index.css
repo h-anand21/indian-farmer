@@ -12,6 +12,7 @@
 @import "./styles/booking.css";
 @import "./styles/queue.css";
 @import "./styles/operator.css";
+@import "./styles/admin.css";
 
 /* ── Tailwind v4 ── */
 @import "tailwindcss";

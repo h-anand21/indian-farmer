@@ -18,6 +18,9 @@ import OperatorCheckInPage from "./pages/operator/OperatorCheckInPage";
 import OperatorIntakePage from "./pages/operator/OperatorIntakePage";
 import OperatorPaymentsPage from "./pages/operator/OperatorPaymentsPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminCentresPage from "./pages/admin/AdminCentresPage";
+import AdminCropsPage from "./pages/admin/AdminCropsPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
 
 // ══════════════════════════════════════════════
@@ -359,10 +362,7 @@ const adminCentresRoute = createRoute({
   path: "/admin/centres",
   component: () => (
     <ProtectedRoute allowedRoles={["ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>🏢 Procurement Centre Management</h2>
-        <p style={{ color: "#64748B" }}>Phase 5 feature — Centre setup, weighbridge capacity, operating hours.</p>
-      </div>
+      <AdminCentresPage />
     </ProtectedRoute>
   ),
 });
@@ -372,10 +372,7 @@ const adminCropsRoute = createRoute({
   path: "/admin/crops",
   component: () => (
     <ProtectedRoute allowedRoles={["ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>🌾 Crop & MSP Price Config</h2>
-        <p style={{ color: "#64748B" }}>Phase 5 feature — MSP rates, daily limits, FAQ config.</p>
-      </div>
+      <AdminCropsPage />
     </ProtectedRoute>
   ),
 });
@@ -385,10 +382,7 @@ const adminUsersRoute = createRoute({
   path: "/admin/users",
   component: () => (
     <ProtectedRoute allowedRoles={["ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>👥 User Directory & Role Assignment</h2>
-        <p style={{ color: "#64748B" }}>Phase 5 feature — Assign operator roles, verify farmers.</p>
-      </div>
+      <AdminUsersPage />
     </ProtectedRoute>
   ),
 });
