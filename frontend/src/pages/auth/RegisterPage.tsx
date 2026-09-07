@@ -13,26 +13,15 @@ import {
   ArrowLeft,
   Loader2,
   ShieldCheck,
+  Navigation,
+  Compass,
 } from "lucide-react";
-
-// ── Indian States for Procurement ──
-const INDIAN_STATES = [
-  "Punjab",
-  "Haryana",
-  "Madhya Pradesh",
-  "Uttar Pradesh",
-  "Rajasthan",
-  "Maharashtra",
-  "Gujarat",
-  "Bihar",
-  "Chhattisgarh",
-  "Odisha",
-  "Telangana",
-  "Andhra Pradesh",
-  "Karnataka",
-  "Tamil Nadu",
-  "West Bengal",
-];
+import {
+  getAllStatesAndUTs,
+  getDistrictsForState,
+  getCurrentBrowserCoordinates,
+  reverseGeocodeCoords,
+} from "@/lib/indiaGeoData";
 
 export default function RegisterPage() {
   const { firebaseUser, isRegistered, role, setUser } = useAuth();
@@ -71,6 +60,54 @@ export default function RegisterPage() {
     ownershipType: "OWNER",
     agreeTerms: false,
   });
+
+  const [isDetectingGps, setIsDetectingGps] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsAddressMsg, setGpsAddressMsg] = useState<string | null>(null);
+
+  const allStatesAndUTs = getAllStatesAndUTs();
+  const availableDistricts = getDistrictsForState(formData.state);
+
+  // Auto-detect GPS location via browser + Google Maps reverse geocoder
+  const handleDetectLocation = async () => {
+    try {
+      setIsDetectingGps(true);
+      setError("");
+      toast.info("Accessing GPS sensor...");
+
+      const coords = await getCurrentBrowserCoordinates();
+      setGpsCoords({ lat: coords.latitude, lng: coords.longitude });
+
+      toast.info("Resolving address via Google Geocoding...");
+      const geo = await reverseGeocodeCoords(coords.latitude, coords.longitude);
+
+      if (geo.state) {
+        updateField("state", geo.state);
+      }
+      if (geo.district) {
+        updateField("district", geo.district);
+      }
+      if (geo.tehsil) {
+        updateField("tehsil", geo.tehsil);
+      }
+      if (geo.village) {
+        updateField("village", geo.village);
+      }
+      if (geo.pincode) {
+        updateField("pincode", geo.pincode);
+      }
+
+      const summary = geo.formattedAddress || `${geo.district || ""}, ${geo.state || ""}`;
+      setGpsAddressMsg(summary);
+      toast.success("Location auto-detected successfully!");
+    } catch (err: any) {
+      console.error("GPS error:", err);
+      setError("Could not detect GPS coordinates. Please select State & District manually.");
+      toast.error("GPS detection failed. Please select manually.");
+    } finally {
+      setIsDetectingGps(false);
+    }
+  };
 
   // Sync Google User profile when loaded
   useEffect(() => {
@@ -317,37 +354,122 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.25 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-                  <MapPin size={20} color="var(--leaf-green)" />
-                  <h3 style={{ fontSize: "17px", fontWeight: 700, color: "var(--deep-forest)" }}>
-                    Location & Land Details
-                  </h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <MapPin size={20} color="var(--leaf-green)" />
+                    <h3 style={{ fontSize: "17px", fontWeight: 700, color: "var(--deep-forest)", margin: 0 }}>
+                      Farm Location & Land Details
+                    </h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDetectLocation}
+                    disabled={isDetectingGps}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "rgba(79, 125, 69, 0.12)",
+                      color: "var(--deep-forest)",
+                      border: "1px solid var(--leaf-green)",
+                      borderRadius: "10px",
+                      padding: "7px 14px",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      cursor: isDetectingGps ? "not-allowed" : "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {isDetectingGps ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" /> Detecting GPS...
+                      </>
+                    ) : (
+                      <>
+                        <Navigation size={14} color="var(--leaf-green)" /> 📍 Auto-Detect My Location
+                      </>
+                    )}
+                  </button>
                 </div>
+
+                {/* GPS Live Coordinates Banner */}
+                {gpsCoords && (
+                  <div
+                    style={{
+                      background: "#f0fdf4",
+                      border: "1px solid #bbf7d0",
+                      borderRadius: "10px",
+                      padding: "10px 14px",
+                      marginBottom: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      fontSize: "12px",
+                      color: "#166534",
+                    }}
+                  >
+                    <Compass size={16} color="#16a34a" />
+                    <div>
+                      <strong>GPS Location Verified:</strong> Lat {gpsCoords.lat.toFixed(4)}°, Lng {gpsCoords.lng.toFixed(4)}°
+                      {gpsAddressMsg && <div style={{ color: "#4b5563", fontSize: "11px", marginTop: "2px" }}>{gpsAddressMsg}</div>}
+                    </div>
+                  </div>
+                )}
 
                 <div className="form-grid-2">
                   <div className="wizard-field">
-                    <label>State *</label>
+                    <label>State / Union Territory *</label>
                     <select
                       value={formData.state}
-                      onChange={(e) => updateField("state", e.target.value)}
+                      onChange={(e) => {
+                        updateField("state", e.target.value);
+                        updateField("district", "");
+                      }}
                     >
-                      {INDIAN_STATES.map((st) => (
-                        <option key={st} value={st}>
-                          {st}
-                        </option>
-                      ))}
+                      <optgroup label="── 28 States ──">
+                        {allStatesAndUTs
+                          .filter((s) => s.type === "STATE")
+                          .map((st) => (
+                            <option key={st.name} value={st.name}>
+                              {st.name}
+                            </option>
+                          ))}
+                      </optgroup>
+                      <optgroup label="── 8 Union Territories ──">
+                        {allStatesAndUTs
+                          .filter((s) => s.type === "UT")
+                          .map((ut) => (
+                            <option key={ut.name} value={ut.name}>
+                              {ut.name} (UT)
+                            </option>
+                          ))}
+                      </optgroup>
                     </select>
                   </div>
 
                   <div className="wizard-field">
                     <label>District *</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Ludhiana"
-                      value={formData.district}
-                      onChange={(e) => updateField("district", e.target.value)}
-                      autoFocus
-                    />
+                    {availableDistricts.length > 0 ? (
+                      <select
+                        value={formData.district}
+                        onChange={(e) => updateField("district", e.target.value)}
+                      >
+                        <option value="">-- Select District ({formData.state}) --</option>
+                        {availableDistricts.map((dist) => (
+                          <option key={dist} value={dist}>
+                            {dist}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Enter your district"
+                        value={formData.district}
+                        onChange={(e) => updateField("district", e.target.value)}
+                      />
+                    )}
                   </div>
                 </div>
 

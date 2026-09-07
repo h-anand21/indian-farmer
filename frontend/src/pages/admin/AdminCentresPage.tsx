@@ -12,6 +12,8 @@ import {
   MapPin,
   Clock,
   Users,
+  Navigation,
+  Loader2,
 } from "lucide-react";
 import {
   fetchAdminCentres,
@@ -19,6 +21,12 @@ import {
   generateAdminSlots,
   type AdminCentre,
 } from "@/services/adminService";
+import {
+  getAllStatesAndUTs,
+  getDistrictsForState,
+  getCurrentBrowserCoordinates,
+  reverseGeocodeCoords,
+} from "@/lib/indiaGeoData";
 
 export default function AdminCentresPage() {
   const navigate = useNavigate();
@@ -33,6 +41,7 @@ export default function AdminCentresPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedCentreForSlots, setSelectedCentreForSlots] = useState<AdminCentre | null>(null);
+  const [isDetectingGps, setIsDetectingGps] = useState(false);
 
   // Add Centre Form State
   const [formData, setFormData] = useState({
@@ -41,10 +50,44 @@ export default function AdminCentresPage() {
     address: "",
     district: "Ludhiana",
     state: "Punjab",
+    latitude: 30.7068,
+    longitude: 76.2163,
     totalCounters: 4,
     operatingHoursStart: "08:00",
     operatingHoursEnd: "18:00",
   });
+
+  const allStatesAndUTs = getAllStatesAndUTs();
+  const availableDistricts = getDistrictsForState(formData.state);
+
+  const handleDetectCentreGps = async () => {
+    try {
+      setIsDetectingGps(true);
+      const coords = await getCurrentBrowserCoordinates();
+      setFormData((prev) => ({
+        ...prev,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      }));
+
+      const geo = await reverseGeocodeCoords(coords.latitude, coords.longitude);
+      if (geo.state) {
+        setFormData((prev) => ({ ...prev, state: geo.state || prev.state }));
+      }
+      if (geo.district) {
+        setFormData((prev) => ({ ...prev, district: geo.district || prev.district }));
+      }
+      if (geo.formattedAddress) {
+        setFormData((prev) => ({ ...prev, address: geo.formattedAddress || prev.address }));
+      }
+      setNotification(`GPS Coordinates detected: ${coords.latitude}, ${coords.longitude}`);
+    } catch (err: any) {
+      console.warn(err);
+      alert("Could not access GPS sensor. Please enter coordinates manually.");
+    } finally {
+      setIsDetectingGps(false);
+    }
+  };
 
   // Slot Generator State
   const [slotGenData, setSlotGenData] = useState({
@@ -90,6 +133,8 @@ export default function AdminCentresPage() {
         address: "",
         district: "Ludhiana",
         state: "Punjab",
+        latitude: 30.7068,
+        longitude: 76.2163,
         totalCounters: 4,
         operatingHoursStart: "08:00",
         operatingHoursEnd: "18:00",
@@ -386,6 +431,33 @@ export default function AdminCentresPage() {
                 </div>
               </div>
 
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                <div style={{ fontSize: "12px", color: "#475569" }}>
+                  <strong>GIS Coordinates:</strong> {formData.latitude.toFixed(4)}° N, {formData.longitude.toFixed(4)}° E
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDetectCentreGps}
+                  disabled={isDetectingGps}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "#f3e8ff",
+                    color: "#7e22ce",
+                    border: "1px solid #d8b4fe",
+                    borderRadius: "8px",
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: isDetectingGps ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {isDetectingGps ? <Loader2 size={13} className="animate-spin" /> : <Navigation size={13} />}
+                  📍 Auto-Detect GPS
+                </button>
+              </div>
+
               <div>
                 <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Address / Location</label>
                 <input
@@ -400,22 +472,86 @@ export default function AdminCentresPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>District</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>State / UT *</label>
+                  <select
+                    value={formData.state}
+                    onChange={(e) => {
+                      const newSt = e.target.value;
+                      const dists = getDistrictsForState(newSt);
+                      setFormData({
+                        ...formData,
+                        state: newSt,
+                        district: dists.length > 0 ? dists[0] : "",
+                      });
+                    }}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
+                  >
+                    <optgroup label="── 28 States ──">
+                      {allStatesAndUTs
+                        .filter((s) => s.type === "STATE")
+                        .map((st) => (
+                          <option key={st.name} value={st.name}>
+                            {st.name}
+                          </option>
+                        ))}
+                    </optgroup>
+                    <optgroup label="── 8 Union Territories ──">
+                      {allStatesAndUTs
+                        .filter((s) => s.type === "UT")
+                        .map((ut) => (
+                          <option key={ut.name} value={ut.name}>
+                            {ut.name} (UT)
+                          </option>
+                        ))}
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>District *</label>
+                  {availableDistricts.length > 0 ? (
+                    <select
+                      value={formData.district}
+                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                      style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
+                    >
+                      {availableDistricts.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter district"
+                      value={formData.district}
+                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                      style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>GIS Latitude</label>
                   <input
-                    type="text"
-                    required
-                    value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                    type="number"
+                    step="0.0001"
+                    value={formData.latitude}
+                    onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>State</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>GIS Longitude</label>
                   <input
-                    type="text"
-                    required
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    type="number"
+                    step="0.0001"
+                    value={formData.longitude}
+                    onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
