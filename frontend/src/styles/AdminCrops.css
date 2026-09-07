@@ -1,0 +1,736 @@
+/* ══════════════════════════════════════════════
+   KISANQUEUE — GOVERNMENT CROP MASTER & MSP PRICING ENGINE
+   Pixel-Perfect Layout & Zero-Overlap Responsive CSS
+   ══════════════════════════════════════════════ */
+
+.crops-page {
+  width: 100%;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 12px 20px 36px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #071739;
+  box-sizing: border-box;
+}
+
+/* ── Top Government of India Header Banner ── */
+.gov-brand-strip {
+  background: #004b38;
+  border-radius: 12px 12px 0 0;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 3;
+}
+
+.gov-brand-emblem {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4ade80;
+  flex-shrink: 0;
+}
+
+.gov-brand-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.gov-brand-sub {
+  font-size: 11px;
+  color: #d1fae5;
+  margin-top: 1px;
+}
+
+/* ── Hero Banner ── */
+.crops-hero-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 52%, #f4fbf7 100%);
+  border: 1px solid #c9ebd8;
+  border-radius: 0 0 18px 18px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 75, 56, 0.04);
+}
+
+.crops-hero-title-area {
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 2;
+}
+
+.crops-hero-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #071739;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.crops-hero-title .highlight-green {
+  color: #007653;
+}
+
+.crops-hero-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+.crops-hero-body {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  gap: 20px;
+}
+
+/* 4 Stats Mini-Cards inside Hero — Zero-Overlap Flex/Grid */
+.crops-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.crops-stat-card {
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.crops-stat-card:hover {
+  border-color: #a7f3d0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 75, 56, 0.06);
+}
+
+.crops-stat-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crops-stat-icon-box.green { background: #e6f7ef; color: #007653; }
+.crops-stat-icon-box.gold { background: #fef3c7; color: #d97706; }
+.crops-stat-icon-box.farmer { background: #e0f2fe; color: #0284c7; }
+.crops-stat-icon-box.amber { background: #fffbeb; color: #b45309; }
+
+.crops-stat-content {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.crops-stat-label {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.crops-stat-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: #071739;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 2px 0 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crops-stat-sub {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+/* Right Artwork & Season Card */
+.crops-hero-right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.crops-hero-slogan {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #004b38;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.crops-season-card {
+  background: #ffffff;
+  border: 1px solid #c8ebd8;
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 210px;
+  box-sizing: border-box;
+}
+
+.crops-season-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.crops-season-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crops-season-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.crops-season-sub {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.crops-btn-refresh-rates {
+  width: 100%;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s;
+}
+
+.crops-btn-refresh-rates:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.crops-updated-text {
+  font-size: 9.5px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.crops-floating-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #004b38;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Search & Filter Bar ── */
+.crops-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.crops-filter-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 700px;
+  flex-wrap: wrap;
+}
+
+.crops-search-box {
+  position: relative;
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.crops-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.crops-search-input {
+  width: 100%;
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 10px;
+  padding: 0 14px 0 36px;
+  font-size: 12.5px;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.crops-search-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.crops-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.crops-select-icon {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.crops-select {
+  height: 38px;
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 10px;
+  padding: 0 26px 0 30px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.crops-select:focus {
+  border-color: #10b981;
+}
+
+.crops-select-chevron {
+  position: absolute;
+  right: 10px;
+  color: #64748b;
+  pointer-events: none;
+  font-size: 10px;
+}
+
+.crops-view-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.crops-btn-table-view {
+  height: 38px;
+  padding: 0 14px;
+  background: #004b38;
+  color: #ffffff;
+  border: 1px solid #004b38;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 75, 56, 0.2);
+  transition: all 0.15s ease;
+}
+
+.crops-btn-card-view {
+  height: 38px;
+  padding: 0 14px;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #dce8ef;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crops-btn-card-view:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* ── Crop Table with Dark Green Header ── */
+.crops-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  margin-bottom: 20px;
+}
+
+.crops-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.crops-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.crops-table th {
+  background: #004b38;
+  color: #ffffff;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: none;
+}
+
+.crops-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 12.5px;
+}
+
+.crops-table tr:hover {
+  background: #fbfdfc;
+}
+
+.crops-col-num {
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  width: 36px;
+}
+
+/* Crop Name & Icon */
+.crops-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crop-icon-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.crop-icon-avatar.wheat { background: #fefce8; border-color: #fde047; }
+.crop-icon-avatar.paddy { background: #fffbeb; border-color: #fcd34d; }
+.crop-icon-avatar.mustard { background: #fef9c3; border-color: #facc15; }
+.crop-icon-avatar.cotton { background: #f8fafc; border-color: #e2e8f0; }
+.crop-icon-avatar.maize { background: #fef08a; border-color: #eab308; }
+
+.crop-name-text {
+  font-size: 13px;
+  font-weight: 800;
+  color: #071739;
+  line-height: 1.25;
+}
+
+.crop-code-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Season Pills */
+.crop-season-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.crop-season-pill.rabi {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.crop-season-pill.kharif {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Government MSP column */
+.crop-msp-val {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #007653;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.crop-msp-unit {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.crop-msp-increase {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  margin-top: 1px;
+}
+
+/* Limits & Values */
+.crop-limit-val {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.crop-farmers-val {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.crop-produce-val {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #071739;
+}
+
+/* Actions Column */
+.crops-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crops-btn-update-msp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #e6f7ef;
+  color: #007653;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crops-btn-update-msp:hover {
+  background: #d1fae5;
+  border-color: #059669;
+}
+
+.crops-btn-menu {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.crops-btn-menu:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ── Grid View Mode ── */
+.crops-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.crop-grid-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.crop-grid-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 75, 56, 0.08);
+  border-color: #a7f3d0;
+}
+
+.crop-grid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.crop-grid-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+}
+
+.crop-grid-lbl { color: #64748b; }
+.crop-grid-val { font-weight: 700; color: #071739; }
+
+/* ── Bottom 4 Trust Badges ── */
+.crops-trust-footer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.crops-trust-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.crops-trust-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #e6f7ef;
+  color: #007653;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crops-trust-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.crops-trust-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .crops-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .crops-hero-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .crops-stats-grid {
+    width: 100%;
+  }
+  .crops-trust-footer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .crops-page {
+    padding: 10px 12px 28px;
+  }
+  .crops-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .crops-trust-footer {
+    grid-template-columns: 1fr;
+  }
+  .crops-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .crops-filter-left {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

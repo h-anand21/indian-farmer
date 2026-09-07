@@ -1,0 +1,891 @@
+/* ═════════════════════════════════════════════════════════════
+   KISANQUEUE — USER DIRECTORY & ROLE-BASED ACCESS CONTROL (RBAC)
+   Pixel-Perfect Layout Matching Reference UI
+   ═════════════════════════════════════════════════════════════ */
+
+.rbac-page {
+  width: 100%;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 16px 24px 40px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #071739;
+  box-sizing: border-box;
+}
+
+/* ── Top Header Section ── */
+.rbac-header-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.rbac-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rbac-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #e6f7ef;
+  color: #007653;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #bbf7d0;
+}
+
+.rbac-header-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: #071739;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.rbac-header-sub {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 4px 0 0 0;
+}
+
+/* Header Right Banner */
+.rbac-header-banner {
+  background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 75, 56, 0.03);
+}
+
+.rbac-header-banner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #007653;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rbac-header-banner-text {
+  min-width: 0;
+}
+
+.rbac-header-banner-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #064e3b;
+  line-height: 1.2;
+}
+
+.rbac-header-banner-sub {
+  font-size: 11px;
+  color: #047857;
+  margin-top: 2px;
+}
+
+.rbac-header-banner-leaf {
+  color: #86efac;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  margin-left: 6px;
+}
+
+/* ── Stat Cards + Add User Button Row ── */
+.rbac-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.rbac-stat-card {
+  flex: 1 1 200px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+  min-width: 0;
+  position: relative;
+}
+
+.rbac-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
+}
+
+.rbac-stat-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rbac-stat-icon-box.green { background: #e6f7ef; color: #007653; }
+.rbac-stat-icon-box.blue { background: #e0f2fe; color: #0284c7; }
+.rbac-stat-icon-box.amber { background: #fef3c7; color: #d97706; }
+.rbac-stat-icon-box.purple { background: #f3e8ff; color: #7c3aed; }
+
+.rbac-stat-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.rbac-stat-label {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rbac-stat-val {
+  font-size: 22px;
+  font-weight: 900;
+  color: #071739;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 1px 0;
+}
+
+.rbac-stat-sub {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rbac-stat-sub.green {
+  color: #15803d;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.rbac-stat-sparkline {
+  margin-left: auto;
+  color: #22c55e;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Add User Button */
+.rbac-btn-add-user {
+  height: 64px;
+  padding: 0 24px;
+  background: #004b38;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 75, 56, 0.25);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.rbac-btn-add-user:hover {
+  background: #003a2b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 75, 56, 0.35);
+}
+
+/* ── Filter Toolbar ── */
+.rbac-filter-toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.rbac-search-box {
+  position: relative;
+  flex: 1 1 300px;
+  min-width: 220px;
+}
+
+.rbac-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+}
+
+.rbac-search-input {
+  width: 100%;
+  height: 40px;
+  background: transparent;
+  border: none;
+  padding: 0 12px 0 38px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.rbac-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.rbac-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rbac-dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.rbac-dropdown-icon {
+  position: absolute;
+  left: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.rbac-dropdown-dot {
+  position: absolute;
+  left: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #334155;
+  pointer-events: none;
+}
+
+.rbac-dropdown {
+  height: 38px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 32px 0 34px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  transition: all 0.15s;
+}
+
+.rbac-dropdown:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+.rbac-dropdown-chevron {
+  position: absolute;
+  right: 12px;
+  color: #64748b;
+  pointer-events: none;
+  font-size: 10px;
+}
+
+.rbac-btn-clear {
+  height: 38px;
+  padding: 0 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rbac-btn-clear:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ── Directory Table Card ── */
+.rbac-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  margin-bottom: 20px;
+}
+
+.rbac-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.rbac-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.rbac-table th {
+  background: #ffffff;
+  color: #64748b;
+  padding: 14px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rbac-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  font-size: 12.5px;
+}
+
+.rbac-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rbac-table tr:hover {
+  background: #fbfdfc;
+}
+
+.rbac-col-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  width: 40px;
+}
+
+/* User Identity Cell */
+.rbac-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rbac-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.rbac-avatar.blue { background: #e0f2fe; color: #0284c7; }
+.rbac-avatar.green { background: #dcfce7; color: #16a34a; }
+.rbac-avatar.rose { background: #ffe4e6; color: #e11d48; }
+.rbac-avatar.purple { background: #f3e8ff; color: #9333ea; }
+.rbac-avatar.amber { background: #fef3c7; color: #d97706; }
+
+.rbac-user-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #071739;
+  line-height: 1.25;
+}
+
+.rbac-user-joined {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Contact Info Cell */
+.rbac-contact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+}
+
+.rbac-contact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+}
+
+.rbac-contact-item.email {
+  color: #334155;
+  font-weight: 500;
+}
+
+.rbac-contact-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Role Badges */
+.rbac-role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rbac-role-pill.operator {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.rbac-role-pill.farmer {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.rbac-role-pill.admin {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+/* Affiliation / Profile Cell */
+.rbac-affil-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rbac-affil-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rbac-affil-sub {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Status Pill */
+.rbac-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rbac-status-pill.active {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.rbac-status-pill.active .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.rbac-status-pill.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.rbac-status-pill.inactive .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+/* Action Buttons */
+.rbac-actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rbac-btn-assign-role {
+  height: 32px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 8px;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rbac-btn-assign-role:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.rbac-btn-dots {
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 8px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rbac-btn-dots:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* ── Pagination Footer ── */
+.rbac-pagination-bar {
+  padding: 14px 20px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rbac-pagination-info {
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.rbac-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rbac-page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rbac-page-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.rbac-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rbac-page-btn.active {
+  background: #004b38;
+  color: #ffffff;
+  border-color: #004b38;
+}
+
+/* ── Bottom Security & Trust Footer ── */
+.rbac-trust-footer {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.rbac-trust-items {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.rbac-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rbac-trust-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #e6f7ef;
+  color: #007653;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rbac-trust-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.rbac-trust-sub {
+  font-size: 10.5px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.rbac-trust-divider {
+  width: 1px;
+  height: 28px;
+  background: #e2e8f0;
+}
+
+.rbac-trust-slogan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #004b38;
+  margin-left: auto;
+}
+
+/* ── Modal Dialog Styles ── */
+.rbac-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.rbac-modal-content {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: rbacModalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes rbacModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.rbac-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+}
+
+.rbac-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.rbac-modal-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+}
+
+.rbac-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.rbac-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rbac-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rbac-form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.rbac-form-input,
+.rbac-form-select {
+  height: 40px;
+  border: 1px solid #dce8ef;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+
+.rbac-form-input:focus,
+.rbac-form-select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+.rbac-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8fafc;
+}
+
+.rbac-btn-cancel {
+  height: 38px;
+  padding: 0 16px;
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rbac-btn-save {
+  height: 38px;
+  padding: 0 20px;
+  background: #004b38;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 75, 56, 0.2);
+}
+
+.rbac-btn-save:hover {
+  background: #00382a;
+}
+
+/* ── Responsive Rules ── */
+@media (max-width: 1200px) {
+  .rbac-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .rbac-trust-divider {
+    display: none;
+  }
+  .rbac-trust-items {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rbac-page {
+    padding: 12px 14px 28px;
+  }
+  .rbac-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rbac-stats-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rbac-btn-add-user {
+    height: 48px;
+  }
+}
