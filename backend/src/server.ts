@@ -37,9 +37,9 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-// ── API Routes (will be added in Phase 2+) ──
-// import authRoutes from "./routes/authRoutes";
-// app.use("/api/auth", authRoutes);
+// ── API Routes ──
+import authRoutes from "./routes/authRoutes";
+app.use("/api/auth", authRoutes);
 
 // ── Error Handler (must be last middleware) ──
 app.use(errorHandler);

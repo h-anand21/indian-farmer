@@ -3,7 +3,16 @@ import {
   createRoute,
   createRootRoute,
   Outlet,
+  useNavigate,
 } from "@tanstack/react-router";
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
+import AppLayout from "./components/layout/AppLayout";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import FarmerDashboardPage from "./pages/farmer/FarmerDashboardPage";
+import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
 
 // ══════════════════════════════════════════════
 // Root Layout
@@ -14,34 +23,167 @@ const rootRoute = createRootRoute({
 });
 
 // ══════════════════════════════════════════════
-// Public Routes (Screens 01-04)
+// Public Landing Page (Screen 01-04)
 // ══════════════════════════════════════════════
+
+function LandingPageComponent() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="landing-page">
+      <div className="landing-content">
+        {/* Brand header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "16px" }}>
+          <div
+            style={{
+              width: "42px",
+              height: "42px",
+              borderRadius: "12px",
+              background: "var(--leaf-green)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Leaf size={22} color="#ffffff" />
+          </div>
+          <span style={{ fontSize: "22px", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
+            Kisan<span style={{ color: "var(--wheat)" }}>Queue</span>
+          </span>
+        </div>
+
+        {/* Hero center */}
+        <div style={{ textAlign: "center", maxWidth: "680px", margin: "auto 0" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "6px 16px",
+              borderRadius: "999px",
+              background: "rgba(255, 255, 255, 0.12)",
+              color: "var(--wheat)",
+              fontSize: "13px",
+              fontWeight: 600,
+              marginBottom: "24px",
+            }}
+          >
+            🌾 Modern Agricultural Procurement System
+          </div>
+
+          <h1
+            style={{
+              fontFamily: "var(--font-brand)",
+              fontSize: "clamp(34px, 5.5vw, 64px)",
+              color: "white",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.15,
+            }}
+          >
+            Your Crop. Your Slot. <br />
+            <span style={{ color: "var(--wheat)" }}>Your Turn.</span>
+          </h1>
+
+          <p
+            style={{
+              color: "rgba(255, 255, 255, 0.82)",
+              fontSize: "clamp(15px, 1.8vw, 18px)",
+              marginTop: "18px",
+              lineHeight: 1.6,
+            }}
+          >
+            Eliminate hours in mandi queues. Book transparent procurement slots, track live tokens in real-time, and get direct DBT payouts.
+          </p>
+
+          <div style={{ display: "flex", gap: "14px", justifyContent: "center", marginTop: "32px", flexWrap: "wrap" }}>
+            <button
+              onClick={() => navigate({ to: "/login" })}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "var(--leaf-green)",
+                color: "white",
+                border: "none",
+                borderRadius: "14px",
+                padding: "14px 28px",
+                fontSize: "16px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 8px 24px rgba(79, 125, 69, 0.4)",
+              }}
+            >
+              Enter Mandi Portal <ArrowRight size={18} />
+            </button>
+            <button
+              onClick={() => navigate({ to: "/login" })}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "rgba(255, 255, 255, 0.12)",
+                color: "white",
+                border: "1px solid rgba(255, 255, 255, 0.25)",
+                borderRadius: "14px",
+                padding: "14px 24px",
+                fontSize: "15px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Operator & Staff Access
+            </button>
+          </div>
+        </div>
+
+        {/* Feature Highlights Footer */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "16px",
+            width: "100%",
+            maxWidth: "800px",
+            paddingBottom: "24px",
+          }}
+        >
+          {[
+            { icon: Clock, label: "Zero Mandi Wait Time" },
+            { icon: Users, label: "Real-time Live Token" },
+            { icon: ShieldCheck, label: "Verified MSP Rates" },
+          ].map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                }}
+              >
+                <Icon size={18} color="var(--wheat)" />
+                <span>{item.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: () => {
-    // Lazy load in Phase 2
-    return (
-      <div className="landing-page">
-        <div className="landing-content">
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 6.2vw, 80px)", color: "white", textAlign: "center", letterSpacing: "-0.04em", lineHeight: 1.12 }}>
-            KisanQueue
-          </h1>
-          <p style={{ color: "var(--sign-in-text)", fontSize: "clamp(14px, 1.6vw, 18px)", textAlign: "center", maxWidth: "500px" }}>
-            Your Crop. Your Slot. Your Turn.
-            <br />
-            Smart Procurement Queue Platform — Coming Soon
-          </p>
-          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center" }}>
-            <span style={{ color: "var(--muted)", fontFamily: "var(--font-mono)", fontSize: "14px" }}>
-              🌾 Phase 1 Complete — Foundation Ready
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  },
+  component: LandingPageComponent,
 });
 
 // ══════════════════════════════════════════════
@@ -51,49 +193,246 @@ const indexRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
-  component: () => <div className="page-container" style={{ padding: "40px" }}>🔐 Login — Phase 2</div>,
+  component: LoginPage,
+});
+
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/register",
+  component: RegisterPage,
 });
 
 // ══════════════════════════════════════════════
-// Farmer Routes (Screens 11-31)
+// Protected App Layout Route
 // ══════════════════════════════════════════════
+
+const appLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "app",
+  component: () => (
+    <ProtectedRoute>
+      <AppLayout />
+    </ProtectedRoute>
+  ),
+});
+
+// ── Farmer Routes ──
 
 const farmerDashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: "/farmer/dashboard",
-  component: () => <div className="page-container" style={{ padding: "40px" }}>👨‍🌾 Farmer Dashboard — Phase 3</div>,
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <FarmerDashboardPage />
+    </ProtectedRoute>
+  ),
 });
 
-// ══════════════════════════════════════════════
-// Operator Routes (Screens 32-43)
-// ══════════════════════════════════════════════
+const farmerBookSlotRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/book-slot",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>📅 Book Procurement Slot</h2>
+        <p style={{ color: "#64748B" }}>Phase 3 feature — Slot calendar, crop selection, and quota validation.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const farmerQueueRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/queue",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>👥 Live Queue Tracking</h2>
+        <p style={{ color: "#64748B" }}>Phase 3 feature — Real-time Socket.IO token display and SMS alerts.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const farmerBookingsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/bookings",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>📋 My Bookings History</h2>
+        <p style={{ color: "#64748B" }}>Phase 3 feature — Previous bookings, token passes, and slips.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const farmerPaymentsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/payments",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>💳 Payment & DBT Settlements</h2>
+        <p style={{ color: "#64748B" }}>Phase 3 feature — Direct bank transfer tracking and J-Form receipts.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const farmerSupportRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/support",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>❓ Support & Toll-Free Mandi Helpline</h2>
+        <p style={{ color: "#64748B" }}>Contact 1800-180-1551 for Kisan Call Centre Assistance.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+// ── Operator Routes ──
 
 const operatorDashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: "/operator/dashboard",
-  component: () => <div className="page-container" style={{ padding: "40px" }}>👷 Operator Dashboard — Phase 4</div>,
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <OperatorDashboardPage />
+    </ProtectedRoute>
+  ),
 });
 
-// ══════════════════════════════════════════════
-// Admin Routes (Screens 44-59)
-// ══════════════════════════════════════════════
+const operatorQueueRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/queue",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>👷 Operator Live Queue Controller</h2>
+        <p style={{ color: "#64748B" }}>Phase 4 feature — Call next token, mark checked-in, delay token.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const operatorScanRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/scan",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>📷 Token QR Scanner</h2>
+        <p style={{ color: "#64748B" }}>Phase 4 feature — Gate QR scanning and token validation.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const operatorIntakeRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/intake",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>⚖️ Weighment & Quality Grading</h2>
+        <p style={{ color: "#64748B" }}>Phase 4 feature — Moisture test, gross/tare weight logging.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const operatorStatsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/stats",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>📊 Mandi Daily Summary</h2>
+        <p style={{ color: "#64748B" }}>Phase 4 feature — Daily procurement totals and truck turnarounds.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+// ── Admin Routes ──
 
 const adminDashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: "/admin/dashboard",
-  component: () => <div className="page-container" style={{ padding: "40px" }}>🛡️ Admin Dashboard — Phase 5</div>,
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <AdminDashboardPage />
+    </ProtectedRoute>
+  ),
+});
+
+const adminCentresRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/centres",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>🏢 Procurement Centre Management</h2>
+        <p style={{ color: "#64748B" }}>Phase 5 feature — Centre setup, weighbridge capacity, operating hours.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const adminCropsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/crops",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>🌾 Crop & MSP Price Config</h2>
+        <p style={{ color: "#64748B" }}>Phase 5 feature — MSP rates, daily limits, FAQ config.</p>
+      </div>
+    </ProtectedRoute>
+  ),
+});
+
+const adminUsersRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/users",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
+        <h2>👥 User Directory & Role Assignment</h2>
+        <p style={{ color: "#64748B" }}>Phase 5 feature — Assign operator roles, verify farmers.</p>
+      </div>
+    </ProtectedRoute>
+  ),
 });
 
 // ══════════════════════════════════════════════
-// Router Tree
+// Router Tree Construction
 // ══════════════════════════════════════════════
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
-  farmerDashboardRoute,
-  operatorDashboardRoute,
-  adminDashboardRoute,
+  registerRoute,
+  appLayoutRoute.addChildren([
+    farmerDashboardRoute,
+    farmerBookSlotRoute,
+    farmerQueueRoute,
+    farmerBookingsRoute,
+    farmerPaymentsRoute,
+    farmerSupportRoute,
+    operatorDashboardRoute,
+    operatorQueueRoute,
+    operatorScanRoute,
+    operatorIntakeRoute,
+    operatorStatsRoute,
+    adminDashboardRoute,
+    adminCentresRoute,
+    adminCropsRoute,
+    adminUsersRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });

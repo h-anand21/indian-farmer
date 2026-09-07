@@ -1,19 +1,19 @@
 import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./router";
 import { Toaster } from "sonner";
+import { AuthProvider } from "./context/AuthContext";
 
 /**
  * KisanQueue — Root Application Component
  *
  * Wraps the app with:
+ * - AuthProvider (Firebase auth & session tracking)
  * - TanStack Router (client-side routing)
  * - Sonner Toaster (animated toast notifications)
- *
- * Additional providers (Auth, Theme) will be added in Phase 2.
  */
 function App() {
   return (
-    <>
+    <AuthProvider>
       <RouterProvider router={router} />
       <Toaster
         position="top-right"
@@ -25,7 +25,7 @@ function App() {
           },
         }}
       />
-    </>
+    </AuthProvider>
   );
 }
 
