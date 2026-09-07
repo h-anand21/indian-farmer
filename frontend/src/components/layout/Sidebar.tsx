@@ -7,7 +7,6 @@ import {
   CalendarCheck,
   Users,
   CreditCard,
-  HelpCircle,
   LogOut,
   QrCode,
   Scale,
@@ -18,6 +17,9 @@ import {
   UserCog,
   ChevronRight,
   ChevronLeft,
+  FileSpreadsheet,
+  Layers,
+  History,
 } from "lucide-react";
 
 interface NavItem {
@@ -45,23 +47,26 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
     { label: "Book Slot", href: "/farmer/book-slot", icon: CalendarPlus, badge: "Open" },
     { label: "My Bookings", href: "/farmer/bookings", icon: CalendarCheck },
     { label: "Live Queue", href: "/farmer/queue", icon: Users, badge: "Live" },
-    { label: "Payments", href: "/farmer/payments", icon: CreditCard },
-    { label: "Support & FAQs", href: "/farmer/support", icon: HelpCircle },
+    { label: "Procurements", href: "/farmer/procurements", icon: Layers },
+    { label: "DBT Payments", href: "/farmer/payments", icon: CreditCard },
   ];
 
   const operatorNav: NavItem[] = [
     { label: "Operator Desk", href: "/operator/dashboard", icon: LayoutDashboard },
-    { label: "Live Queue", href: "/operator/queue", icon: Users, badge: "Active" },
-    { label: "Token Scanner", href: "/operator/scan", icon: QrCode },
+    { label: "Live Queue Control", href: "/operator/queue", icon: Users, badge: "Active" },
+    { label: "QR Check-In Pass", href: "/operator/scan", icon: QrCode },
     { label: "Weighment Intake", href: "/operator/intake", icon: Scale },
-    { label: "Centre Statistics", href: "/operator/stats", icon: BarChart3 },
+    { label: "Daily CSV Report", href: "/operator/daily-report", icon: FileSpreadsheet },
+    { label: "DBT Payouts", href: "/operator/stats", icon: CreditCard },
   ];
 
   const adminNav: NavItem[] = [
     { label: "Admin Console", href: "/admin/dashboard", icon: ShieldCheck },
+    { label: "Analytics & Trends", href: "/admin/analytics", icon: BarChart3, badge: "New" },
     { label: "Procurement Centres", href: "/admin/centres", icon: Warehouse },
     { label: "Crop & MSP Rules", href: "/admin/crops", icon: Sprout },
     { label: "Staff & Farmers", href: "/admin/users", icon: UserCog },
+    { label: "System Audit Logs", href: "/admin/audit-logs", icon: History },
   ];
 
   const navItems =
@@ -124,7 +129,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
                   {!isCollapsed && item.badge && (
                     <span
                       className={`sidebar-badge ${
-                        item.badge === "Live" ? "badge-live" : ""
+                        item.badge === "Live" || item.badge === "Active" ? "badge-live" : ""
                       }`}
                     >
                       {item.badge}
@@ -148,21 +153,19 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
           </div>
 
           {!isCollapsed && (
-            <div className="sidebar-user-info min-w-0 flex-1">
-              <div className="sidebar-user-name truncate">{user?.name || "Farmer"}</div>
-              <div className="sidebar-user-phone truncate">
-                +91 {user?.phone ? user.phone.slice(-10) : "Authenticated"}
-              </div>
+            <div className="sidebar-user-info flex-1 min-w-0">
+              <span className="sidebar-user-name truncate">{user?.name || "Farmer"}</span>
+              <span className="sidebar-user-role">{role || "FARMER"}</span>
             </div>
           )}
 
           {!isCollapsed && (
             <button
-              className="sidebar-logout-btn"
+              className="sidebar-logout-btn shrink-0"
               onClick={handleLogout}
-              title="Sign Out of Portal"
+              title="Sign Out"
             >
-              <LogOut size={17} />
+              <LogOut size={16} />
             </button>
           )}
         </div>

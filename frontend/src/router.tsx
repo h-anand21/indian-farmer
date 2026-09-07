@@ -13,14 +13,20 @@ import FarmerDashboardPage from "./pages/farmer/FarmerDashboardPage";
 import BookSlotPage from "./pages/farmer/BookSlotPage";
 import MyBookingsPage from "./pages/farmer/MyBookingsPage";
 import LiveQueuePage from "./pages/farmer/LiveQueuePage";
+import PaymentsPage from "./pages/farmer/PaymentsPage";
+import ProcurementsPage from "./pages/farmer/ProcurementsPage";
 import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
-import OperatorCheckInPage from "./pages/operator/OperatorCheckInPage";
-import OperatorIntakePage from "./pages/operator/OperatorIntakePage";
+import OperatorCheckInPage from "./pages/operator/CheckInPage";
+import OperatorIntakePage from "./pages/operator/ProcessFarmerPage";
 import OperatorPaymentsPage from "./pages/operator/OperatorPaymentsPage";
+import QueueControlPage from "./pages/operator/QueueControlPage";
+import DailyReportPage from "./pages/operator/DailyReportPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminCentresPage from "./pages/admin/AdminCentresPage";
 import AdminCropsPage from "./pages/admin/AdminCropsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import AuditLogsPage from "./pages/admin/AuditLogsPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
 
 // ══════════════════════════════════════════════
@@ -272,10 +278,17 @@ const farmerPaymentsRoute = createRoute({
   path: "/farmer/payments",
   component: () => (
     <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>💳 Payment & DBT Settlements</h2>
-        <p style={{ color: "#64748B" }}>Phase 3 feature — Direct bank transfer tracking and J-Form receipts.</p>
-      </div>
+      <PaymentsPage />
+    </ProtectedRoute>
+  ),
+});
+
+const farmerProcurementsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/procurements",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
+      <ProcurementsPage />
     </ProtectedRoute>
   ),
 });
@@ -310,7 +323,7 @@ const operatorQueueRoute = createRoute({
   path: "/operator/queue",
   component: () => (
     <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
-      <OperatorDashboardPage />
+      <QueueControlPage />
     </ProtectedRoute>
   ),
 });
@@ -335,6 +348,16 @@ const operatorIntakeRoute = createRoute({
   ),
 });
 
+const operatorReportRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/daily-report",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <DailyReportPage />
+    </ProtectedRoute>
+  ),
+});
+
 const operatorStatsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/operator/stats",
@@ -353,6 +376,16 @@ const adminDashboardRoute = createRoute({
   component: () => (
     <ProtectedRoute allowedRoles={["ADMIN"]}>
       <AdminDashboardPage />
+    </ProtectedRoute>
+  ),
+});
+
+const adminAnalyticsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/analytics",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <AnalyticsPage />
     </ProtectedRoute>
   ),
 });
@@ -387,6 +420,16 @@ const adminUsersRoute = createRoute({
   ),
 });
 
+const adminAuditLogsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/audit-logs",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <AuditLogsPage />
+    </ProtectedRoute>
+  ),
+});
+
 // ══════════════════════════════════════════════
 // Router Tree Construction
 // ══════════════════════════════════════════════
@@ -400,17 +443,21 @@ const routeTree = rootRoute.addChildren([
     farmerBookSlotRoute,
     farmerQueueRoute,
     farmerBookingsRoute,
+    farmerProcurementsRoute,
     farmerPaymentsRoute,
     farmerSupportRoute,
     operatorDashboardRoute,
     operatorQueueRoute,
     operatorScanRoute,
     operatorIntakeRoute,
+    operatorReportRoute,
     operatorStatsRoute,
     adminDashboardRoute,
+    adminAnalyticsRoute,
     adminCentresRoute,
     adminCropsRoute,
     adminUsersRoute,
+    adminAuditLogsRoute,
   ]),
 ]);
 
