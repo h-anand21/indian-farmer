@@ -48,6 +48,8 @@ import farmerRoutes from "./routes/farmerRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import govtContentRoutes from "./routes/govtContentRoutes";
+import govtSyncRoutes from "./routes/govtSyncRoutes";
+import { startSyncWorker } from "./workers/syncWorker";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
@@ -59,6 +61,7 @@ app.use("/api/farmers", farmerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/govt-content", govtContentRoutes);
+app.use("/api/govt-sync", govtSyncRoutes);
 
 // ── Error Handler (must be last middleware) ──
 app.use(errorHandler);
@@ -90,8 +93,12 @@ server.listen(env.PORT, () => {
   🌾  Environment: ${env.NODE_ENV}
   🌾  Frontend:    ${env.FRONTEND_URL}
   🌾  Socket.IO:   Ready ⚡
+  🌾  Sync Worker: Starting 🔄
   🌾 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
+
+  // Boot the government data sync worker
+  startSyncWorker();
 });
 
 export default app;

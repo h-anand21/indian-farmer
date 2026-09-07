@@ -424,3 +424,86 @@ model GovContentBookmark {
   @@unique([contentId, farmerId])
   @@map("gov_content_bookmarks")
 }
+
+// ══════════════════════════════════════════════
+// PHASE 12 — AUTOMATIC SYNC SYSTEM
+// ══════════════════════════════════════════════
+
+enum SyncSourceType {
+  RSS       // RSS/Atom XML feed
+  API       // JSON REST API
+  MANUAL    // Admin-curated, no auto-fetch
+}
+
+enum SyncSourceStatus {
+  ACTIVE    // Running normally
+  DISABLED  // Manually disabled
+  ERROR     // Failed 3+ consecutive syncs
+  PENDING   // Not yet synced
+}
+
+enum SyncRunStatus {
+  SUCCESS
+  PARTIAL   // Some items failed
+  FAILED    // Complete failure
+  SKIPPED   // No new items found
+}
+
+/// GovSyncSource — registry of all government data sources
+model GovSyncSource {
+  id              String           @id @default(cuid())
+  name            String           // "PIB Agriculture RSS"
+  type            SyncSourceType
+  status          SyncSourceStatus @default(PENDING)
+  url             String?          // Feed/API URL
+  apiKey          String?          @map("api_key")   // For authenticated APIs
+
+  // Scheduling
+  cronExpression  String           @default("0 */6 * * *") @map("cron_expression")
+  lastSyncAt      DateTime?        @map("last_sync_at")
+  nextSyncAt      DateTime?        @map("next_sync_at")
+
+  // Health tracking
+  consecutiveErrors Int            @default(0) @map("consecutive_errors")
+  totalSyncs      Int             @default(0) @map("total_syncs")
+  totalImported   Int             @default(0) @map("total_imported")
+
+  // Configuration
+  autoPublish     Boolean          @default(false) @map("auto_publish") // false = admin-verify
+  isAgriFilter    Boolean          @default(true)  @map("is_agri_filter") // filter non-agri content
+  description     String?
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  syncLogs        SyncLog[]
+
+  @@map("gov_sync_sources")
+}
+
+/// SyncLog — immutable record of every sync run
+model SyncLog {
+  id          String        @id @default(cuid())
+  sourceId    String        @map("source_id")
+  status      SyncRunStatus
+  startedAt   DateTime      @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+  durationMs  Int?          @map("duration_ms")
+
+  // Counters
+  itemsFetched  Int @default(0) @map("items_fetched")
+  itemsImported Int @default(0) @map("items_imported")
+  itemsSkipped  Int @default(0) @map("items_skipped") // duplicates
+  itemsFailed   Int @default(0) @map("items_failed")
+
+  // Detail
+  errorMessage  String? @map("error_message")
+  notes         String? // e.g. "Filtered 8 non-agri items"
+
+  // Relations
+  source      GovSyncSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@map("sync_logs")
+}
+

@@ -594,12 +594,38 @@ export default function GovernmentHubPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lastSyncInfo, setLastSyncInfo] = useState<{
+    lastSyncAt: string | null;
+    isRunning: boolean;
+    lastImported: number;
+  }>({
+    lastSyncAt: null,
+    isRunning: false,
+    lastImported: 0,
+  });
 
   const STATES = [
     "Andhra Pradesh", "Bihar", "Gujarat", "Haryana", "Karnataka",
     "Madhya Pradesh", "Maharashtra", "Odisha", "Punjab", "Rajasthan",
     "Tamil Nadu", "Telangana", "Uttar Pradesh", "Uttarakhand", "West Bengal",
   ];
+
+  // Load sync health info
+  useEffect(() => {
+    const fetchSyncInfo = async () => {
+      try {
+        const res = await api.get("/govt-sync/last-sync");
+        if (res.data?.data) {
+          setLastSyncInfo(res.data.data);
+        }
+      } catch {
+        // graceful ignore
+      }
+    };
+    fetchSyncInfo();
+    const syncInterval = setInterval(fetchSyncInfo, 30000); // 30s poll
+    return () => clearInterval(syncInterval);
+  }, [refreshKey]);
 
   // Load all data
   useEffect(() => {
@@ -648,6 +674,15 @@ export default function GovernmentHubPage() {
     } catch {
       // handle error
     }
+  };
+
+  const formatSyncAgo = (iso?: string | null) => {
+    if (!iso) return "Just now";
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+    return `${Math.floor(diff / 86400)} d ago`;
   };
 
   // Filter items by tab
@@ -701,35 +736,94 @@ export default function GovernmentHubPage() {
         }}
       >
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-            <div
-              style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "14px",
-                background: "linear-gradient(135deg, #166534, #15803d)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 8px 20px rgba(22,101,52,0.3)",
-              }}
-            >
-              <Landmark size={22} color="white" />
-            </div>
-            <div>
-              <h1
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "12px",
+              marginBottom: "8px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
                 style={{
-                  fontSize: "22px",
-                  fontWeight: 800,
-                  color: "var(--text-primary)",
-                  letterSpacing: "-0.5px",
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "14px",
+                  background: "linear-gradient(135deg, #166534, #15803d)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 8px 20px rgba(22,101,52,0.3)",
                 }}
               >
-                Government Hub
-              </h1>
-              <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "1px" }}>
-                सरकारी सूचना केंद्र • Official updates, MSP, schemes & advisories
-              </p>
+                <Landmark size={22} color="white" />
+              </div>
+              <div>
+                <h1
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 800,
+                    color: "var(--text-primary)",
+                    letterSpacing: "-0.5px",
+                  }}
+                >
+                  Government Hub
+                </h1>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "1px" }}>
+                  सरकारी सूचना केंद्र • Official updates, MSP, schemes & advisories
+                </p>
+              </div>
+            </div>
+
+            {/* Live Sync Status Pill */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                padding: "6px 14px",
+                borderRadius: "30px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: lastSyncInfo.isRunning ? "#eab308" : "#22c55e",
+                    boxShadow: lastSyncInfo.isRunning
+                      ? "0 0 8px #eab308"
+                      : "0 0 8px rgba(34,197,94,0.6)",
+                  }}
+                />
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)" }}>
+                  {lastSyncInfo.isRunning
+                    ? "Syncing Official Feeds..."
+                    : `Synced ${formatSyncAgo(lastSyncInfo.lastSyncAt)}`}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setRefreshKey((k) => k + 1)}
+                title="Refresh latest notices"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "2px",
+                }}
+              >
+                <RefreshCw size={14} className={loading ? "spin" : ""} />
+              </button>
             </div>
           </div>
         </motion.div>

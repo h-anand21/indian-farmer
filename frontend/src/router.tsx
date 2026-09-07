@@ -28,6 +28,7 @@ import AdminCropsPage from "./pages/admin/AdminCropsPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import AuditLogsPage from "./pages/admin/AuditLogsPage";
+import AdminGovHubPage from "./pages/admin/AdminGovHubPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
 
 // ══════════════════════════════════════════════
@@ -441,6 +442,16 @@ const adminAuditLogsRoute = createRoute({
   ),
 });
 
+const adminGovHubRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/admin/govt-hub",
+  component: () => (
+    <ProtectedRoute allowedRoles={["ADMIN"]}>
+      <AdminGovHubPage />
+    </ProtectedRoute>
+  ),
+});
+
 // ══════════════════════════════════════════════
 // Router Tree Construction
 // ══════════════════════════════════════════════
@@ -465,6 +476,7 @@ const routeTree = rootRoute.addChildren([
     operatorReportRoute,
     operatorStatsRoute,
     adminDashboardRoute,
+    adminGovHubRoute,
     adminAnalyticsRoute,
     adminCentresRoute,
     adminCropsRoute,
