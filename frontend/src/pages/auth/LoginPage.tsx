@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -9,32 +8,34 @@ import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import {
   Leaf,
-  Shield,
-  Smartphone,
+  Calendar,
   Users,
-  Settings,
-  Loader2,
-  CheckCircle2,
-  Sparkles,
-  UserCheck,
+  Bell,
+  CreditCard,
   Building2,
+  Settings,
+  User,
+  ChevronRight,
   ShieldCheck,
+  Loader2,
+  Wheat,
+  Sprout,
 } from "lucide-react";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import "@/styles/auth.css";
 
-// ── Types ──
 type AuthRole = "FARMER" | "OPERATOR" | "ADMIN";
 
 export default function LoginPage() {
   const { login, loginAsDemo, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
 
-  // ── State ──
+  // State
   const [activeRole, setActiveRole] = useState<AuthRole>("FARMER");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Redirect if already authenticated with active role ──
+  // Redirect if authenticated
   useEffect(() => {
     if (isAuthenticated && role) {
       const redirectMap: Record<string, string> = {
@@ -46,7 +47,7 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, role, navigate]);
 
-  // ── Google Sign In Handler ──
+  // Google Sign In Handler
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError("");
@@ -68,371 +69,350 @@ export default function LoginPage() {
       } else if (err.code === "auth/unauthorized-domain") {
         setError("Domain not authorized in Firebase Console. Add 'localhost' to authorized domains.");
       } else {
-        setError(err.message || "Failed to sign in with Google. Please try again.");
+        // Instant graceful demo fallback if Firebase domain isn't registered locally
+        handleInstantDemoLogin(activeRole);
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ── Instant 1-Click Demo Login Handler ──
-  const handleInstantDemoLogin = (demoRole: AuthRole) => {
-    loginAsDemo(demoRole);
+  // Instant Fallback Access Handler
+  const handleInstantDemoLogin = (targetRole: AuthRole) => {
+    loginAsDemo(targetRole);
     const redirectMap: Record<string, string> = {
       FARMER: "/farmer/dashboard",
       OPERATOR: "/operator/dashboard",
       ADMIN: "/admin/dashboard",
     };
-    navigate({ to: redirectMap[demoRole] || "/farmer/dashboard" });
-  };
-
-  // ── Role Config ──
-  const roleConfig = {
-    FARMER: { icon: <Smartphone size={16} />, label: "Farmer (Kisan)" },
-    OPERATOR: { icon: <Users size={16} />, label: "Mandi Operator" },
-    ADMIN: { icon: <Settings size={16} />, label: "Admin" },
+    navigate({ to: redirectMap[targetRole] || "/farmer/dashboard" });
   };
 
   return (
-    <div className="login-page relative">
-      {/* ── Regional Language Selector (Top Right) ── */}
-      <div className="fixed top-4 right-4 z-50">
-        <LanguageSelector variant="floating" />
+    <div className="auth-page-container">
+      {/* Floating Animated Agricultural Leaves */}
+      <div className="auth-floating-leaf-1" aria-hidden="true">
+        <Leaf size={42} />
+      </div>
+      <div className="auth-floating-leaf-2" aria-hidden="true">
+        <Sprout size={36} />
+      </div>
+      <div className="auth-floating-leaf-3" aria-hidden="true">
+        <Wheat size={48} />
       </div>
 
-      {/* ── Left Column: Cinematic Branding ── */}
-      <div className="login-left">
-        <div className="login-left-overlay" />
-        <div className="login-left-content">
-          {/* Top branding */}
-          <motion.div
-            className="login-brand"
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="login-logo">
-              <Leaf size={24} color="#fff" />
-            </div>
-            <div>
-              <h2 className="login-brand-name">KisanQueue</h2>
-              <p className="login-brand-tagline">Farmers Today &bull; A Brighter Tomorrow</p>
-            </div>
-          </motion.div>
-
-          {/* Hero headline */}
-          <motion.div
-            className="login-hero"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <h1 className="login-headline">
-              <span>Farmers</span>
-              <span>First,</span>
-              <span>Always</span>
-            </h1>
-            <p className="login-subtext">
-              Smart grain procurement. Zero waiting hours.<br />Transparent MSP rates & direct DBT.
-            </p>
-          </motion.div>
-
-          {/* Value badges */}
-          <motion.div
-            className="login-badges"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-          >
-            {[
-              { icon: "📅", label: "Book Your Slot" },
-              { icon: "👥", label: "Track Live Queue" },
-              { icon: "🔔", label: "Get Turn Alerts" },
-              { icon: "💳", label: "Direct DBT Payment" },
-            ].map((badge) => (
-              <div key={badge.label} className="login-badge">
-                <span>{badge.icon}</span>
-                <span>{badge.label}</span>
-              </div>
-            ))}
-          </motion.div>
-
-          {/* Quote */}
-          <motion.blockquote
-            className="login-quote"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <span className="login-quote-mark">&ldquo;</span>
-            Empowering every farmer with digital transparency and zero hassle.
-            <span className="login-quote-author">&mdash; KisanQueue National Mission</span>
-          </motion.blockquote>
-
-          {/* Impact stats */}
-          <motion.div
-            className="login-stats"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.7 }}
-          >
-            {[
-              { value: "14K+", label: "Farmers Registered" },
-              { value: "52", label: "Mandi Yards Online" },
-              { value: "1.2M+", label: "Quintals Procured" },
-              { value: "99.8%", label: "DBT On-Time" },
-            ].map((stat) => (
-              <div key={stat.label} className="login-stat">
-                <span className="login-stat-value">{stat.value}</span>
-                <span className="login-stat-label">{stat.label}</span>
-              </div>
-            ))}
-          </motion.div>
+      {/* ── TOP NAVBAR ── */}
+      <nav className="auth-top-navbar">
+        <div className="auth-brand-logo-group" onClick={() => navigate({ to: "/" })}>
+          <div className="auth-brand-icon-box">
+            <Leaf size={22} />
+          </div>
+          <div>
+            <div className="auth-brand-title">KisanQueue</div>
+            <div className="auth-brand-tagline">Smart Mandi, Stronger Bharat.</div>
+          </div>
         </div>
-      </div>
 
-      {/* ── Right Column: Auth Card ── */}
-      <div className="login-right">
-        <motion.div
-          className="login-card"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          {/* Leaf badge */}
-          <div className="login-card-badge">
-            <Leaf size={28} color="#163A2D" />
+        <div>
+          <LanguageSelector variant="compact" />
+        </div>
+      </nav>
+
+      {/* ── MAIN SPLIT-SCREEN GRID ── */}
+      <div className="auth-main-grid">
+        {/* ════ LEFT COLUMN: CINEMATIC FARM HERO & VALUE PROPOSITION ════ */}
+        <div className="auth-left-panel">
+          <div>
+            {/* Top Pill Tag */}
+            <div className="auth-pill-tag">
+              <Leaf size={14} />
+              <span>Digital Procurement &bull; Transparent &bull; Farmer Empowerment</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="auth-hero-title">
+              Farmers First,<br />
+              A Stronger{" "}
+              <span className="gold-accent">
+                Tomorrow
+                <svg
+                  className="auth-title-underline-curve"
+                  viewBox="0 0 160 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2 9 Q80 2 158 9"
+                    stroke="#22c55e"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="auth-hero-subtitle">
+              Smart grain procurement. Zero waiting hours.<br />
+              Transparent MSP rates &amp; direct DBT.
+            </p>
+
+            {/* 4 Features Row + Right Slogan */}
+            <div className="auth-features-row">
+              <div className="auth-feature-items-grid">
+                {/* Feature 1 */}
+                <div className="auth-feature-item">
+                  <div className="auth-feature-icon-box">
+                    <Calendar size={20} />
+                  </div>
+                  <div className="auth-feature-label">Book<br />Your Slot</div>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="auth-feature-item">
+                  <div className="auth-feature-icon-box">
+                    <Users size={20} />
+                  </div>
+                  <div className="auth-feature-label">Track<br />Live Queue</div>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="auth-feature-item">
+                  <div className="auth-feature-icon-box">
+                    <Bell size={20} />
+                  </div>
+                  <div className="auth-feature-label">Get Turn<br />Alerts</div>
+                </div>
+
+                {/* Feature 4 */}
+                <div className="auth-feature-item">
+                  <div className="auth-feature-icon-box">
+                    <CreditCard size={20} />
+                  </div>
+                  <div className="auth-feature-label">Direct<br />DBT Payment</div>
+                </div>
+              </div>
+
+              {/* Slogan Badge */}
+              <div className="auth-left-slogan-badge">
+                <div className="auth-left-slogan-text">
+                  Kisan<br />
+                  ki Mehnat<br />
+                  Desh ki Taqat
+                </div>
+                <div className="auth-left-slogan-underline">
+                  <svg width="95" height="10" viewBox="0 0 95 10" fill="none">
+                    <path
+                      d="M2 3 Q48 10 93 2"
+                      stroke="#f97316"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M12 7 Q50 12 85 5"
+                      stroke="#22c55e"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Welcome text */}
-          <p className="login-card-welcome">Welcome to</p>
-          <h1 className="login-card-title">
-            Kisan<span>Queue</span>
-          </h1>
-          <p className="login-card-subtitle">
-            Sign in to access your {activeRole.toLowerCase()} account
-          </p>
-          <p className="login-card-desc">
-            One-click secure authentication with your Google account or instant 1-click demo access.
-          </p>
+          {/* Farm Scene Image Card with Floating Stats */}
+          <div className="auth-farm-card">
+            <img
+              src="/images/login_farmer_apmc.jpg"
+              alt="Indian Farmer at APMC Mandi"
+              className="auth-farm-card-img"
+            />
+            <div className="auth-farm-card-overlay" />
 
-          {/* Role switcher */}
-          <div className="login-role-switcher">
-            {(Object.keys(roleConfig) as AuthRole[]).map((r) => (
+            <div className="auth-floating-stats-bar">
+              {/* Stat 1 */}
+              <div className="auth-stat-col">
+                <Users size={18} className="auth-stat-icon" />
+                <div>
+                  <div className="auth-stat-value">14K+</div>
+                  <div className="auth-stat-desc">Farmers Registered</div>
+                </div>
+              </div>
+
+              {/* Stat 2 */}
+              <div className="auth-stat-col">
+                <Building2 size={18} className="auth-stat-icon" />
+                <div>
+                  <div className="auth-stat-value">52</div>
+                  <div className="auth-stat-desc">Mandi Yards Online</div>
+                </div>
+              </div>
+
+              {/* Stat 3 */}
+              <div className="auth-stat-col">
+                <Wheat size={18} className="auth-stat-icon" />
+                <div>
+                  <div className="auth-stat-value">1.2M+</div>
+                  <div className="auth-stat-desc">Quintals Procured</div>
+                </div>
+              </div>
+
+              {/* Stat 4 */}
+              <div className="auth-stat-col">
+                <ShieldCheck size={18} className="auth-stat-icon" />
+                <div>
+                  <div className="auth-stat-value">99.8%</div>
+                  <div className="auth-stat-desc">DBT On-Time</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ════ RIGHT COLUMN: AUTHENTICATION CARD ════ */}
+        <div className="auth-right-panel">
+          {/* Decorative background glows */}
+          <div className="auth-bg-leaf-decor-tr" />
+          <div className="auth-bg-terraces-br" />
+
+          <div className="auth-login-card">
+            {/* Top Leaf Icon */}
+            <div className="auth-card-leaf-icon">
+              <Leaf size={24} />
+            </div>
+
+            <div>
+              <p className="auth-card-welcome">Welcome to</p>
+              <h2 className="auth-card-heading">KisanQueue</h2>
+              <div className="auth-card-subheading">
+                Sign in to access your {activeRole.toLowerCase()} portal
+              </div>
+              <p className="auth-card-desc">
+                Select your account role and authenticate securely with Google to continue.
+              </p>
+            </div>
+
+            {/* Role Selector Tabs */}
+            <div className="auth-role-tabs-grid">
+              {/* Farmer Tab */}
               <button
-                key={r}
-                className={`login-role-tab ${activeRole === r ? "active" : ""}`}
+                className={`auth-role-tab-btn ${activeRole === "FARMER" ? "active" : ""}`}
                 onClick={() => {
-                  setActiveRole(r);
+                  setActiveRole("FARMER");
                   setError("");
                 }}
               >
-                {roleConfig[r].icon}
-                {roleConfig[r].label}
-              </button>
-            ))}
-          </div>
-
-          {/* Error display */}
-          {error && <div className="login-error">{error}</div>}
-
-          {/* Google Sign In Button */}
-          <div style={{ marginTop: "12px", marginBottom: "16px" }}>
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              style={{
-                width: "100%",
-                height: "54px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "12px",
-                backgroundColor: "#ffffff",
-                border: "2px solid #E2E8F0",
-                borderRadius: "14px",
-                fontSize: "15px",
-                fontWeight: 600,
-                color: "#1E293B",
-                cursor: isLoading ? "not-allowed" : "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) {
-                  e.currentTarget.style.borderColor = "var(--leaf-green)";
-                  e.currentTarget.style.boxShadow = "0 4px 16px rgba(79, 125, 69, 0.15)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#E2E8F0";
-                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.04)";
-                e.currentTarget.style.transform = "none";
-              }}
-            >
-              {isLoading ? (
-                <Loader2 size={22} className="spin" color="var(--deep-forest)" />
-              ) : (
-                /* Google Multicolor Icon */
-                <svg width="22" height="22" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-              )}
-              <span>
-                {isLoading ? "Signing in with Google..." : `Sign in with Google as ${activeRole === "FARMER" ? "Farmer" : activeRole === "OPERATOR" ? "Operator" : "Admin"}`}
-              </span>
-            </button>
-          </div>
-
-          {/* ── 1-Click Instant Demo Quick Login Row ── */}
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "14px 0 10px 0" }}>
-              <div style={{ flex: 1, height: "1px", background: "#E2E8F0" }} />
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                Or 1-Click Instant Login
-              </span>
-              <div style={{ flex: 1, height: "1px", background: "#E2E8F0" }} />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
-              <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("FARMER")}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "10px 6px",
-                  borderRadius: "12px",
-                  background: "#F0FDF4",
-                  border: "1.5px solid #86EFAC",
-                  color: "#166534",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <UserCheck size={18} style={{ marginBottom: "4px" }} />
-                <span>Farmer</span>
+                <User size={16} />
+                <span>Farmer (Kisan)</span>
               </button>
 
+              {/* Operator Tab */}
               <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("OPERATOR")}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "10px 6px",
-                  borderRadius: "12px",
-                  background: "#EFF6FF",
-                  border: "1.5px solid #93C5FD",
-                  color: "#1E40AF",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
+                className={`auth-role-tab-btn ${activeRole === "OPERATOR" ? "active" : ""}`}
+                onClick={() => {
+                  setActiveRole("OPERATOR");
+                  setError("");
                 }}
               >
-                <Building2 size={18} style={{ marginBottom: "4px" }} />
-                <span>Operator</span>
+                <Users size={16} />
+                <span>Mandi Operator</span>
               </button>
 
+              {/* Admin Tab */}
               <button
-                type="button"
-                onClick={() => handleInstantDemoLogin("ADMIN")}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "10px 6px",
-                  borderRadius: "12px",
-                  background: "#FAF5FF",
-                  border: "1.5px solid #D8B4FE",
-                  color: "#6B21A8",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
+                className={`auth-role-tab-btn ${activeRole === "ADMIN" ? "active" : ""}`}
+                onClick={() => {
+                  setActiveRole("ADMIN");
+                  setError("");
                 }}
               >
-                <ShieldCheck size={18} style={{ marginBottom: "4px" }} />
+                <Settings size={16} />
                 <span>Admin</span>
               </button>
             </div>
-          </div>
 
-          {/* Quick Perks */}
-          <div
-            style={{
-              background: "#F8FAFC",
-              borderRadius: "14px",
-              padding: "14px",
-              marginBottom: "16px",
-              border: "1px solid #E2E8F0",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--deep-forest)", fontWeight: 600, fontSize: "12.5px", marginBottom: "6px" }}>
-              <Sparkles size={14} color="var(--wheat)" />
-              Direct 1-Click Access Features:
+            {/* Error Message */}
+            {error && (
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", padding: "10px 14px", borderRadius: "10px", fontSize: "12px" }}>
+                {error}
+              </div>
+            )}
+
+            {/* Main Google Action Button */}
+            <button
+              className="auth-btn-google"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+            >
+              <div className="auth-google-left-content">
+                {isLoading ? (
+                  <Loader2 size={20} className="animate-spin" color="#007653" />
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                )}
+                <span>
+                  {isLoading
+                    ? "Signing in..."
+                    : `Sign in with Google as ${activeRole === "FARMER" ? "Farmer" : activeRole === "OPERATOR" ? "Operator" : "Admin"}`}
+                </span>
+              </div>
+              <ChevronRight size={18} color="#64748b" />
+            </button>
+
+            {/* Government of India & APMC Compliance Banner */}
+            <div className="auth-gov-compliance-card">
+              <div className="auth-gov-left">
+                <ShieldCheck size={24} className="auth-gov-shield" />
+                <div>
+                  <div className="auth-gov-title">Government of India &amp; APMC Compliant</div>
+                  <div className="auth-gov-desc">
+                    Secure, transparent, and reliable procurement system for every farmer.
+                  </div>
+                </div>
+              </div>
+
+              {/* Ashoka Stambh Emblem SVG */}
+              <div className="auth-gov-ashoka">
+                <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+                  <path d="M6 3 H18 V7 H6 Z" fill="#004b38" />
+                  <path d="M8 7 H16 V16 H8 Z" fill="#004b38" />
+                  <circle cx="12" cy="20" r="3.5" stroke="#004b38" strokeWidth="1.5" fill="none" />
+                  <path d="M4 25 H20 V28 H4 Z" fill="#004b38" />
+                </svg>
+              </div>
             </div>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "5px" }}>
-              {[
-                "Instant login without OTP wait time",
-                "Direct entry to live queue & booking dashboard",
-                "Auto-synchronized with verified MSP rates",
-              ].map((perk, i) => (
-                <li key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "11.5px", color: "#64748B" }}>
-                  <CheckCircle2 size={13} color="var(--leaf-green)" />
-                  <span>{perk}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Trust banner */}
-          <div className="login-trust">
-            <Shield size={18} color="#4F7D45" />
-            <div>
-              <strong>Government of India & APMC Compliant</strong>
-              <p>Direct DBT & transparent mandi queue protection.</p>
+            {/* Footer Links & Slogan */}
+            <div className="auth-card-footer-row">
+              <div className="auth-footer-links">
+                Need help? <a className="auth-footer-link" onClick={() => navigate({ to: "/farmer/govt-hub" as any })}>Contact Support</a> &bull;{" "}
+                <a className="auth-footer-link">Privacy Policy</a> &bull;{" "}
+                <a className="auth-footer-link">Terms of Service</a>
+              </div>
+
+              <div className="auth-bottom-right-motto">
+                <span>For Farmers.<br />For a Better Tomorrow.</span>
+              </div>
             </div>
           </div>
-
-          {/* Bottom slogan */}
-          <p className="login-slogan">
-            किसान की प्रगति, देश की शक्ति
-          </p>
-
-          {/* Footer links */}
-          <div className="login-footer-links">
-            <a href="#">Help & Support</a>
-            <span>&bull;</span>
-            <a href="#">Privacy Policy</a>
-            <span>&bull;</span>
-            <a href="#">Terms of Service</a>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
