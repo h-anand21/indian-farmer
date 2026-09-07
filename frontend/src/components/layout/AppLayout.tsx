@@ -41,7 +41,7 @@ export default function AppLayout() {
 
       {/* Main Content Area */}
       <div className="app-main-wrapper">
-        <Header onMobileMenuToggle={handleToggleMenu} />
+        <Header onMobileMenuToggle={handleToggleMenu} isCollapsed={isCollapsed} />
 
         <main className="app-content-area">
           <PageTransition>

@@ -9,9 +9,10 @@ import MandiStatusModal from "@/components/common/MandiStatusModal";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
+  isCollapsed?: boolean;
 }
 
-export default function Header({ onMobileMenuToggle }: HeaderProps) {
+export default function Header({ onMobileMenuToggle, isCollapsed }: HeaderProps) {
   const { user, role } = useAuth();
   const { unreadCount } = useNotifications();
 
@@ -24,12 +25,14 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
       <header className="app-header relative border-b border-stone-200 bg-white/95 backdrop-blur-md">
         {/* Left Section */}
         <div className="header-left flex items-center gap-3">
-          {/* Sidebar Fold/Unfold Toggle Button */}
+          {/* Sidebar Fold/Unfold Toggle Button: Visible on Mobile or when Desktop Sidebar is Collapsed */}
           <button
-            className="p-2 rounded-xl hover:bg-stone-100 text-stone-700 transition-colors flex items-center justify-center border border-stone-200 shadow-sm"
+            className={`p-2 rounded-xl hover:bg-stone-100 text-stone-700 transition-colors flex items-center justify-center border border-stone-200 shadow-sm ${
+              !isCollapsed ? "max-[960px]:flex hidden" : "flex"
+            }`}
             onClick={onMobileMenuToggle}
             aria-label="Toggle Sidebar Navigation"
-            title="Toggle Sidebar (Expand/Fold)"
+            title={isCollapsed ? "Expand Sidebar" : "Open Navigation Menu"}
           >
             <Menu size={20} />
           </button>
