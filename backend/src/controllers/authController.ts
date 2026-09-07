@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import {
   findUserByFirebaseUid,
+  findUserByEmail,
+  findUserByPhone,
   createFarmerUser,
   updateUser,
   updateFarmerProfile,
@@ -55,13 +57,37 @@ export async function register(
   try {
     const data = registerSchema.parse(req.body);
     const firebaseUid = req.user!.uid;
+    const email = req.user?.email || data.email;
+    const phone = req.user?.phone || data.phone;
 
-    // Check if user already exists
-    const existing = await findUserByFirebaseUid(firebaseUid);
+    // Check if user already exists by firebaseUid, email, or phone
+    let existing = await findUserByFirebaseUid(firebaseUid);
+    if (!existing && email) {
+      existing = await findUserByEmail(email);
+    }
+    if (!existing && phone) {
+      existing = await findUserByPhone(phone);
+    }
+
     if (existing) {
-      res.status(409).json({
-        success: false,
-        error: "User already registered",
+      // If found by email/phone, sync/update the firebaseUid so future logins are instant
+      if (existing.firebaseUid !== firebaseUid) {
+        const prisma = (await import("../config/database")).default;
+        existing = await prisma.user.update({
+          where: { id: existing.id },
+          data: { firebaseUid },
+          include: {
+            farmer: true,
+            operator: { include: { centre: true } },
+          },
+        });
+      }
+
+      await setFirebaseCustomClaims(firebaseUid, existing.role);
+
+      res.status(200).json({
+        success: true,
+        message: "Welcome back! Logged in directly.",
         data: existing,
       });
       return;
@@ -71,8 +97,8 @@ export async function register(
     const user = await createFarmerUser(
       {
         firebaseUid,
-        email: req.user?.email || data.email,
-        phone: req.user?.phone || data.phone,
+        email,
+        phone,
         name: data.name,
         role: data.role as UserRole,
         avatarUrl: data.avatarUrl,
@@ -101,6 +127,7 @@ export async function register(
     next(error);
   }
 }
+
 
 /**
  * GET /api/auth/me
@@ -200,17 +227,54 @@ export async function verifyToken(
 ): Promise<void> {
   try {
     const firebaseUid = req.user!.uid;
-    const user = await findUserByFirebaseUid(firebaseUid);
+    const email = req.user?.email;
+    const phone = req.user?.phone;
+
+    let user = await findUserByFirebaseUid(firebaseUid);
+
+    // If not found by Firebase UID, check by Email (since user may have registered with Gmail)
+    if (!user && email) {
+      user = await findUserByEmail(email);
+      if (user) {
+        // Link the Firebase UID to this existing user record
+        const prisma = (await import("../config/database")).default;
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { firebaseUid },
+          include: {
+            farmer: true,
+            operator: { include: { centre: true } },
+          },
+        });
+      }
+    }
+
+    // If still not found, check by Phone
+    if (!user && phone) {
+      user = await findUserByPhone(phone);
+      if (user) {
+        const prisma = (await import("../config/database")).default;
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { firebaseUid },
+          include: {
+            farmer: true,
+            operator: { include: { centre: true } },
+          },
+        });
+      }
+    }
 
     res.json({
       success: true,
       isRegistered: !!user,
       data: user || null,
       firebaseUid,
-      email: req.user?.email || null,
-      phone: req.user?.phone || null,
+      email: email || null,
+      phone: phone || null,
     });
   } catch (error) {
     next(error);
   }
 }
+
