@@ -1,8 +1,9 @@
 import prisma from "../config/database";
-import { getSocketIO } from "../socket/socketServer";
+import { NotificationType } from "../types/enums";
+import { getIO } from "../socket/socketServer";
 
 export interface SMSPayload {
-  to: string; // Farmer Phone Number e.g. "+919876543210"
+  to: string; // Farmer Phone Number
   message: string;
   type: "SLOT_BOOKED" | "PROXIMITY_ALERT" | "TURN_CALLED" | "PAYMENT_PAID";
   bookingId?: string;
@@ -12,33 +13,38 @@ export interface SMSPayload {
  * Sends a real-time Multi-Channel SMS & Push Alert to the Farmer
  */
 export async function sendSMSNotification(payload: SMSPayload) {
-  const { to, message, type, bookingId } = payload;
+  const { to, message, type } = payload;
 
-  console.log(`[SMS GATEWAY MOCK] Sending ${type} SMS to ${to}: "${message}"`);
+  console.log(`[SMS GATEWAY] Sending ${type} SMS to ${to}: "${message}"`);
 
-  // 1. Save Notification to Database if user exists
+  // Save Notification record in database if farmer is found
   let savedNotification = null;
   try {
-    const farmer = await prisma.farmer.findFirst({
-      where: { phone: to.replace("+91", "").trim() },
-      include: { user: true },
+    const rawPhone = to.replace("+91", "").trim();
+    const user = await prisma.user.findFirst({
+      where: { phone: { contains: rawPhone } },
+      include: { farmer: true },
     });
 
-    if (farmer) {
+    if (user && user.farmer) {
       savedNotification = await prisma.notification.create({
         data: {
-          userId: farmer.userId,
+          farmerId: user.farmer.id,
           title: getNotificationTitle(type),
           body: message,
-          type: type === "PAYMENT_PAID" ? "PAYMENT" : type === "PROXIMITY_ALERT" || type === "TURN_CALLED" ? "QUEUE_CALL" : "SLOT_BOOKED",
+          type: mapTypeToEnum(type),
           read: false,
         },
       });
 
-      // Broadcast via Socket.IO if connected
-      const io = getSocketIO();
-      if (io) {
-        io.to(`farmer:${farmer.userId}`).emit("notification:new", savedNotification);
+      // Broadcast via Socket.IO
+      try {
+        const io = getIO();
+        if (io) {
+          io.to(`farmer:${user.id}`).emit("notification:new", savedNotification);
+        }
+      } catch (e) {
+        // Socket server broadcast optional
       }
     }
   } catch (err) {
@@ -64,7 +70,7 @@ export async function notifyBookingConfirmed(bookingId: string) {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      farmer: true,
+      farmer: { include: { user: true } },
       centre: true,
       crop: true,
     },
@@ -72,8 +78,8 @@ export async function notifyBookingConfirmed(bookingId: string) {
 
   if (!booking) return null;
 
-  const phone = booking.farmer.phone;
-  const msg = `KisanQueue: Dear ${booking.farmer.name}, your procurement slot for ${booking.crop.name} (${booking.quantityQuintals} Qtl) at ${booking.centre.name} on ${new Date(booking.bookingDate).toLocaleDateString("en-IN")} is CONFIRMED. Token: ${booking.tokenNumber}. Show QR code at Mandi Gate.`;
+  const phone = booking.farmer.user.phone || "+919876543210";
+  const msg = `KisanQueue: Dear ${booking.farmer.user.name}, your procurement slot for ${booking.crop.name} (${booking.quantity} Qtl) at ${booking.centre.name} on ${new Date(booking.bookedAt).toLocaleDateString("en-IN")} is CONFIRMED. Token: ${booking.token}. Show QR code at Mandi Gate.`;
 
   return sendSMSNotification({
     to: phone,
@@ -90,15 +96,15 @@ export async function notifyProximityAlert(bookingId: string, tokensAhead: numbe
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      farmer: true,
+      farmer: { include: { user: true } },
       centre: true,
     },
   });
 
   if (!booking) return null;
 
-  const phone = booking.farmer.phone;
-  const msg = `URGENT KisanQueue Alert: Dear ${booking.farmer.name}, only ${tokensAhead} vehicles ahead of you at ${booking.centre.name}. Token: ${booking.tokenNumber}. Please head to Mandi Weighbridge Gate immediately.`;
+  const phone = booking.farmer.user.phone || "+919876543210";
+  const msg = `URGENT KisanQueue Alert: Dear ${booking.farmer.user.name}, only ${tokensAhead} vehicles ahead of you at ${booking.centre.name}. Token: ${booking.token}. Please head to Mandi Weighbridge Gate immediately.`;
 
   return sendSMSNotification({
     to: phone,
@@ -115,14 +121,14 @@ export async function notifyPaymentDisbursed(bookingId: string, amount: number, 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
-      farmer: true,
+      farmer: { include: { user: true } },
       crop: true,
     },
   });
 
   if (!booking) return null;
 
-  const phone = booking.farmer.phone;
+  const phone = booking.farmer.user.phone || "+919876543210";
   const msg = `KisanQueue Payment: ₹${amount.toLocaleString("en-IN")} credited directly to your Bank A/c for ${booking.crop.name} procurement via Govt DBT. Bank UTR: ${utrNumber}. Thank you, Farmers First!`;
 
   return sendSMSNotification({
@@ -134,11 +140,11 @@ export async function notifyPaymentDisbursed(bookingId: string, amount: number, 
 }
 
 /**
- * Get all notifications for a specific user
+ * Get all notifications for a farmer by farmerId
  */
-export async function getUserNotifications(userId: string) {
+export async function getUserNotifications(farmerId: string) {
   return prisma.notification.findMany({
-    where: { userId },
+    where: { farmerId },
     orderBy: { createdAt: "desc" },
     take: 20,
   });
@@ -156,5 +162,20 @@ function getNotificationTitle(type: SMSPayload["type"]): string {
       return "💳 DBT Payment Disbursed";
     default:
       return "📢 KisanQueue Update";
+  }
+}
+
+function mapTypeToEnum(type: SMSPayload["type"]): NotificationType {
+  switch (type) {
+    case "SLOT_BOOKED":
+      return NotificationType.BOOKING_CONFIRMATION;
+    case "PROXIMITY_ALERT":
+      return NotificationType.PROXIMITY_ALERT;
+    case "TURN_CALLED":
+      return NotificationType.TURN_CALLED;
+    case "PAYMENT_PAID":
+      return NotificationType.PAYMENT_UPDATE;
+    default:
+      return NotificationType.SYSTEM;
   }
 }
