@@ -22,39 +22,57 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({
   className = "",
 }) => {
   if (orientation === "horizontal") {
+    // Determine progress completion percentage
+    const lastCompletedIdx = steps.reduce(
+      (acc, s, idx) => (s.status === "completed" ? idx : acc),
+      -1
+    );
+    const progressPercent =
+      steps.length > 1 && lastCompletedIdx >= 0
+        ? Math.min(100, (lastCompletedIdx / (steps.length - 1)) * 100)
+        : 0;
+
     return (
-      <div className={`w-full py-4 ${className}`}>
-        <div className="relative flex items-center justify-between">
-          {/* Background Connecting Line */}
-          <div className="absolute top-1/2 left-4 right-4 -translate-y-1/2 h-1 bg-slate-200 z-0" />
+      <div className={`w-full py-2 ${className}`}>
+        <div className="relative flex items-start justify-between">
+          {/* Background Connecting Line (Aligned to top-5 / 20px circle center) */}
+          <div className="absolute top-5 left-8 right-8 -translate-y-1/2 h-1 bg-slate-200 z-0 rounded-full" />
+          
+          {/* Active Completed Progress Line */}
+          {progressPercent > 0 && (
+            <div
+              className="absolute top-5 left-8 -translate-y-1/2 h-1 bg-emerald-500 z-0 rounded-full transition-all duration-500"
+              style={{ width: `calc(${progressPercent}% - 16px)` }}
+            />
+          )}
 
           {steps.map((step, idx) => {
             const isCompleted = step.status === "completed";
             const isCurrent = step.status === "current";
 
             return (
-              <div key={step.id || idx} className="relative z-10 flex flex-col items-center group">
+              <div key={step.id || idx} className="relative z-10 flex flex-col items-center flex-1 px-1 group">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 bg-white ${
                     isCompleted
                       ? "border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-200"
                       : isCurrent
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 ring-4 ring-emerald-100 animate-pulse"
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-600 ring-4 ring-emerald-100"
                       : "border-slate-300 bg-white text-slate-400"
                   }`}
                 >
                   {isCompleted ? (
                     <Check size={18} strokeWidth={2.5} />
                   ) : isCurrent ? (
-                    <Clock size={18} strokeWidth={2.5} />
+                    <Clock size={18} strokeWidth={2.5} className="animate-pulse" />
                   ) : (
                     <span className="text-xs font-bold">{idx + 1}</span>
                   )}
                 </div>
 
-                <div className="mt-2 text-center max-w-[100px] sm:max-w-[130px]">
+                <div className="mt-2.5 text-center w-full px-1">
                   <p
-                    className={`text-xs font-bold leading-tight ${
+                    className={`text-xs font-bold leading-snug ${
                       isCurrent
                         ? "text-emerald-700"
                         : isCompleted
@@ -65,7 +83,7 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({
                     {step.title}
                   </p>
                   {step.timestamp && (
-                    <p className="mt-0.5 text-[10px] text-slate-500 font-mono">{step.timestamp}</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500 font-mono font-medium">{step.timestamp}</p>
                   )}
                 </div>
               </div>

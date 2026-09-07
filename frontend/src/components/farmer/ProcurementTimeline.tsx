@@ -55,10 +55,10 @@ export const ProcurementTimeline: React.FC<ProcurementTimelineProps> = ({
   ];
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-2">
-        <h3 className="text-sm font-bold text-slate-900">Procurement Journey Tracker</h3>
-        <span className="text-xs text-slate-500 font-medium">End-to-End Status</span>
+    <div className="rounded-2xl bg-slate-50/80 p-5 sm:p-6 border border-slate-100">
+      <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-3">
+        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Procurement Journey Tracker</h4>
+        <span className="text-[11px] text-slate-500 font-medium">End-to-End Status</span>
       </div>
 
       <StatusTimeline steps={steps} orientation="horizontal" />

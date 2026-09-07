@@ -104,28 +104,30 @@ export const ProcurementsPage: React.FC = () => {
           {procurements.map((item) => (
             <div
               key={item.id}
-              className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xs p-6 sm:p-8 space-y-6"
+              className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs p-5 sm:p-7 space-y-6"
             >
               {/* Header Details */}
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 font-mono text-xl font-black text-emerald-400">
-                    {item.token}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 shadow-xs flex items-center justify-center shrink-0">
+                    <span className="font-mono text-xs sm:text-sm font-bold text-emerald-400 tracking-wider">
+                      {item.token}
+                    </span>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-slate-900">{item.crop?.name}</h3>
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900">{item.crop?.name}</h3>
                       <StatusBadge status={item.status} size="sm" />
                     </div>
-                    <p className="text-xs text-slate-500 font-mono mt-0.5">
-                      {item.centre?.name} • {item.quantity} Qtl Registered
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      {item.centre?.name} &bull; {item.quantity} Qtl Registered
                     </p>
                   </div>
                 </div>
 
                 {item.procurement?.totalAmount && (
-                  <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-2 text-right">
-                    <span className="text-[11px] text-emerald-800 font-medium block">Total Payout:</span>
+                  <div className="rounded-xl bg-emerald-50/80 border border-emerald-200/80 px-4 py-2 text-right">
+                    <span className="text-[10px] text-emerald-800 font-semibold uppercase tracking-wider block">Total Payout</span>
                     <span className="font-mono text-base font-black text-emerald-950">
                       ₹{item.procurement.totalAmount.toLocaleString("en-IN")}
                     </span>
