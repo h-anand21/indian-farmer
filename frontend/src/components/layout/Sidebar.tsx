@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
   Layers,
   History,
+  Landmark,
 } from "lucide-react";
 
 interface NavItem {
@@ -49,6 +50,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
     { label: "Live Queue", href: "/farmer/queue", icon: Users, badge: "Live" },
     { label: "Procurements", href: "/farmer/procurements", icon: Layers },
     { label: "DBT Payments", href: "/farmer/payments", icon: CreditCard },
+    { label: "Govt Hub", href: "/farmer/govt-hub", icon: Landmark, badge: "New" },
   ];
 
   const operatorNav: NavItem[] = [

@@ -15,6 +15,7 @@ import MyBookingsPage from "./pages/farmer/MyBookingsPage";
 import LiveQueuePage from "./pages/farmer/LiveQueuePage";
 import PaymentsPage from "./pages/farmer/PaymentsPage";
 import ProcurementsPage from "./pages/farmer/ProcurementsPage";
+import GovernmentHubPage from "./pages/farmer/GovernmentHubPage";
 import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
 import OperatorCheckInPage from "./pages/operator/CheckInPage";
 import OperatorIntakePage from "./pages/operator/ProcessFarmerPage";
@@ -306,6 +307,16 @@ const farmerSupportRoute = createRoute({
   ),
 });
 
+const farmerGovHubRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/farmer/govt-hub",
+  component: () => (
+    <ProtectedRoute allowedRoles={["FARMER", "OPERATOR", "ADMIN"]}>
+      <GovernmentHubPage />
+    </ProtectedRoute>
+  ),
+});
+
 // ── Operator Routes ──
 
 const operatorDashboardRoute = createRoute({
@@ -445,6 +456,7 @@ const routeTree = rootRoute.addChildren([
     farmerBookingsRoute,
     farmerProcurementsRoute,
     farmerPaymentsRoute,
+    farmerGovHubRoute,
     farmerSupportRoute,
     operatorDashboardRoute,
     operatorQueueRoute,

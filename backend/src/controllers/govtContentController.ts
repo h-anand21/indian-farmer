@@ -24,11 +24,11 @@ export async function listContent(req: Request, res: Response, next: NextFunctio
   try {
     const { type, priority, state, crop, search, limit, offset } = req.query;
     const result = await govtContentService.list({
-      type: type as GovContentType | undefined,
-      priority: priority as GovContentPriority | undefined,
-      state: state as string | undefined,
-      crop: crop as string | undefined,
-      search: search as string | undefined,
+      type: type ? String(type) as GovContentType : undefined,
+      priority: priority ? String(priority) as GovContentPriority : undefined,
+      state: state ? String(state) : undefined,
+      crop: crop ? String(crop) : undefined,
+      search: search ? String(search) : undefined,
       limit: limit ? parseInt(String(limit)) : 20,
       offset: offset ? parseInt(String(offset)) : 0,
     });
@@ -43,7 +43,7 @@ export async function getAlerts(req: Request, res: Response, next: NextFunction)
   try {
     const { state, limit } = req.query;
     const alerts = await govtContentService.getAlerts(
-      state as string | undefined,
+      state ? String(state) : undefined,
       limit ? parseInt(String(limit)) : 5
     );
     res.json({ success: true, data: alerts });
@@ -56,7 +56,7 @@ export async function getAlerts(req: Request, res: Response, next: NextFunction)
 export async function getMspRates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { season } = req.query;
-    const rates = await govtContentService.getMspRates(season as string | undefined);
+    const rates = await govtContentService.getMspRates(season ? String(season) : undefined);
     res.json({ success: true, data: rates });
   } catch (error) {
     next(error);
@@ -67,7 +67,7 @@ export async function getMspRates(req: Request, res: Response, next: NextFunctio
 export async function getSchemes(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { state } = req.query;
-    const schemes = await govtContentService.getSchemes(state as string | undefined);
+    const schemes = await govtContentService.getSchemes(state ? String(state) : undefined);
     res.json({ success: true, data: schemes });
   } catch (error) {
     next(error);
@@ -114,7 +114,7 @@ export async function toggleBookmark(req: Request, res: Response, next: NextFunc
       res.status(404).json({ success: false, error: 'Farmer profile not found' });
       return;
     }
-    const result = await govtContentService.toggleBookmark(id, farmerId);
+    const result = await govtContentService.toggleBookmark(String(id), farmerId);
     res.json({ success: true, data: result });
   } catch (error) {
     next(error);
@@ -125,7 +125,7 @@ export async function toggleBookmark(req: Request, res: Response, next: NextFunc
 export async function getContentById(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    const content = await govtContentService.getById(id);
+    const content = await govtContentService.getById(String(id));
     if (!content) {
       res.status(404).json({ success: false, error: 'Content not found' });
       return;
@@ -150,7 +150,7 @@ export async function createContent(req: Request, res: Response, next: NextFunct
 export async function updateContent(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    const content = await govtContentService.update(id, req.body);
+    const content = await govtContentService.update(String(id), req.body);
     res.json({ success: true, data: content });
   } catch (error) {
     next(error);
@@ -161,7 +161,7 @@ export async function updateContent(req: Request, res: Response, next: NextFunct
 export async function deleteContent(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { id } = req.params;
-    await govtContentService.delete(id);
+    await govtContentService.delete(String(id));
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {
     next(error);
