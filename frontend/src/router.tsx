@@ -14,6 +14,9 @@ import BookSlotPage from "./pages/farmer/BookSlotPage";
 import MyBookingsPage from "./pages/farmer/MyBookingsPage";
 import LiveQueuePage from "./pages/farmer/LiveQueuePage";
 import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
+import OperatorCheckInPage from "./pages/operator/OperatorCheckInPage";
+import OperatorIntakePage from "./pages/operator/OperatorIntakePage";
+import OperatorPaymentsPage from "./pages/operator/OperatorPaymentsPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
 
@@ -304,10 +307,7 @@ const operatorQueueRoute = createRoute({
   path: "/operator/queue",
   component: () => (
     <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>👷 Operator Live Queue Controller</h2>
-        <p style={{ color: "#64748B" }}>Phase 4 feature — Call next token, mark checked-in, delay token.</p>
-      </div>
+      <OperatorDashboardPage />
     </ProtectedRoute>
   ),
 });
@@ -317,10 +317,7 @@ const operatorScanRoute = createRoute({
   path: "/operator/scan",
   component: () => (
     <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>📷 Token QR Scanner</h2>
-        <p style={{ color: "#64748B" }}>Phase 4 feature — Gate QR scanning and token validation.</p>
-      </div>
+      <OperatorCheckInPage />
     </ProtectedRoute>
   ),
 });
@@ -330,10 +327,7 @@ const operatorIntakeRoute = createRoute({
   path: "/operator/intake",
   component: () => (
     <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>⚖️ Weighment & Quality Grading</h2>
-        <p style={{ color: "#64748B" }}>Phase 4 feature — Moisture test, gross/tare weight logging.</p>
-      </div>
+      <OperatorIntakePage />
     </ProtectedRoute>
   ),
 });
@@ -343,10 +337,7 @@ const operatorStatsRoute = createRoute({
   path: "/operator/stats",
   component: () => (
     <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>📊 Mandi Daily Summary</h2>
-        <p style={{ color: "#64748B" }}>Phase 4 feature — Daily procurement totals and truck turnarounds.</p>
-      </div>
+      <OperatorPaymentsPage />
     </ProtectedRoute>
   ),
 });
