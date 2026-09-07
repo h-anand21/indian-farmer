@@ -36,7 +36,7 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
-import api from "@/lib/api";
+import api from "@/services/api";
 
 interface SyncSource {
   id: string;

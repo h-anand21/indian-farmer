@@ -18,10 +18,8 @@ import {
   ExternalLink,
   AlertTriangle,
   Info,
-  ChevronRight,
   Search,
   RefreshCw,
-  Calendar,
   BadgeIndianRupee,
   FileText,
   Sprout,
@@ -29,7 +27,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import api from "@/lib/api";
+import api from "@/services/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -76,18 +74,6 @@ const TABS: { id: TabId; label: string; icon: any; color: string }[] = [
   { id: "bookmarks", label: "Saved", icon: Bookmark, color: "#ec4899" },
   { id: "all", label: "All", icon: FileText, color: "#6b7280" },
 ];
-
-const TYPE_TO_TAB: Record<string, TabId> = {
-  MSP_UPDATE: "msp",
-  SCHEME: "schemes",
-  PROCUREMENT_NOTICE: "alerts",
-  WEATHER_ADVISORY: "weather",
-  MARKET_ALERT: "market",
-  POLICY_UPDATE: "all",
-  DEADLINE: "alerts",
-  STATE_CIRCULAR: "all",
-  CENTRAL_NOTICE: "all",
-};
 
 const PRIORITY_CONFIG: Record<string, { label: string; color: string; bg: string; dot: string }> = {
   URGENT: { label: "Urgent", color: "#ef4444", bg: "rgba(239,68,68,0.12)", dot: "#ef4444" },
