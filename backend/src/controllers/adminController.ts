@@ -9,8 +9,11 @@ import {
   listCropsMaster,
   updateCropMspRate,
   listAllUsers,
+  createUserByAdmin,
+  updateUserStatus,
   updateUserRole,
   getStrategicAnalytics,
+  listAuditLogs,
 } from "../services/adminService";
 import { UserRole } from "@prisma/client";
 
@@ -53,6 +56,17 @@ const updateRoleSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
   role: z.enum(["FARMER", "OPERATOR", "ADMIN"]),
   centreId: z.string().optional(),
+});
+
+const createUserSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().min(8, "Phone number is required"),
+  role: z.enum(["FARMER", "OPERATOR", "ADMIN"]),
+  centreId: z.string().optional(),
+  district: z.string().optional(),
+  state: z.string().optional(),
+  landArea: z.number().optional(),
 });
 
 /**
@@ -155,7 +169,8 @@ export async function getCrops(_req: Request, res: Response, next: NextFunction)
 export async function patchCropMsp(req: Request, res: Response, next: NextFunction) {
   try {
     const parsed = updateMspSchema.parse(req.body);
-    const result = await updateCropMspRate(parsed.code, parsed.mspRate, parsed.perAcreLimit);
+    const adminUserId = (req as any).user?.uid;
+    const result = await updateCropMspRate(parsed.code, parsed.mspRate, parsed.perAcreLimit, adminUserId);
     res.json(result);
   } catch (error) {
     next(error);
@@ -178,6 +193,26 @@ export async function getUsers(req: Request, res: Response, next: NextFunction) 
 }
 
 /**
+ * POST /api/admin/users
+ */
+export async function postUser(req: Request, res: Response, next: NextFunction) {
+  try {
+    const parsed = createUserSchema.parse(req.body);
+    const user = await createUserByAdmin({
+      ...parsed,
+      email: parsed.email || undefined,
+    });
+    res.status(201).json({
+      success: true,
+      message: `User ${user.name} created successfully as ${user.role}`,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * PATCH /api/admin/users/role
  */
 export async function patchUserRole(req: Request, res: Response, next: NextFunction) {
@@ -185,6 +220,43 @@ export async function patchUserRole(req: Request, res: Response, next: NextFunct
     const parsed = updateRoleSchema.parse(req.body);
     const result = await updateUserRole(parsed.userId, parsed.role as UserRole, parsed.centreId);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /api/admin/users/:id/status
+ */
+export async function patchUserStatus(req: Request, res: Response, next: NextFunction) {
+  try {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+    const { isActive } = req.body;
+    if (typeof isActive !== "boolean") {
+      res.status(400).json({ success: false, message: "isActive boolean is required" });
+      return;
+    }
+
+    const updated = await updateUserStatus(id, isActive);
+    res.json({
+      success: true,
+      message: `User account status updated to ${isActive ? "Active" : "Inactive"}`,
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /api/admin/audit-logs
+ */
+export async function getAuditLogs(req: Request, res: Response, next: NextFunction) {
+  try {
+    const take = typeof req.query.take === "string" ? parseInt(req.query.take, 10) : 50;
+    const logs = await listAuditLogs(take);
+    res.json({ success: true, data: logs });
   } catch (error) {
     next(error);
   }

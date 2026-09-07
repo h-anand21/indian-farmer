@@ -8,7 +8,10 @@ import {
   getCrops,
   patchCropMsp,
   getUsers,
+  postUser,
   patchUserRole,
+  patchUserStatus,
+  getAuditLogs,
   getAnalytics,
 } from "../controllers/adminController";
 
@@ -34,6 +37,11 @@ router.patch("/crops/msp", patchCropMsp);
 
 // Stakeholder directory & RBAC
 router.get("/users", getUsers);
+router.post("/users", postUser);
 router.patch("/users/role", patchUserRole);
+router.patch("/users/:id/status", patchUserStatus);
+
+// Immutable Audit Logs
+router.get("/audit-logs", getAuditLogs);
 
 export default router;

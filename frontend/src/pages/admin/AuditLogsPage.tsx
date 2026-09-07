@@ -147,17 +147,87 @@ const INITIAL_LOGS: AuditLog[] = [
 
 export const AuditLogsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [logsList, setLogsList] = useState<AuditLog[]>(INITIAL_LOGS);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>("ALL");
   const [selectedActionFilter, setSelectedActionFilter] = useState<string>("ALL");
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>("ALL");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
+  const loadRealLogs = async () => {
+    try {
+      setIsRefreshing(true);
+      const data = await import("@/services/adminService").then(m => m.fetchAdminAuditLogs());
+      if (data && data.length > 0) {
+        const colors: Array<"green" | "blue" | "purple" | "orange" | "gray"> = [
+          "green",
+          "blue",
+          "purple",
+          "orange",
+          "gray",
+        ];
+        const mapped: AuditLog[] = data.map((item, idx) => {
+          const d = new Date(item.createdAt);
+          const icon: AuditLog["iconType"] = item.action.includes("PAYMENT")
+            ? "payment"
+            : item.action.includes("GATE")
+            ? "gate"
+            : item.action.includes("BOOKING")
+            ? "booking"
+            : item.action.includes("MSP")
+            ? "system"
+            : "procurement";
+
+          return {
+            id: item.id,
+            nodeNumber: idx + 1,
+            nodeColor: colors[idx % colors.length],
+            date: d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+            time: d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+            relativeTime: "Just now",
+            action: item.action,
+            entityType: item.entity,
+            entityId: item.entityId,
+            iconType: icon,
+            userName: item.user?.name || "System Automated Trigger",
+            userRole: (item.user?.role as any) || "SYSTEM",
+            details: `Executed ${item.action} on ${item.entity} (Target: ${item.entityId})`,
+            ipAddress: item.ipAddress || "192.168.1.1",
+            sourceType: "PostgreSQL Event Trail",
+            sourceDevice: item.user?.role === "ADMIN" ? "admin" : item.user?.role === "OPERATOR" ? "web" : "server",
+            category: item.action.includes("PAYMENT")
+              ? "Payment"
+              : item.action.includes("GATE")
+              ? "Gate Entry"
+              : item.action.includes("BOOKING")
+              ? "Booking"
+              : item.action.includes("MSP")
+              ? "System Update"
+              : "Procurement",
+          };
+        });
+
+        const merged = [...mapped];
+        INITIAL_LOGS.forEach((init) => {
+          if (!merged.some((m) => m.id === init.id)) {
+            merged.push(init);
+          }
+        });
+        setLogsList(merged);
+      }
+    } catch (err) {
+      console.warn("Using simulated audit trail stream:", err);
+    } finally {
       setIsRefreshing(false);
-    }, 500);
+    }
+  };
+
+  useEffect(() => {
+    loadRealLogs();
+  }, []);
+
+  const handleRefresh = () => {
+    loadRealLogs();
   };
 
   const handleExportLogs = () => {
@@ -202,7 +272,7 @@ export const AuditLogsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const filteredLogs = INITIAL_LOGS.filter((l) => {
+  const filteredLogs = logsList.filter((l) => {
     const matchesSearch =
       searchTerm === "" ||
       l.action.toLowerCase().includes(searchTerm.toLowerCase()) ||

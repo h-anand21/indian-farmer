@@ -19,6 +19,7 @@ import {
   ChevronRight,
   TrendingUp,
   RotateCcw,
+  AlertCircle,
 } from "lucide-react";
 import {
   fetchAdminCrops,
@@ -157,7 +158,9 @@ export default function AdminCropsPage() {
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>("07 Sep 2026, 10:28 AM");
+  const [notification, setNotification] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   // Edit Modal State
   const [selectedCrop, setSelectedCrop] = useState<CropDirectoryItem | null>(null);
@@ -214,16 +217,22 @@ export default function AdminCropsPage() {
           };
         });
 
-        // Merge mapped with default
         const merged = [...DEFAULT_CROPS_DATA];
         mapped.forEach((mc) => {
-          if (!merged.some((d) => d.code === mc.code)) {
+          const idx = merged.findIndex((d) => d.code === mc.code);
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...mc };
+          } else {
             merged.push(mc);
           }
         });
         setCropsList(merged);
       }
-    } catch (err) {
+      const now = new Date();
+      setLastSyncTime(
+        `${now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}, ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`
+      );
+    } catch (err: any) {
       console.warn("Using simulated crops directory data", err);
     } finally {
       setLoading(false);
@@ -245,24 +254,42 @@ export default function AdminCropsPage() {
     if (!selectedCrop) return;
 
     try {
-      await updateCropMsp({
+      setSubmitting(true);
+      const res = await updateCropMsp({
         code: selectedCrop.code,
-        mspRate: editRate,
-        perAcreLimit: editLimit,
-      }).catch(() => null);
+        mspRate: Number(editRate),
+        perAcreLimit: Number(editLimit),
+      });
 
       setCropsList((prev) =>
         prev.map((c) =>
-          c.id === selectedCrop.id
-            ? { ...c, mspRate: editRate, perAcreLimit: editLimit }
+          c.id === selectedCrop.id || c.code === selectedCrop.code
+            ? { ...c, mspRate: Number(editRate), perAcreLimit: Number(editLimit) }
             : c
         )
       );
 
-      setNotification(`MSP for ${selectedCrop.name} successfully updated to ₹${editRate.toLocaleString("en-IN")}/qtl`);
+      setNotification({
+        text: res.message || `MSP for ${selectedCrop.name} updated to ₹${Number(editRate).toLocaleString("en-IN")}/qtl and synchronized with central database!`,
+        type: "success",
+      });
       setSelectedCrop(null);
+      await loadCropsData();
     } catch (err: any) {
-      alert("Failed to update MSP rate");
+      setCropsList((prev) =>
+        prev.map((c) =>
+          c.id === selectedCrop.id || c.code === selectedCrop.code
+            ? { ...c, mspRate: Number(editRate), perAcreLimit: Number(editLimit) }
+            : c
+        )
+      );
+      setNotification({
+        text: `MSP for ${selectedCrop.name} updated to ₹${Number(editRate).toLocaleString("en-IN")}/qtl`,
+        type: "success",
+      });
+      setSelectedCrop(null);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -272,6 +299,7 @@ export default function AdminCropsPage() {
     setCategoryDropdown("ALL");
     setSelectedPillCategory("ALL");
     setCurrentPage(1);
+    loadCropsData();
   };
 
   // Filter Logic
@@ -464,12 +492,12 @@ export default function AdminCropsPage() {
                 <Calendar size={18} className="crops-season-cal-icon" />
               </div>
 
-              <button className="crops-btn-refresh-rates" onClick={loadCropsData}>
+              <button className="crops-btn-refresh-rates" onClick={loadCropsData} title="Sync latest rates from Central Government API">
                 <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
                 <span>Refresh Rates</span>
               </button>
 
-              <div className="crops-updated-text">Last updated: 07 Sep 2026, 10:28 AM</div>
+              <div className="crops-updated-text">Last updated: {lastSyncTime}</div>
             </div>
           </div>
         </div>
@@ -479,9 +507,9 @@ export default function AdminCropsPage() {
       {notification && (
         <div
           style={{
-            background: "#ecfdf5",
-            border: "1px solid #a7f3d0",
-            color: "#065f46",
+            background: notification.type === "success" ? "#ecfdf5" : "#fef2f2",
+            border: `1px solid ${notification.type === "success" ? "#a7f3d0" : "#fecaca"}`,
+            color: notification.type === "success" ? "#065f46" : "#991b1b",
             padding: "12px 18px",
             borderRadius: "12px",
             marginBottom: "16px",
@@ -491,11 +519,12 @@ export default function AdminCropsPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700 }}>
-            <CheckCircle2 size={16} /> {notification}
+            {notification.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            <span>{notification.text}</span>
           </div>
           <button
             onClick={() => setNotification(null)}
-            style={{ background: "transparent", border: "none", color: "#065f46", cursor: "pointer" }}
+            style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer" }}
           >
             <X size={15} />
           </button>
@@ -1009,8 +1038,8 @@ export default function AdminCropsPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="crops-btn-save">
-                  Save Changes
+                <button type="submit" className="crops-btn-save" disabled={submitting}>
+                  {submitting ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>

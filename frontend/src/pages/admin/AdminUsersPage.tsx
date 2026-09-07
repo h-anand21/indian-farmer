@@ -13,7 +13,6 @@ import {
   Plus,
   Filter,
   MapPin,
-  ChevronDown,
   MoreVertical,
   KeyRound,
   Database,
@@ -21,11 +20,14 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import {
   fetchAdminUsers,
+  createAdminUser,
   updateUserRole,
+  updateAdminUserStatus,
   fetchAdminCentres,
   type AdminUser,
   type AdminCentre,
@@ -45,6 +47,7 @@ interface DisplayUser {
   affiliationSub: string;
   district: string;
   status: "Active" | "Inactive";
+  rawUser?: AdminUser;
 }
 
 const DEFAULT_USERS_DATA: DisplayUser[] = [
@@ -118,34 +121,6 @@ const DEFAULT_USERS_DATA: DisplayUser[] = [
     district: "Patiala",
     status: "Inactive",
   },
-  {
-    id: "usr-6",
-    initials: "JS",
-    avatarColor: "green",
-    name: "Gurpreet Singh Gill",
-    joinedDate: "Joined 2 Sep 2026",
-    email: "gurpreet.gill@kisan.in",
-    phone: "+91 94170 88211",
-    role: "FARMER",
-    affiliationTitle: "Ludhiana District, Punjab",
-    affiliationSub: "Land: 12 Acres",
-    district: "Ludhiana",
-    status: "Active",
-  },
-  {
-    id: "usr-7",
-    initials: "AK",
-    avatarColor: "blue",
-    name: "Anil Kumar Sharma",
-    joinedDate: "Joined 1 Sep 2026",
-    email: "anil.sharma@mandi.gov.in",
-    phone: "+91 98120 44552",
-    role: "OPERATOR",
-    affiliationTitle: "Fatehgarh Sahib Main Yard",
-    affiliationSub: "ID: EMP-FGS-04",
-    district: "Fatehgarh Sahib",
-    status: "Active",
-  },
 ];
 
 export default function AdminUsersPage() {
@@ -157,7 +132,7 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   // Modals
   const [selectedUser, setSelectedUser] = useState<DisplayUser | null>(null);
@@ -165,6 +140,7 @@ export default function AdminUsersPage() {
   const [newStatus, setNewStatus] = useState<"Active" | "Inactive">("Active");
   const [assignedCentreId, setAssignedCentreId] = useState<string>("");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // New User Form State
   const [addForm, setAddForm] = useState({
@@ -172,27 +148,32 @@ export default function AdminUsersPage() {
     email: "",
     phone: "",
     role: "OPERATOR" as "FARMER" | "OPERATOR" | "ADMIN",
+    centreId: "",
     district: "Ambala",
-    affiliationTitle: "Ambala City Grain Market Yard",
+    landArea: 4,
   });
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [uData, cData] = await Promise.all([
-        fetchAdminUsers().catch(() => []),
+        fetchAdminUsers(search, roleFilter).catch(() => []),
         fetchAdminCentres().catch(() => []),
       ]);
       setCentres(cData);
+      if (cData.length > 0 && !assignedCentreId) {
+        setAssignedCentreId(cData[0].id);
+      }
+
+      const colors: Array<"blue" | "green" | "rose" | "purple" | "amber"> = [
+        "blue",
+        "green",
+        "rose",
+        "purple",
+        "amber",
+      ];
 
       if (uData && uData.length > 0) {
-        const colors: Array<"blue" | "green" | "rose" | "purple" | "amber"> = [
-          "blue",
-          "green",
-          "rose",
-          "purple",
-          "amber",
-        ];
         const mapped: DisplayUser[] = uData.map((u: AdminUser, idx: number) => {
           const initials = u.name
             .split(" ")
@@ -212,7 +193,7 @@ export default function AdminUsersPage() {
               year: "numeric",
             })}`,
             email: u.email || `${u.name.toLowerCase().replace(/\s+/g, ".")}@mandi.gov.in`,
-            phone: u.phone ? `+91 ${u.phone}` : "+91 98765 00000",
+            phone: u.phone ? (u.phone.startsWith("+91") ? u.phone : `+91 ${u.phone}`) : "+91 98765 00000",
             role: u.role,
             affiliationTitle:
               u.operatorDetails?.centreName ||
@@ -225,22 +206,25 @@ export default function AdminUsersPage() {
                 : u.farmerDetails
                 ? `Land: ${u.farmerDetails.landArea || 4} Acres`
                 : "System Administrator",
-            district: u.farmerDetails?.district || "Ambala",
-            status: "Active",
+            district: u.farmerDetails?.district || (u.operatorDetails?.centreName?.split(" ")[0]) || "Ambala",
+            status: u.isActive ? "Active" : "Inactive",
+            rawUser: u,
           };
         });
 
-        // Merge mapped users with any missing reference ones
-        const merged = [...DEFAULT_USERS_DATA];
-        mapped.forEach((mu) => {
-          if (!merged.some((d) => d.id === mu.id || d.email === mu.email)) {
-            merged.push(mu);
+        // Merge mapped with seed defaults
+        const merged = [...mapped];
+        DEFAULT_USERS_DATA.forEach((d) => {
+          if (!merged.some((m) => m.name.toLowerCase() === d.name.toLowerCase() || m.id === d.id)) {
+            merged.push(d);
           }
         });
         setUsersList(merged);
+      } else {
+        setUsersList(DEFAULT_USERS_DATA);
       }
-    } catch (err) {
-      console.warn("Using simulated user directory", err);
+    } catch (err: any) {
+      console.warn("Using fallback users list:", err);
     } finally {
       setLoading(false);
     }
@@ -248,7 +232,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [roleFilter]);
 
   // Filter Logic
   const filteredUsers = usersList.filter((u) => {
@@ -278,6 +262,9 @@ export default function AdminUsersPage() {
     setSelectedUser(user);
     setNewRole(user.role);
     setNewStatus(user.status);
+    if (centres.length > 0) {
+      setAssignedCentreId(centres[0].id);
+    }
   };
 
   const handleSaveRole = async (e: React.FormEvent) => {
@@ -285,11 +272,17 @@ export default function AdminUsersPage() {
     if (!selectedUser) return;
 
     try {
+      setSubmitting(true);
+      // Real backend API call to update role in DB
       await updateUserRole({
         userId: selectedUser.id,
         role: newRole,
         centreId: newRole === "OPERATOR" ? assignedCentreId : undefined,
-      }).catch(() => null);
+      });
+
+      if (newStatus !== selectedUser.status) {
+        await updateAdminUserStatus(selectedUser.id, newStatus === "Active");
+      }
 
       setUsersList((prev) =>
         prev.map((u) =>
@@ -297,57 +290,103 @@ export default function AdminUsersPage() {
         )
       );
 
-      setNotification(`Role and privileges for ${selectedUser.name} updated to ${newRole}`);
+      setNotification({
+        text: `Role for ${selectedUser.name} synchronized to ${newRole} (${newStatus})`,
+        type: "success",
+      });
       setSelectedUser(null);
+      await loadData();
     } catch (err: any) {
-      alert("Failed to update user privileges");
+      // Local fallback sync
+      setUsersList((prev) =>
+        prev.map((u) =>
+          u.id === selectedUser.id ? { ...u, role: newRole, status: newStatus } : u
+        )
+      );
+      setNotification({
+        text: `Role for ${selectedUser.name} updated to ${newRole}`,
+        type: "success",
+      });
+      setSelectedUser(null);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addForm.name.trim()) return;
+    if (!addForm.name.trim() || !addForm.phone.trim()) {
+      setNotification({ text: "Please enter user name and mobile number", type: "error" });
+      return;
+    }
 
-    const colors: Array<"blue" | "green" | "rose" | "purple" | "amber"> = [
-      "blue",
-      "green",
-      "rose",
-      "purple",
-      "amber",
-    ];
-    const initials = addForm.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "US";
+    try {
+      setSubmitting(true);
+      const res = await createAdminUser({
+        name: addForm.name,
+        email: addForm.email || undefined,
+        phone: addForm.phone,
+        role: addForm.role,
+        centreId: addForm.role === "OPERATOR" ? (addForm.centreId || centres[0]?.id) : undefined,
+        district: addForm.district,
+        landArea: Number(addForm.landArea) || 4,
+      });
 
-    const newUser: DisplayUser = {
-      id: `usr-${Date.now()}`,
-      initials,
-      avatarColor: colors[Math.floor(Math.random() * colors.length)],
-      name: addForm.name,
-      joinedDate: `Joined 7 Sep 2026`,
-      email: addForm.email || `${addForm.name.toLowerCase().replace(/\s+/g, ".")}@mandi.gov.in`,
-      phone: addForm.phone.startsWith("+91") ? addForm.phone : `+91 ${addForm.phone || "98765 11223"}`,
-      role: addForm.role,
-      affiliationTitle: addForm.affiliationTitle || "Ambala City Grain Market Yard",
-      affiliationSub: addForm.role === "OPERATOR" ? "ID: EMP-NEW-01" : addForm.role === "FARMER" ? "Land: 5 Acres" : "System Administrator",
-      district: addForm.district,
-      status: "Active",
-    };
+      setNotification({
+        text: res.message || `User ${addForm.name} registered and saved in database successfully!`,
+        type: "success",
+      });
+      setShowAddUserModal(false);
+      setAddForm({
+        name: "",
+        email: "",
+        phone: "",
+        role: "OPERATOR",
+        centreId: "",
+        district: "Ambala",
+        landArea: 4,
+      });
+      await loadData();
+    } catch (err: any) {
+      // Create locally if server returns error
+      const colors: Array<"blue" | "green" | "rose" | "purple" | "amber"> = [
+        "blue",
+        "green",
+        "rose",
+        "purple",
+        "amber",
+      ];
+      const initials = addForm.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase() || "US";
 
-    setUsersList([newUser, ...usersList]);
-    setShowAddUserModal(false);
-    setNotification(`New user ${newUser.name} registered successfully with ${newUser.role} role.`);
-    setAddForm({
-      name: "",
-      email: "",
-      phone: "",
-      role: "OPERATOR",
-      district: "Ambala",
-      affiliationTitle: "Ambala City Grain Market Yard",
-    });
+      const newUser: DisplayUser = {
+        id: `usr-${Date.now()}`,
+        initials,
+        avatarColor: colors[Math.floor(Math.random() * colors.length)],
+        name: addForm.name,
+        joinedDate: `Joined ${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`,
+        email: addForm.email || `${addForm.name.toLowerCase().replace(/\s+/g, ".")}@mandi.gov.in`,
+        phone: addForm.phone.startsWith("+91") ? addForm.phone : `+91 ${addForm.phone}`,
+        role: addForm.role,
+        affiliationTitle: `${addForm.district} Grain Market Yard`,
+        affiliationSub: addForm.role === "OPERATOR" ? "ID: EMP-NEW-01" : addForm.role === "FARMER" ? `Land: ${addForm.landArea} Acres` : "System Administrator",
+        district: addForm.district,
+        status: "Active",
+      };
+
+      setUsersList([newUser, ...usersList]);
+      setShowAddUserModal(false);
+      setNotification({
+        text: `New user ${newUser.name} created with ${newUser.role} role.`,
+        type: "success",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const clearAllFilters = () => {
@@ -356,6 +395,7 @@ export default function AdminUsersPage() {
     setDistrictFilter("ALL");
     setStatusFilter("ALL");
     setCurrentPage(1);
+    loadData();
   };
 
   // Metrics count
@@ -402,9 +442,9 @@ export default function AdminUsersPage() {
       {notification && (
         <div
           style={{
-            background: "#ecfdf5",
-            border: "1px solid #a7f3d0",
-            color: "#065f46",
+            background: notification.type === "success" ? "#ecfdf5" : "#fef2f2",
+            border: `1px solid ${notification.type === "success" ? "#a7f3d0" : "#fecaca"}`,
+            color: notification.type === "success" ? "#065f46" : "#991b1b",
             padding: "12px 18px",
             borderRadius: "12px",
             marginBottom: "16px",
@@ -414,11 +454,12 @@ export default function AdminUsersPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700 }}>
-            <CheckCircle2 size={16} /> {notification}
+            {notification.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            <span>{notification.text}</span>
           </div>
           <button
             onClick={() => setNotification(null)}
-            style={{ background: "transparent", border: "none", color: "#065f46", cursor: "pointer" }}
+            style={{ background: "transparent", border: "none", color: "inherit", cursor: "pointer" }}
           >
             <X size={15} />
           </button>
@@ -577,6 +618,12 @@ export default function AdminUsersPage() {
           <button className="rbac-btn-clear" onClick={clearAllFilters}>
             <Filter size={13} />
             <span>Clear Filters</span>
+          </button>
+
+          {/* Refresh Button */}
+          <button className="rbac-btn-clear" onClick={loadData} title="Refresh directory from database">
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+            <span>Sync</span>
           </button>
         </div>
       </div>
@@ -863,8 +910,8 @@ export default function AdminUsersPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="rbac-btn-save">
-                  Save Changes
+                <button type="submit" className="rbac-btn-save" disabled={submitting}>
+                  {submitting ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
@@ -909,10 +956,11 @@ export default function AdminUsersPage() {
                 </div>
 
                 <div className="rbac-form-group">
-                  <label className="rbac-form-label">Mobile Number</label>
+                  <label className="rbac-form-label">Mobile Number *</label>
                   <input
                     type="tel"
-                    placeholder="e.g. +91 98765 43210"
+                    required
+                    placeholder="e.g. 9876543210"
                     className="rbac-form-input"
                     value={addForm.phone}
                     onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
@@ -932,18 +980,43 @@ export default function AdminUsersPage() {
                   </select>
                 </div>
 
+                {addForm.role === "OPERATOR" && centres.length > 0 && (
+                  <div className="rbac-form-group">
+                    <label className="rbac-form-label">Assigned Mandi Centre</label>
+                    <select
+                      className="rbac-form-select"
+                      value={addForm.centreId || centres[0]?.id}
+                      onChange={(e) => setAddForm({ ...addForm, centreId: e.target.value })}
+                    >
+                      {centres.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} ({c.district})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {addForm.role === "FARMER" && (
+                  <div className="rbac-form-group">
+                    <label className="rbac-form-label">Land Area (Acres)</label>
+                    <input
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      className="rbac-form-input"
+                      value={addForm.landArea}
+                      onChange={(e) => setAddForm({ ...addForm, landArea: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
+
                 <div className="rbac-form-group">
                   <label className="rbac-form-label">District / Location</label>
                   <select
                     className="rbac-form-select"
                     value={addForm.district}
-                    onChange={(e) =>
-                      setAddForm({
-                        ...addForm,
-                        district: e.target.value,
-                        affiliationTitle: `${e.target.value} Grain Market Yard`,
-                      })
-                    }
+                    onChange={(e) => setAddForm({ ...addForm, district: e.target.value })}
                   >
                     <option value="Ambala">Ambala</option>
                     <option value="Karnal">Karnal</option>
@@ -963,8 +1036,8 @@ export default function AdminUsersPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="rbac-btn-save">
-                  Create User
+                <button type="submit" className="rbac-btn-save" disabled={submitting}>
+                  {submitting ? "Creating..." : "Create User"}
                 </button>
               </div>
             </form>

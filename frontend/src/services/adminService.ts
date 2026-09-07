@@ -93,6 +93,24 @@ export interface StrategicAnalytics {
   averageTurnaroundMinutes: number;
 }
 
+export interface AdminAuditLog {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string;
+  oldValue: any;
+  newValue: any;
+  ipAddress: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    role: string;
+  };
+}
+
 /**
  * Fetch state-wide metrics
  */
@@ -178,9 +196,26 @@ export async function updateCropMsp(payload: {
 export async function fetchAdminUsers(search?: string, role?: string): Promise<AdminUser[]> {
   const params: any = {};
   if (search) params.search = search;
-  if (role) params.role = role;
+  if (role && role !== "ALL") params.role = role;
   const res = await api.get("/admin/users", { params });
   return res.data.data;
+}
+
+/**
+ * Create new user by Admin
+ */
+export async function createAdminUser(payload: {
+  name: string;
+  email?: string;
+  phone: string;
+  role: "FARMER" | "OPERATOR" | "ADMIN";
+  centreId?: string;
+  district?: string;
+  state?: string;
+  landArea?: number;
+}) {
+  const res = await api.post("/admin/users", payload);
+  return res.data;
 }
 
 /**
@@ -193,6 +228,22 @@ export async function updateUserRole(payload: {
 }) {
   const res = await api.patch("/admin/users/role", payload);
   return res.data;
+}
+
+/**
+ * Update user active status
+ */
+export async function updateAdminUserStatus(userId: string, isActive: boolean) {
+  const res = await api.patch(`/admin/users/${userId}/status`, { isActive });
+  return res.data;
+}
+
+/**
+ * Fetch real audit logs
+ */
+export async function fetchAdminAuditLogs(take: number = 50): Promise<AdminAuditLog[]> {
+  const res = await api.get("/admin/audit-logs", { params: { take } });
+  return res.data.data;
 }
 
 /**
