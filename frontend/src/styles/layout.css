@@ -24,12 +24,79 @@
   z-index: 50;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1), transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .sidebar-wrapper {
   width: var(--sidebar-width);
   flex-shrink: 0;
+  transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Collapsed Sidebar */
+.app-sidebar.collapsed {
+  width: 72px;
+}
+
+.sidebar-wrapper.collapsed {
+  width: 72px;
+}
+
+.app-sidebar.collapsed .sidebar-brand {
+  padding: 16px 10px;
+  justify-content: center;
+}
+
+.app-sidebar.collapsed .sidebar-nav {
+  padding: 16px 6px;
+}
+
+.app-sidebar.collapsed .sidebar-nav-btn {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  padding: 0;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.app-sidebar.collapsed .sidebar-section-label {
+  display: none;
+}
+
+.app-sidebar.collapsed .sidebar-footer {
+  padding: 12px 6px;
+}
+
+.app-sidebar.collapsed .sidebar-user-card {
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+}
+
+.sidebar-toggle-fold-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle-fold-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.app-sidebar.collapsed .sidebar-toggle-fold-btn {
+  margin-left: 0;
+  margin-top: 8px;
 }
 
 @media (max-width: 960px) {

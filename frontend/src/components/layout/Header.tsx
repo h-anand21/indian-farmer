@@ -1,19 +1,7 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
-import {
-  Bell,
-  Menu,
-  ChevronDown,
-  LayoutDashboard,
-  CalendarPlus,
-  Users,
-  CreditCard,
-  Briefcase,
-  Shield,
-  Leaf,
-} from "lucide-react";
+import { Bell, Menu, ChevronDown } from "lucide-react";
 import LanguageSelector from "@/components/common/LanguageSelector";
 import NotificationFlyout from "@/components/common/NotificationFlyout";
 import UserDropdown from "@/components/layout/UserDropdown";
@@ -26,75 +14,24 @@ interface HeaderProps {
 export default function Header({ onMobileMenuToggle }: HeaderProps) {
   const { user, role } = useAuth();
   const { unreadCount } = useNotifications();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isMandiModalOpen, setIsMandiModalOpen] = useState(false);
-
-  const currentPath = location.pathname;
-
-  const farmerQuickNav = [
-    { label: "Dashboard", href: "/farmer/dashboard", icon: LayoutDashboard },
-    { label: "Book Slot", href: "/farmer/book-slot", icon: CalendarPlus },
-    { label: "Live Queue", href: "/farmer/queue", icon: Users },
-    { label: "Payments", href: "/farmer/payments", icon: CreditCard },
-  ];
-
-  const operatorQuickNav = [
-    { label: "Operator Desk", href: "/operator/dashboard", icon: Briefcase },
-    { label: "Token Scanner", href: "/operator/scan", icon: Users },
-    { label: "Weighment Intake", href: "/operator/intake", icon: CreditCard },
-  ];
-
-  const adminQuickNav = [
-    { label: "Admin Console", href: "/admin/dashboard", icon: Shield },
-    { label: "Centres", href: "/admin/centres", icon: LayoutDashboard },
-    { label: "MSP Rules", href: "/admin/crops", icon: CalendarPlus },
-    { label: "User Registry", href: "/admin/users", icon: Users },
-  ];
-
-  const navItems =
-    role === "ADMIN"
-      ? adminQuickNav
-      : role === "OPERATOR"
-      ? operatorQuickNav
-      : farmerQuickNav;
 
   return (
     <>
       <header className="app-header relative border-b border-stone-200 bg-white/95 backdrop-blur-md">
         {/* Left Section */}
         <div className="header-left flex items-center gap-3">
-          {/* Mobile menu hamburger */}
+          {/* Sidebar Fold/Unfold Toggle Button */}
           <button
-            className="header-mobile-toggle p-2 rounded-lg hover:bg-stone-100 text-stone-700 transition-colors"
+            className="p-2 rounded-xl hover:bg-stone-100 text-stone-700 transition-colors flex items-center justify-center border border-stone-200 shadow-sm"
             onClick={onMobileMenuToggle}
-            aria-label="Toggle Navigation"
+            aria-label="Toggle Sidebar Navigation"
+            title="Toggle Sidebar (Expand/Fold)"
           >
-            <Menu size={22} />
-          </button>
-
-          {/* Brand Logo Click Shortcut */}
-          <button
-            onClick={() => {
-              const target =
-                role === "ADMIN"
-                  ? "/admin/dashboard"
-                  : role === "OPERATOR"
-                  ? "/operator/dashboard"
-                  : "/farmer/dashboard";
-              navigate({ to: target });
-            }}
-            className="hidden md:flex items-center gap-2 pr-2 border-r border-stone-200 text-stone-900 font-bold hover:opacity-85 transition-opacity"
-          >
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-              <Leaf size={18} />
-            </div>
-            <span className="font-brand text-base tracking-tight">
-              Kisan<span className="text-amber-600">Queue</span>
-            </span>
+            <Menu size={20} />
           </button>
 
           {/* Interactive Live Centre Status Pill */}
@@ -107,32 +44,10 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
             <span className="status-text text-xs text-emerald-900 font-medium">
               Mandi Gate <strong>Open</strong> &bull; Normal Queue
             </span>
-            <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-200/60 px-1.5 py-0.5 rounded group-hover:bg-emerald-300 transition-colors">
+            <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-200/60 px-1.5 py-0.5 rounded group-hover:bg-emerald-300 transition-colors hidden xs:inline">
               Details
             </span>
           </button>
-        </div>
-
-        {/* Center Quick Navbar Links (Desktop) */}
-        <div className="hidden lg:flex items-center gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentPath === item.href;
-            return (
-              <button
-                key={item.href}
-                onClick={() => navigate({ to: item.href })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  isActive
-                    ? "bg-emerald-600 text-white shadow-sm font-bold"
-                    : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
-                }`}
-              >
-                <Icon size={15} />
-                {item.label}
-              </button>
-            );
-          })}
         </div>
 
         {/* Right Section */}

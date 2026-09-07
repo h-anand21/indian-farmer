@@ -17,6 +17,7 @@ import {
   Sprout,
   UserCog,
   ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 
 interface NavItem {
@@ -26,7 +27,12 @@ interface NavItem {
   badge?: string;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
+}
+
+export default function Sidebar({ isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const { user, role, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -67,23 +73,41 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="app-sidebar">
+    <aside className={`app-sidebar ${isCollapsed ? "collapsed" : ""}`}>
       {/* Brand Header */}
       <div className="sidebar-brand">
-        <div className="sidebar-logo">
+        <button
+          onClick={onToggleCollapse}
+          className="sidebar-logo flex items-center justify-center shrink-0 border-none cursor-pointer hover:opacity-90 transition-opacity"
+          title={isCollapsed ? "Click to Expand Sidebar" : "KisanQueue"}
+        >
           <Leaf size={22} color="#ffffff" />
-        </div>
-        <div className="sidebar-brand-text">
-          <div className="sidebar-title">
-            Kisan<span>Queue</span>
+        </button>
+
+        {!isCollapsed && (
+          <div className="sidebar-brand-text flex-1 min-w-0">
+            <div className="sidebar-title">
+              Kisan<span>Queue</span>
+            </div>
+            <span className="sidebar-portal-tag">{role || "FARMER"} PORTAL</span>
           </div>
-          <span className="sidebar-portal-tag">{role || "FARMER"} PORTAL</span>
-        </div>
+        )}
+
+        {/* Desktop Collapse Toggle Button (When expanded) */}
+        {!isCollapsed && onToggleCollapse && (
+          <button
+            className="sidebar-toggle-fold-btn hidden md:flex"
+            onClick={onToggleCollapse}
+            title="Fold Sidebar"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
       </div>
 
       {/* Nav Menu */}
       <nav className="sidebar-nav">
-        <div className="sidebar-section-label">MAIN NAVIGATION</div>
+        {!isCollapsed && <div className="sidebar-section-label">MAIN NAVIGATION</div>}
         <ul className="sidebar-list">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -93,10 +117,11 @@ export default function Sidebar() {
                 <button
                   className={`sidebar-nav-btn ${isActive ? "active" : ""}`}
                   onClick={() => navigate({ to: item.href })}
+                  title={item.label}
                 >
-                  <Icon size={19} className="sidebar-icon" />
-                  <span className="sidebar-nav-text">{item.label}</span>
-                  {item.badge && (
+                  <Icon size={20} className="sidebar-icon shrink-0" />
+                  {!isCollapsed && <span className="sidebar-nav-text">{item.label}</span>}
+                  {!isCollapsed && item.badge && (
                     <span
                       className={`sidebar-badge ${
                         item.badge === "Live" ? "badge-live" : ""
@@ -105,7 +130,9 @@ export default function Sidebar() {
                       {item.badge}
                     </span>
                   )}
-                  {isActive && <ChevronRight size={15} className="sidebar-chevron" />}
+                  {!isCollapsed && isActive && (
+                    <ChevronRight size={15} className="sidebar-chevron shrink-0" />
+                  )}
                 </button>
               </li>
             );
@@ -116,22 +143,28 @@ export default function Sidebar() {
       {/* User Footer Card */}
       <div className="sidebar-footer">
         <div className="sidebar-user-card">
-          <div className="sidebar-avatar">
+          <div className="sidebar-avatar shrink-0">
             {user?.name ? user.name.slice(0, 2).toUpperCase() : "KQ"}
           </div>
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-name">{user?.name || "Farmer"}</div>
-            <div className="sidebar-user-phone">
-              +91 {user?.phone ? user.phone.slice(-10) : "Authenticated"}
+
+          {!isCollapsed && (
+            <div className="sidebar-user-info min-w-0 flex-1">
+              <div className="sidebar-user-name truncate">{user?.name || "Farmer"}</div>
+              <div className="sidebar-user-phone truncate">
+                +91 {user?.phone ? user.phone.slice(-10) : "Authenticated"}
+              </div>
             </div>
-          </div>
-          <button
-            className="sidebar-logout-btn"
-            onClick={handleLogout}
-            title="Sign Out"
-          >
-            <LogOut size={17} />
-          </button>
+          )}
+
+          {!isCollapsed && (
+            <button
+              className="sidebar-logout-btn"
+              onClick={handleLogout}
+              title="Sign Out of Portal"
+            >
+              <LogOut size={17} />
+            </button>
+          )}
         </div>
       </div>
     </aside>
