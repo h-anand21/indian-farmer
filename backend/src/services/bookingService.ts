@@ -1,0 +1,340 @@
+import prisma from "../config/database";
+import { BookingStatus, CongestionLevel } from "../types/enums";
+
+// ── Master Crop Data with Government MSP Rates (2026-27) ──
+export const MSP_CROPS = [
+  {
+    name: "Wheat (Kanak)",
+    variety: "HD-3086 / PBW-725",
+    mspPrice: 2275,
+    unit: "Quintal",
+    season: "Rabi 2026-27",
+    maxMoisture: 12.0,
+    quotaPerAcre: 22.0, // Max 22 quintals per acre
+    icon: "🌾",
+  },
+  {
+    name: "Paddy (Dhan - Common)",
+    variety: "PR-126 / Pusa-44",
+    mspPrice: 2183,
+    unit: "Quintal",
+    season: "Kharif 2026-27",
+    maxMoisture: 17.0,
+    quotaPerAcre: 28.0,
+    icon: "🌾",
+  },
+  {
+    name: "Mustard (Sarson)",
+    variety: "Pusa Bold / Giriraj",
+    mspPrice: 5650,
+    unit: "Quintal",
+    season: "Rabi 2026-27",
+    maxMoisture: 8.0,
+    quotaPerAcre: 8.5,
+    icon: "🌱",
+  },
+  {
+    name: "Cotton (Kapas - Medium Staple)",
+    variety: "Bt Cotton Hybrid",
+    mspPrice: 7020,
+    unit: "Quintal",
+    season: "Kharif 2026-27",
+    maxMoisture: 10.0,
+    quotaPerAcre: 10.0,
+    icon: "☁️",
+  },
+  {
+    name: "Maize (Makka)",
+    variety: "PMH-1 / Ganga-5",
+    mspPrice: 2090,
+    unit: "Quintal",
+    season: "Kharif 2026-27",
+    maxMoisture: 14.0,
+    quotaPerAcre: 24.0,
+    icon: "🌽",
+  },
+];
+
+/**
+ * List all active procurement centres
+ */
+export async function listCentres(query?: { state?: string; district?: string }) {
+  const where: any = { isActive: true };
+  if (query?.state) where.state = query.state;
+  if (query?.district) where.district = query.district;
+
+  const centres = await prisma.procurementCentre.findMany({
+    where,
+    orderBy: { name: "asc" },
+  });
+
+  // Calculate dynamic congestion level for each centre based on today's bookings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const centreIds = centres.map((c) => c.id);
+  const todaySlots = await prisma.slot.findMany({
+    where: {
+      centreId: { in: centreIds },
+      date: today,
+    },
+  });
+
+  const slotsByCentre = new Map<string, typeof todaySlots>();
+  for (const s of todaySlots) {
+    const list = slotsByCentre.get(s.centreId) || [];
+    list.push(s);
+    slotsByCentre.set(s.centreId, list);
+  }
+
+  const enrichedCentres = centres.map((c) => {
+    const cSlots = slotsByCentre.get(c.id) || [];
+    const totalCap = cSlots.reduce((sum, s) => sum + s.capacity, 0);
+    const totalBooked = cSlots.reduce((sum, s) => sum + s.booked, 0);
+    const ratio = totalCap > 0 ? totalBooked / totalCap : 0;
+
+    let congestion: CongestionLevel = CongestionLevel.LOW;
+    if (ratio > 0.75) congestion = CongestionLevel.HIGH;
+    else if (ratio > 0.45) congestion = CongestionLevel.MODERATE;
+
+    return {
+      ...c,
+      congestion,
+      todayBookedRatio: Math.round(ratio * 100),
+    };
+  });
+
+  return enrichedCentres;
+}
+
+/**
+ * List master crops
+ */
+export function listMasterCrops() {
+  return MSP_CROPS;
+}
+
+/**
+ * Get available slots for a centre on a given date
+ */
+export async function getSlotsForCentreAndDate(centreId: string, dateStr: string) {
+  const targetDate = new Date(dateStr);
+  targetDate.setHours(0, 0, 0, 0);
+
+  const slots = await prisma.slot.findMany({
+    where: {
+      centreId,
+      date: targetDate,
+      isActive: true,
+    },
+    orderBy: { startTime: "asc" },
+  });
+
+  return slots.map((s) => ({
+    ...s,
+    availableCapacity: Math.max(0, s.capacity - s.booked),
+    isFull: s.booked >= s.capacity,
+  }));
+}
+
+/**
+ * Create a new slot booking for a farmer
+ */
+export interface CreateBookingInput {
+  centreId: string;
+  slotId: string;
+  cropName: string;
+  quantity: number;
+  vehicleType: string;
+  vehicleNumber: string;
+  driverPhone?: string;
+}
+
+export async function createBooking(
+  firebaseUid: string,
+  input: CreateBookingInput
+) {
+  return prisma.$transaction(async (tx) => {
+    // 1. Find user & farmer profile
+    const user = await tx.user.findUnique({
+      where: { firebaseUid },
+      include: { farmer: true },
+    });
+
+    if (!user) throw new Error("User not found");
+    if (!user.farmer) {
+      throw new Error("Farmer profile not found. Please complete registration first.");
+    }
+
+    // 2. Find slot and check capacity
+    const slot = await tx.slot.findUnique({
+      where: { id: input.slotId },
+      include: { centre: true },
+    });
+
+    if (!slot) throw new Error("Selected time slot not found");
+    if (slot.booked >= slot.capacity) {
+      throw new Error("This slot is already fully booked. Please select another time window.");
+    }
+
+    // 3. Quota check against farmer's land area
+    const masterCrop = MSP_CROPS.find(
+      (c) => c.name.toLowerCase() === input.cropName.toLowerCase()
+    );
+    const landArea = user.farmer.landArea || 5.0; // Default 5 acres if unstated
+    const maxAllowedQuota = masterCrop
+      ? landArea * masterCrop.quotaPerAcre
+      : 200;
+
+    if (input.quantity > maxAllowedQuota) {
+      throw new Error(
+        `Quantity (${input.quantity} Qtl) exceeds your verified land quota (${Math.round(
+          maxAllowedQuota
+        )} Qtl for ${landArea} acres).`
+      );
+    }
+
+    // 4. Create or reuse Crop lot record
+    const cropRecord = await tx.crop.create({
+      data: {
+        farmerId: user.farmer.id,
+        name: input.cropName,
+        quantity: input.quantity,
+        year: new Date().getFullYear(),
+      },
+    });
+
+    // 5. Generate human-readable Token Number: e.g. "KQ-KHN-1048"
+    const totalTodayBookings = await tx.booking.count({
+      where: { centreId: input.centreId },
+    });
+    const centreCodeParts = slot.centre.code.split("-");
+    const centrePrefix = centreCodeParts.length > 1 ? centreCodeParts[1] : "MND";
+    const tokenNumber = `KQ-${centrePrefix}-${1001 + totalTodayBookings}`;
+
+    // 6. Create Booking
+    const booking = await tx.booking.create({
+      data: {
+        farmerId: user.farmer.id,
+        centreId: input.centreId,
+        slotId: input.slotId,
+        cropId: cropRecord.id,
+        token: tokenNumber,
+        quantity: input.quantity,
+        status: BookingStatus.BOOKED,
+      },
+      include: {
+        centre: true,
+        slot: true,
+        crop: true,
+      },
+    });
+
+    // 7. Increment slot booked count
+    await tx.slot.update({
+      where: { id: input.slotId },
+      data: { booked: { increment: 1 } },
+    });
+
+    return booking;
+  });
+}
+
+/**
+ * List all bookings for a farmer
+ */
+export async function getFarmerBookings(firebaseUid: string) {
+  const user = await prisma.user.findUnique({
+    where: { firebaseUid },
+    include: { farmer: true },
+  });
+
+  if (!user || !user.farmer) return [];
+
+  return prisma.booking.findMany({
+    where: { farmerId: user.farmer.id },
+    include: {
+      centre: true,
+      slot: true,
+      crop: true,
+      queueEntry: true,
+    },
+    orderBy: { bookedAt: "desc" },
+  });
+}
+
+/**
+ * Get single booking details with token pass
+ */
+export async function getBookingById(bookingId: string, firebaseUid: string) {
+  const user = await prisma.user.findUnique({
+    where: { firebaseUid },
+    include: { farmer: true },
+  });
+
+  if (!user || !user.farmer) throw new Error("Farmer not found");
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      centre: true,
+      slot: true,
+      crop: true,
+      queueEntry: true,
+      farmer: {
+        include: { user: true },
+      },
+    },
+  });
+
+  if (!booking) throw new Error("Booking not found");
+  if (booking.farmerId !== user.farmer.id && user.role !== "ADMIN") {
+    throw new Error("Unauthorized to view this booking");
+  }
+
+  return booking;
+}
+
+/**
+ * Cancel a booking
+ */
+export async function cancelBooking(bookingId: string, firebaseUid: string) {
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({
+      where: { firebaseUid },
+      include: { farmer: true },
+    });
+
+    if (!user || !user.farmer) throw new Error("Farmer not found");
+
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) throw new Error("Booking not found");
+    if (booking.farmerId !== user.farmer.id && user.role !== "ADMIN") {
+      throw new Error("Unauthorized to cancel this booking");
+    }
+
+    if (booking.status !== BookingStatus.BOOKED) {
+      throw new Error(`Cannot cancel booking with status '${booking.status}'`);
+    }
+
+    // Update booking status
+    const updated = await tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancelledAt: new Date(),
+      },
+    });
+
+    // Decrement slot booked count
+    await tx.slot.update({
+      where: { id: booking.slotId },
+      data: { booked: { decrement: 1 } },
+    });
+
+    return updated;
+  });
+}

@@ -82,6 +82,24 @@ export default function FarmerDashboardPage() {
             <CalendarPlus size={18} /> Book Procurement Slot
           </button>
           <button
+            onClick={() => navigate({ to: "/farmer/bookings" as any })}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "rgba(255, 255, 255, 0.12)",
+              color: "#ffffff",
+              border: "1px solid rgba(255, 255, 255, 0.25)",
+              borderRadius: "10px",
+              padding: "10px 18px",
+              fontWeight: 600,
+              fontSize: "14px",
+              cursor: "pointer",
+            }}
+          >
+            <Clock size={18} /> My Bookings
+          </button>
+          <button
             onClick={() => navigate({ to: "/farmer/queue" as any })}
             style={{
               display: "flex",

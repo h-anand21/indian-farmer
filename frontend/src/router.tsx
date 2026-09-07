@@ -10,6 +10,8 @@ import RegisterPage from "./pages/auth/RegisterPage";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import FarmerDashboardPage from "./pages/farmer/FarmerDashboardPage";
+import BookSlotPage from "./pages/farmer/BookSlotPage";
+import MyBookingsPage from "./pages/farmer/MyBookingsPage";
 import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
@@ -233,10 +235,7 @@ const farmerBookSlotRoute = createRoute({
   path: "/farmer/book-slot",
   component: () => (
     <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>📅 Book Procurement Slot</h2>
-        <p style={{ color: "#64748B" }}>Phase 3 feature — Slot calendar, crop selection, and quota validation.</p>
-      </div>
+      <BookSlotPage />
     </ProtectedRoute>
   ),
 });
@@ -259,10 +258,7 @@ const farmerBookingsRoute = createRoute({
   path: "/farmer/bookings",
   component: () => (
     <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>📋 My Bookings History</h2>
-        <p style={{ color: "#64748B" }}>Phase 3 feature — Previous bookings, token passes, and slips.</p>
-      </div>
+      <MyBookingsPage />
     </ProtectedRoute>
   ),
 });

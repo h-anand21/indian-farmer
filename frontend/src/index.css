@@ -9,6 +9,7 @@
 @import "./styles/design-tokens.css";
 @import "./styles/auth.css";
 @import "./styles/layout.css";
+@import "./styles/booking.css";
 
 /* ── Tailwind v4 ── */
 @import "tailwindcss";

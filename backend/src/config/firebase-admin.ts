@@ -39,5 +39,14 @@ try {
 
 export const isFirebaseDevMode = isDevAuth;
 export const firebaseAuth = getAuth(app);
-export const firebaseDB = getDatabase(app);
+export const firebaseDB = (() => {
+  try {
+    if (env.FIREBASE_DATABASE_URL && !env.FIREBASE_DATABASE_URL.includes("your-firebase-project-id")) {
+      return getDatabase(app);
+    }
+    return {} as any;
+  } catch {
+    return {} as any;
+  }
+})();
 export default app;
