@@ -22,7 +22,13 @@ import { Server, Socket } from "socket.io";
  * - `leave:centre` → Leave a centre's queue room
  * - `join:farmer` → Join private farmer room
  */
+let ioInstance: Server | null = null;
+
+/**
+ * Socket.IO Real-Time Engine
+ */
 export function initSocketServer(io: Server): void {
+  ioInstance = io;
   io.on("connection", (socket: Socket) => {
     console.log(`🔌 Client connected: ${socket.id}`);
 
@@ -140,4 +146,9 @@ export function sendProximityAlert(
     timestamp: Date.now(),
   });
 }
+
+export function getIO(): Server | null {
+  return ioInstance;
+}
+
 

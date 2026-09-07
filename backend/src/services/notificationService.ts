@@ -31,9 +31,9 @@ export async function sendSMSNotification(payload: SMSPayload) {
         data: {
           farmerId: user.farmer.id,
           title: getNotificationTitle(type),
-          body: message,
+          message: message,
           type: mapTypeToEnum(type),
-          read: false,
+          isRead: false,
         },
       });
 

@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import {
-  Bell,
-  Menu,
-} from "lucide-react";
+import { useNotifications } from "@/context/NotificationContext";
+import { Bell, Menu } from "lucide-react";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import NotificationFlyout from "@/components/common/NotificationFlyout";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -11,9 +11,11 @@ interface HeaderProps {
 
 export default function Header({ onMobileMenuToggle }: HeaderProps) {
   const { user, role } = useAuth();
+  const { unreadCount } = useNotifications();
+  const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
 
   return (
-    <header className="app-header">
+    <header className="app-header relative">
       <div className="header-left">
         {/* Mobile menu hamburger */}
         <button
@@ -38,9 +40,15 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
         <LanguageSelector variant="header" />
 
         {/* Notification Bell with Badge */}
-        <button className="header-action-btn" aria-label="Notifications">
+        <button
+          className="header-action-btn relative"
+          onClick={() => setIsFlyoutOpen((prev) => !prev)}
+          aria-label="Notifications"
+        >
           <Bell size={19} />
-          <span className="notification-badge">2</span>
+          {unreadCount > 0 && (
+            <span className="notification-badge animate-pulse">{unreadCount}</span>
+          )}
         </button>
 
         {/* User Pill */}
@@ -54,6 +62,13 @@ export default function Header({ onMobileMenuToggle }: HeaderProps) {
           </div>
         </div>
       </div>
+
+      {/* Flyout Drawer */}
+      <NotificationFlyout
+        isOpen={isFlyoutOpen}
+        onClose={() => setIsFlyoutOpen(false)}
+      />
     </header>
   );
 }
+
