@@ -370,6 +370,16 @@ const operatorReportRoute = createRoute({
   ),
 });
 
+const operatorReportsAliasRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/reports",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <DailyReportPage />
+    </ProtectedRoute>
+  ),
+});
+
 const operatorStatsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/operator/stats",
@@ -474,6 +484,7 @@ const routeTree = rootRoute.addChildren([
     operatorScanRoute,
     operatorIntakeRoute,
     operatorReportRoute,
+    operatorReportsAliasRoute,
     operatorStatsRoute,
     adminDashboardRoute,
     adminGovHubRoute,
