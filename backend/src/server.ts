@@ -47,6 +47,7 @@ import paymentRoutes from "./routes/paymentRoutes";
 import farmerRoutes from "./routes/farmerRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
+import govtContentRoutes from "./routes/govtContentRoutes";
 
 app.use("/api/auth", authRoutes);
 app.use("/api/bookings", bookingRoutes);
@@ -57,6 +58,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/farmers", farmerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/govt-content", govtContentRoutes);
 
 // ── Error Handler (must be last middleware) ──
 app.use(errorHandler);

@@ -118,6 +118,7 @@ model Farmer {
   bookings         Booking[]
   payments         Payment[]
   notifications    Notification[]
+  govContentBookmarks GovContentBookmark[]
 
   @@map("farmers")
 }
@@ -325,4 +326,101 @@ model AuditLog {
   user      User @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
+}
+
+// ══════════════════════════════════════════════
+// PHASE 11 — GOVERNMENT HUB
+// ══════════════════════════════════════════════
+
+enum GovContentType {
+  MSP_UPDATE          // Minimum Support Price notifications
+  SCHEME              // PM-Kisan, PMFBY, KCC etc.
+  PROCUREMENT_NOTICE  // Centre opening/closing, schedule change
+  WEATHER_ADVISORY    // IMD advisories for farmers
+  MARKET_ALERT        // Mandi rates, APMC updates
+  POLICY_UPDATE       // New laws, regulation changes
+  DEADLINE            // Application deadlines, registration windows
+  STATE_CIRCULAR      // State agriculture department circulars
+  CENTRAL_NOTICE      // Central ministry announcements
+}
+
+enum GovContentPriority {
+  URGENT    // Red badge — acts within 24h
+  HIGH      // Orange badge — acts within a week
+  NORMAL    // Blue badge — general info
+  LOW       // Grey badge — archival/reference
+}
+
+enum GovContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  EXPIRED
+}
+
+/// GovernmentContent — unified store for all government updates, schemes, MSP, advisories
+model GovernmentContent {
+  id            String              @id @default(cuid())
+  type          GovContentType
+  priority      GovContentPriority  @default(NORMAL)
+  status        GovContentStatus    @default(PUBLISHED)
+
+  // Content
+  title         String
+  titleHindi    String?             @map("title_hindi")
+  summary       String              // Short 2-3 line summary
+  summaryHindi  String?             @map("summary_hindi")
+  body          String?             // Full markdown body
+  bodyHindi     String?             @map("body_hindi")
+
+  // Targeting
+  targetStates  String[]            @map("target_states")   // [] = all states
+  targetCrops   String[]            @map("target_crops")    // [] = all crops
+  targetRoles   String[]            @map("target_roles")    // FARMER | OPERATOR | ALL
+
+  // Metadata
+  sourceOrg     String              @map("source_org")      // "PIB", "MoA&FW", "IMD", "State Agri Dept"
+  sourceUrl     String?             @map("source_url")
+  verifiedAt    DateTime?           @map("verified_at")
+  publishedAt   DateTime            @default(now()) @map("published_at")
+  expiresAt     DateTime?           @map("expires_at")
+  effectiveDate DateTime?           @map("effective_date")
+
+  // MSP-specific fields (populated when type = MSP_UPDATE)
+  cropName      String?             @map("crop_name")
+  mspAmount     Float?              @map("msp_amount")       // ₹ per quintal
+  mspSeason     String?             @map("msp_season")       // "Kharif 2025-26"
+  previousMsp   Float?              @map("previous_msp")
+
+  // Scheme-specific fields (populated when type = SCHEME)
+  schemeId      String?             @map("scheme_id")        // PM-Kisan, PMFBY, etc.
+  benefitAmount Float?              @map("benefit_amount")
+  applyUrl      String?             @map("apply_url")
+  deadline      DateTime?
+
+  // Engagement
+  viewCount     Int                 @default(0) @map("view_count")
+  isBookmarked  Boolean             @default(false) @map("is_bookmarked")
+
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  bookmarks     GovContentBookmark[]
+
+  @@map("government_content")
+}
+
+/// Bookmarks — farmers can save important government content
+model GovContentBookmark {
+  id        String   @id @default(cuid())
+  contentId String   @map("content_id")
+  farmerId  String   @map("farmer_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  content   GovernmentContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  farmer    Farmer            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, farmerId])
+  @@map("gov_content_bookmarks")
 }
