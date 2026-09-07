@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
+import FormJReceipt from "../../components/farmer/FormJReceipt";
 import "../../styles/procurementJourney.css";
 
 // Crop Icon Vector Component
@@ -607,192 +608,22 @@ export const ProcurementsPage: React.FC = () => {
           FORM J APMC MANDI RECEIPT MODAL
       ===================================== */}
       {selectedReceipt && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-6 animate-in fade-in"
-          onClick={() => setSelectedReceipt(null)}
-        >
-          <div
-            className="relative w-full max-w-4xl max-h-[94vh] overflow-y-auto rounded-[28px] sm:rounded-[32px] bg-[#fbfdfc] p-4 sm:p-7 shadow-2xl border border-emerald-200/90 animate-in zoom-in-95 space-y-4 text-slate-800"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              backgroundImage: "radial-gradient(#008c63 0.45px, transparent 0.45px)",
-              backgroundSize: "20px 20px",
-              backgroundColor: "#fafdff",
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-0">
+          <FormJReceipt
+            data={{
+              cropName: selectedReceipt.crop?.name,
+              weight: selectedReceipt.procurement?.actualWeight || selectedReceipt.quantity,
+              mspRate: selectedReceipt.procurement?.mspRate,
+              receiptNumber: selectedReceipt.procurement?.receiptNumber || selectedReceipt.token,
+              bankAccount: selectedReceipt.procurement?.bankAccount,
+              totalAmount:
+                selectedReceipt.procurement?.totalAmount ||
+                selectedReceipt.payment?.amount ||
+                selectedReceipt.estimatedPayout,
+              utrNumber: selectedReceipt.payment?.utrNumber || undefined,
             }}
-          >
-            {/* Top Official Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-emerald-100">
-              {/* Left: Emblem of India */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="flex flex-col items-center justify-center">
-                  <svg viewBox="0 0 60 70" className="w-10 h-12" fill="none">
-                    <path
-                      d="M30 6C23 6 18 10 18 16C18 20 20 23 23 25C20 27 18 31 18 36C18 42 22 47 28 48V54H20V58H40V54H32V48C38 47 42 42 42 36C42 31 40 27 37 25C40 23 42 20 42 16C42 10 37 6 30 6Z"
-                      stroke="#1e293b"
-                      strokeWidth="2"
-                      fill="#e2e8f0"
-                    />
-                    <circle cx="30" cy="18" r="4" fill="#0f172a" />
-                    <circle cx="23" cy="22" r="3" fill="#0f172a" />
-                    <circle cx="37" cy="22" r="3" fill="#0f172a" />
-                    <circle cx="30" cy="36" r="6" stroke="#008c63" strokeWidth="1.5" />
-                    <path d="M30 30V42M24 36H36M26 32L34 40M26 40L34 32" stroke="#008c63" strokeWidth="1" />
-                    <text x="30" y="66" textAnchor="middle" fontSize="6" fontWeight="bold" fill="#0f172a">
-                      सत्यमेव जयते
-                    </text>
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="text-[11px] font-black uppercase tracking-wider text-slate-900 leading-tight">
-                    GOVERNMENT OF INDIA
-                  </h4>
-                  <p className="text-[10px] text-slate-600 font-medium leading-tight">
-                    Department of Agriculture<br />&amp; Farmers Welfare
-                  </p>
-                </div>
-              </div>
-
-              {/* Center: Title */}
-              <div className="flex-1 text-center px-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100/90 text-emerald-800 text-[10.5px] font-black uppercase tracking-wider border border-emerald-200 shadow-2xs">
-                  <ShieldCheck size={13} className="text-emerald-700" />
-                  OFFICIAL APMC MANDI DOCUMENT
-                </div>
-                <h2 className="mt-1 text-base sm:text-lg font-black tracking-tight text-slate-900">
-                  FORM J — MANDI SALE &amp; DBT SETTLEMENT RECEIPT
-                </h2>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Department of Agriculture &amp; Farmers Welfare • Govt of India
-                </p>
-              </div>
-
-              {/* Right: Slogan & Close */}
-              <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
-                <button
-                  onClick={() => setSelectedReceipt(null)}
-                  className="h-9 w-9 rounded-full bg-white hover:bg-slate-100 border border-slate-200 shadow-xs flex items-center justify-center text-slate-700 hover:text-slate-900 transition cursor-pointer"
-                  title="Close"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Banner Row */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch">
-              <div className="md:col-span-4 rounded-2xl border border-emerald-200/90 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white p-3.5 flex items-center gap-3 shadow-2xs">
-                <div className="w-11 h-11 shrink-0 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center">
-                  <Sparkles size={20} />
-                </div>
-                <div>
-                  <p className="text-[12px] font-black text-emerald-950 italic leading-snug">
-                    “Fair Price<br />Stronger Farmers<br />Brighter India”
-                  </p>
-                </div>
-              </div>
-
-              <div className="md:col-span-8 rounded-2xl border-2 border-emerald-200 bg-white p-3.5 text-center shadow-xs flex flex-col justify-center">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[10.5px] font-black uppercase tracking-wider text-emerald-900 bg-emerald-100/90 px-3 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle2 size={12} className="text-emerald-700" /> GUARANTEED GOVT MSP PAYOUT DISBURSED
-                  </span>
-                </div>
-                <h3 className="my-1 font-mono text-3xl sm:text-4xl font-black text-emerald-950 tracking-tight">
-                  ₹
-                  {(
-                    selectedReceipt.procurement?.totalAmount ||
-                    selectedReceipt.payment?.amount ||
-                    selectedReceipt.estimatedPayout ||
-                    103513
-                  ).toLocaleString("en-IN")}
-                </h3>
-                <div className="flex items-center justify-center gap-1.5 text-xs font-mono">
-                  <span className="text-slate-500 font-medium">Reference UTR:</span>
-                  <span className="font-black text-emerald-900 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/80">
-                    {selectedReceipt.payment?.utrNumber || "DBT-2026-948210"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Transaction Details */}
-            <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs space-y-3.5">
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                    <FileText size={16} />
-                  </div>
-                  <h3 className="font-black text-slate-900 text-sm sm:text-base tracking-tight">
-                    Transaction Details
-                  </h3>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black text-[11px] border border-emerald-200">
-                  <CheckCircle2 size={13} className="text-emerald-700" />
-                  Payment Successfully Disbursed
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5 text-xs">
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Crop Procured:</span>
-                    <strong className="text-slate-900 font-bold">{selectedReceipt.crop?.name}</strong>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Certified Net Weight:</span>
-                    <strong className="text-slate-900 font-mono font-bold">
-                      {selectedReceipt.procurement?.actualWeight || selectedReceipt.quantity} Quintals
-                    </strong>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Guaranteed MSP Benchmark:</span>
-                    <strong className="text-slate-900 font-mono font-bold">
-                      ₹{selectedReceipt.procurement?.mspRate || "2,275"} / Qtl
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Mandi Receipt Token:</span>
-                    <strong className="text-slate-900 font-mono font-bold">
-                      {selectedReceipt.procurement?.receiptNumber || selectedReceipt.token}
-                    </strong>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Beneficiary Bank A/c:</span>
-                    <strong className="text-slate-900 font-bold">
-                      {selectedReceipt.procurement?.bankAccount || "State Bank of India (••••4821)"}
-                    </strong>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <span className="text-slate-600 font-semibold">Transaction Status:</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black inline-flex items-center gap-1 border border-emerald-200">
-                      <CheckCircle2 size={12} /> Disbursed
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200/80">
-              <button
-                onClick={() => window.print()}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 py-2.5 px-4 text-xs font-bold text-slate-800 transition cursor-pointer shadow-xs"
-              >
-                <Printer size={15} />
-                <span>Print J-Form</span>
-              </button>
-              <button
-                onClick={() => setSelectedReceipt(null)}
-                className="inline-flex items-center justify-center rounded-xl bg-[#008b63] hover:bg-[#007352] py-2.5 px-7 text-xs font-bold text-white transition cursor-pointer shadow-md"
-              >
-                Close
-              </button>
-            </div>
-          </div>
+            onClose={() => setSelectedReceipt(null)}
+          />
         </div>
       )}
 
