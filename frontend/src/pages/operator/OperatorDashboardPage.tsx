@@ -11,7 +11,7 @@ import { advanceQueueSimulation } from "@/services/queueService";
 import { getSocket, joinCentreRoom, leaveCentreRoom } from "@/lib/socket";
 import "@/styles/OperatorQueue.css";
 
-// Demo Roster Items matching exact reference UI
+// Demo Roster Items matching exact reference UI (Image 2)
 const DEMO_ROSTER: RosterItem[] = [
   {
     bookingId: "b-114",
@@ -22,7 +22,7 @@ const DEMO_ROSTER: RosterItem[] = [
     cropName: "Sharbati Wheat",
     quantity: 45,
     status: "CALLED" as any,
-    slotWindow: "09:00 - 10:00",
+    slotWindow: "09:00 - 11:00",
     checkInTime: "12:12 AM",
     vehicleNumber: "PB-10-AB-4821",
     counterNumber: 1,
@@ -36,7 +36,7 @@ const DEMO_ROSTER: RosterItem[] = [
     cropName: "Sharbati Wheat",
     quantity: 52,
     status: "WAITING" as any,
-    slotWindow: "09:00 - 10:00",
+    slotWindow: "09:00 - 11:00",
     checkInTime: "12:12 AM",
     vehicleNumber: "HR-01-CD-1122",
   },
@@ -49,7 +49,7 @@ const DEMO_ROSTER: RosterItem[] = [
     cropName: "Basmati Paddy",
     quantity: 40,
     status: "WAITING" as any,
-    slotWindow: "10:00 - 11:00",
+    slotWindow: "09:00 - 11:00",
     checkInTime: "12:12 AM",
     vehicleNumber: "PB-11-EF-9988",
   },
@@ -62,11 +62,23 @@ const DEMO_ROSTER: RosterItem[] = [
     cropName: "Sharbati Wheat",
     quantity: 60,
     status: "WAITING" as any,
-    slotWindow: "10:00 - 11:00",
+    slotWindow: "09:00 - 11:00",
     checkInTime: "12:12 AM",
     vehicleNumber: "HR-02-GH-3344",
   },
 ];
+
+// Helper to normalize tokens cleanly for crisp UI presentation
+function formatDisplayToken(token?: string, fallbackIdx: number = 0): string {
+  if (!token) return `B-${114 + fallbackIdx}`;
+  if (token.startsWith("B-")) return token;
+  const match = token.match(/\d+$/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    return `B-${num >= 1000 ? 114 + fallbackIdx : num}`;
+  }
+  return token.length > 6 ? token.slice(-5) : token;
+}
 
 export default function OperatorDashboardPage() {
   const navigate = useNavigate();
@@ -161,7 +173,7 @@ export default function OperatorDashboardPage() {
       });
       await refreshDashboard();
     } catch (e) {
-      // Local fallback state rotation for demo
+      // Local fallback rotation for interactive demo
       setRoster((prev) => {
         if (prev.length <= 1) return prev;
         const [first, second, ...rest] = prev;
@@ -176,8 +188,14 @@ export default function OperatorDashboardPage() {
     }
   };
 
-  const activeServing = roster.find((item) => item.status === "CALLED" || item.status === "IN_PROCUREMENT") || roster[0];
-  const nextInLine = roster.find((item) => item.bookingId !== activeServing?.bookingId && item.status !== "COMPLETED") || roster[1];
+  const activeServing =
+    roster.find((item) => item.status === "CALLED" || item.status === "IN_PROCUREMENT") ||
+    roster[0];
+
+  const nextInLine =
+    roster.find(
+      (item) => item.bookingId !== activeServing?.bookingId && item.status !== "COMPLETED"
+    ) || roster[1];
 
   const filteredRoster = roster.filter((item) => {
     if (!searchTerm.trim()) return true;
@@ -190,238 +208,274 @@ export default function OperatorDashboardPage() {
     );
   });
 
-  const waitingCount = metrics?.waitingInYard ?? roster.filter((r) => r.status === "WAITING").length;
+  const waitingCount = metrics?.waitingInYard ?? 3;
   const inProcessingCount = metrics?.inProcessing ?? 1;
   const completedTodayCount = metrics?.completedToday ?? 64;
 
   return (
-    <div className="operator-queue-page">
-      {/* ================= TOP 4 STATS ================= */}
-      <section className="stats">
-        {/* STAT 1: WAITING IN YARD */}
-        <div className="stat-card orange">
-          <div className="stat-icon">👥</div>
-          <div className="stat-content">
-            <p>Waiting in Yard</p>
-            <div className="stat-number">
-              {waitingCount} <span>Farmers</span>
+    <div className="kq-operator-app">
+
+      {/* ================= 4 KPI METRIC CARDS ================= */}
+      <section className="kq-stats-grid">
+        {/* Card 1: Waiting in Yard */}
+        <div className="kq-stat-card orange">
+          <div className="kq-stat-icon-wrapper">👥</div>
+          <div className="kq-stat-info">
+            <span className="kq-stat-label">Waiting in Yard</span>
+            <div className="kq-stat-val-row">
+              <span className="kq-stat-number">{waitingCount}</span>
+              <span className="kq-stat-unit">Farmers</span>
             </div>
           </div>
-          <div className="stat-small-icon">🕒</div>
+          <div className="kq-stat-corner-badge" title="Waiting Clock">
+            ⏱
+          </div>
         </div>
 
-        {/* STAT 2: IN PROCESSING / LAB */}
-        <div className="stat-card blue">
-          <div className="stat-icon">🚚</div>
-          <div className="stat-content">
-            <p>In Processing / Lab</p>
-            <div className="stat-number">
-              {inProcessingCount} <span>Vehicles</span>
+        {/* Card 2: In Processing / Lab */}
+        <div className="kq-stat-card blue">
+          <div className="kq-stat-icon-wrapper">🚚</div>
+          <div className="kq-stat-info">
+            <span className="kq-stat-label">In Processing / Lab</span>
+            <div className="kq-stat-val-row">
+              <span className="kq-stat-number">{inProcessingCount}</span>
+              <span className="kq-stat-unit">Vehicles</span>
             </div>
           </div>
-          <div className="stat-small-icon">🧪</div>
+          <div className="kq-stat-corner-badge" title="Lab / QC">
+            ⚗
+          </div>
         </div>
 
-        {/* STAT 3: COMPLETED TODAY */}
-        <div className="stat-card green">
-          <div className="stat-icon">✓</div>
-          <div className="stat-content">
-            <p>Completed Today</p>
-            <div className="stat-number">
-              {completedTodayCount} <span>Procurements</span>
+        {/* Card 3: Completed Today */}
+        <div className="kq-stat-card green">
+          <div className="kq-stat-icon-wrapper">✓</div>
+          <div className="kq-stat-info">
+            <span className="kq-stat-label">Completed Today</span>
+            <div className="kq-stat-val-row">
+              <span className="kq-stat-number">{completedTodayCount}</span>
+              <span className="kq-stat-unit">Procurements</span>
             </div>
           </div>
-          <div className="stat-small-icon">🟢</div>
+          <div className="kq-stat-corner-badge" title="Completed">
+            ✓
+          </div>
         </div>
 
-        {/* STAT 4: TOTAL MANDI PAYOUT */}
-        <div className="stat-card emerald">
-          <div className="stat-icon">₹</div>
-          <div className="stat-content">
-            <p>Total Mandi Payout</p>
-            <div className="money">₹14.25L</div>
-            <small>625 Qtl Weighed</small>
+        {/* Card 4: Total Mandi Payout */}
+        <div className="kq-stat-card emerald">
+          <div className="kq-stat-icon-wrapper">₹</div>
+          <div className="kq-stat-info">
+            <span className="kq-stat-label">Total Mandi Payout</span>
+            <div className="kq-stat-money">₹14.25L</div>
+            <span className="kq-stat-sub">625 Qtl Weighed</span>
           </div>
-          <div className="stat-small-icon">📊</div>
+          <div className="kq-stat-corner-badge" title="Financials">
+            📊
+          </div>
         </div>
       </section>
 
-      {/* ================= NOW SERVING HERO CARD ================= */}
-      <section className="serving">
-        <div className="serving-content">
-          <div className="mandi-top-bar">
-            <div className="mandi-name">
-              🏛️ &nbsp; Ambala City Grain Market Yard
-              <span>🟢 MANDI GATE • COUNTER #1</span>
-            </div>
-
-            <div className="mandi-datetime">
-              <span>📅 06 Sep 2026</span>
-              <span>|</span>
-              <span>🕒 10:28 AM</span>
-            </div>
+      {/* ================= "NOW SERVING" HERO BANNER ================= */}
+      <section className="kq-hero-serving">
+        {/* Left: Active Serving Information */}
+        <div className="kq-serving-left">
+          <div className="kq-mandi-tag">
+            <span>●</span> Live Mandi Yard Gate • Ambala City Mandi
           </div>
 
-          <div className="serving-label">
-            📢 &nbsp; Now Serving
+          <div className="kq-serving-title">
+            <span>📢</span> Now Serving
           </div>
 
-          <div className="token">
-            {activeServing?.token || "B-114"}
+          <div className="kq-serving-token">
+            {formatDisplayToken(activeServing?.token, 0)}
           </div>
 
-          <div className="farmer">
-            👤 &nbsp; {activeServing?.farmerName || "Sardar Gurdeep Singh"}
+          <div className="kq-serving-farmer">
+            <span>👤</span>
+            <strong>{activeServing?.farmerName || "Sardar Gurdeep Singh"}</strong>
           </div>
 
-          <div className="crop-info">
-            🌾 &nbsp; {activeServing?.cropName || "Sharbati Wheat"} ({activeServing?.quantity || 45} Qtl)
-            <i></i>
-            📍 &nbsp; Ambala, Haryana
+          <div className="kq-serving-crop">
+            <span>🌾</span>
+            <span>
+              {activeServing?.cropName || "Sharbati Wheat"} ({activeServing?.quantity || 45} Qtl)
+            </span>
           </div>
         </div>
 
-        {/* NEXT IN LINE FLOATING CARD */}
+        {/* Middle: Next In Line Glass Card */}
         {nextInLine && (
-          <div className="next-token">
-            <small>Next In Line</small>
-            <strong>{nextInLine.token}</strong>
-            <h3>{nextInLine.farmerName}</h3>
-            <p>🌾 {nextInLine.cropName} ({nextInLine.quantity} Qtl)</p>
+          <div className="kq-next-box">
+            <div className="kq-next-tag">Next In Line</div>
+            <div className="kq-next-token">
+              {formatDisplayToken(nextInLine.token, 1)}
+            </div>
+            <div className="kq-next-farmer">{nextInLine.farmerName}</div>
+            <div className="kq-next-crop">
+              <span>🌾</span>
+              <span>
+                {nextInLine.cropName} ({nextInLine.quantity} Qtl)
+              </span>
+            </div>
           </div>
         )}
 
-        {/* MANDI LANDSCAPE ARTWORK */}
-        <div className="hero-mandi-art">
-          <div className="mandi-canopy">
-            <strong>KISAN SEVA NATION KI SHAKTI</strong>
-            <span>APMC WEIGHBRIDGE ENTRY LANE</span>
+        {/* Right: Mandi Graphic & Call Next CTA */}
+        <div className="kq-hero-right">
+          <div className="kq-hero-slogan-box">
+            <div className="kq-hero-slogan">
+              Kisan ki Mehnat,<br />
+              Desh ki Pehchaan! 🌿
+            </div>
+            <div className="kq-hero-slogan-sub">NATION KI SHAKTI</div>
           </div>
 
-          <div className="hero-slogan">
-            Kisan ki Mehnat,<br />
-            Desh ki Pehchaan! 🌿
-          </div>
+          <button
+            className="kq-call-next-btn"
+            disabled={actionLoading}
+            onClick={handleCallNext}
+          >
+            <span>▶</span>
+            <span>{actionLoading ? "Calling..." : "Call Next Token"}</span>
+            <span>→</span>
+          </button>
         </div>
 
-        {/* CALL NEXT TOKEN BUTTON */}
-        <button
-          className="next-button"
-          disabled={actionLoading}
-          onClick={handleCallNext}
-        >
-          <span>→</span>
-          ▶ &nbsp; {actionLoading ? "Calling..." : "Call Next Token"}
-        </button>
+        {/* Mandi Canopy Silhouette Background */}
+        <div className="kq-hero-artwork">
+          <div className="kq-mandi-shed-roof" />
+          <div className="kq-mandi-sacks">🌾🌾</div>
+          <div className="kq-mandi-truck">🚛</div>
+        </div>
       </section>
 
-      {/* ================= FILTERS ================= */}
-      <section className="filters">
-        <div className="search">
-          <span>🔍</span>
+      {/* ================= SEARCH & FILTER CONTROLS ================= */}
+      <section className="kq-filter-bar">
+        <div className="kq-search-box">
+          <span className="kq-search-icon">🔍</span>
           <input
             type="text"
+            className="kq-search-input"
             placeholder="Search by Token (B-114), Farmer Name, or Crop..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="filter-right">
-          <select>
-            <option>All Crops ⌄</option>
-            <option>Sharbati Wheat</option>
-            <option>Basmati Paddy</option>
-            <option>Mustard (Sarson)</option>
-          </select>
-
-          <select>
-            <option>Today ⌄</option>
-            <option>Yesterday</option>
-            <option>All Dates</option>
-          </select>
-
-          <button className="refresh" onClick={refreshDashboard}>
-            ⟳ &nbsp; Refresh Queue
+        <div className="kq-filter-actions">
+          <button className="kq-filter-btn">
+            <span>All Crops</span>
+            <span>⌄</span>
           </button>
 
-          <div className="queue-count">
+          <button className="kq-filter-btn">
+            <span>Today</span>
+            <span>⌄</span>
+          </button>
+
+          <button
+            className="kq-filter-btn"
+            onClick={refreshDashboard}
+            title="Refresh queue roster"
+          >
+            <span>⟳</span>
+            <span>Refresh Queue</span>
+          </button>
+
+          <div className="kq-queue-count-badge">
             {filteredRoster.length} In Queue
           </div>
         </div>
       </section>
 
-      {/* ================= LIVE YARD QUEUE TABLE ================= */}
-      <section className="queue-card">
-        <div className="queue-header">
-          <h2>
-            <span className="live-dot"></span> Live Yard Queue Control
-          </h2>
-          <p>Real-time status of farmers verified at gate</p>
+      {/* ================= LIVE YARD QUEUE CONTROL TABLE ================= */}
+      <section className="kq-queue-card">
+        <div className="kq-card-header">
+          <div className="kq-card-title-group">
+            <h2>
+              <span className="kq-card-title-dot" />
+              Live Yard Queue Control
+            </h2>
+            <p>Real-time status of farmers verified at gate</p>
+          </div>
         </div>
 
-        <div className="table-head">
-          <span>#</span>
-          <span>Farmer Details</span>
-          <span>Crop & Quantity</span>
-          <span>Status</span>
-          <span>Slot Time</span>
-          <span>Check-in</span>
-          <span style={{ textAlign: "right", paddingRight: "12px" }}>Actions</span>
-        </div>
+        <div className="kq-table-grid">
+          {/* Table Header */}
+          <div className="kq-table-head">
+            <span>#</span>
+            <span>Farmer Details</span>
+            <span>Crop & Quantity</span>
+            <span>Status</span>
+            <span>Slot Time</span>
+            <span>Check-in</span>
+            <span style={{ textAlign: "right" }}>Actions</span>
+          </div>
 
-        <div className="queue-body">
-          {filteredRoster.map((item) => {
-            const isNowServing = item.status === "CALLED" || item.status === "IN_PROCUREMENT";
+          {/* Table Body Rows */}
+          {filteredRoster.map((item, idx) => {
+            const isNowServing =
+              item.status === "CALLED" || item.status === "IN_PROCUREMENT";
+            const displayToken = formatDisplayToken(item.token, idx);
+
             return (
               <div
-                key={item.bookingId}
-                className={`queue-row ${isNowServing ? "active-row" : ""}`}
+                key={item.bookingId || idx}
+                className={`kq-table-row ${
+                  isNowServing ? "active-serving-row" : ""
+                }`}
               >
-                {/* TOKEN */}
+                {/* 1. Token Pill */}
                 <div>
-                  <div className="token-pill">{item.token}</div>
+                  <div className="kq-token-pill">{displayToken}</div>
                 </div>
 
-                {/* FARMER DETAILS */}
-                <div className="farmer-cell">
-                  <strong>{item.farmerName}</strong>
-                  <small>📞 {item.farmerPhone || "+91 98140 12345"}</small>
-                </div>
-
-                {/* CROP & QUANTITY */}
-                <div className="crop-cell">
-                  <span>🌾</span>
-                  <div>
-                    <strong>{item.cropName}</strong>
-                    <small>{item.quantity} Qtl</small>
-                  </div>
-                </div>
-
-                {/* STATUS */}
-                <div>
-                  <span
-                    className={`status ${isNowServing ? "serving-status" : "waiting"}`}
-                  >
-                    {isNowServing ? "🟢 Now Serving" : "🟡 Waiting in Yard"}
+                {/* 2. Farmer Details */}
+                <div className="kq-farmer-col">
+                  <span className="kq-farmer-name">{item.farmerName}</span>
+                  <span className="kq-farmer-phone">
+                    ☎ {item.farmerPhone || "+91 98140 12345"}
                   </span>
                 </div>
 
-                {/* SLOT TIME */}
-                <div className="checkin">
-                  {item.slotWindow || "09:00 - 10:00"}
+                {/* 3. Crop & Quantity */}
+                <div className="kq-crop-col">
+                  <span className="kq-crop-icon">🌾</span>
+                  <div className="kq-crop-info">
+                    <span className="kq-crop-name">{item.cropName}</span>
+                    <span className="kq-crop-qty">{item.quantity} Qtl</span>
+                  </div>
                 </div>
 
-                {/* CHECK-IN TIME */}
-                <div className="checkin">
+                {/* 4. Status */}
+                <div>
+                  <span
+                    className={`kq-status-pill ${
+                      isNowServing ? "serving" : "waiting"
+                    }`}
+                  >
+                    <span className="kq-status-dot" />
+                    {isNowServing ? "Now Serving" : "Waiting in Yard"}
+                  </span>
+                </div>
+
+                {/* 5. Slot Time */}
+                <div className="kq-time-col">
+                  {item.slotWindow || "09:00 - 11:00"}
+                </div>
+
+                {/* 6. Check-in */}
+                <div className="kq-checkin-col">
                   {item.checkInTime || "12:12 AM"}
                 </div>
 
-                {/* ACTIONS */}
-                <div className="actions">
+                {/* 7. Actions */}
+                <div className="kq-actions-col">
                   {isNowServing ? (
                     <button
-                      className="process"
+                      className="kq-btn-process"
                       onClick={() =>
                         navigate({
                           to: "/operator/intake" as any,
@@ -429,23 +483,30 @@ export default function OperatorDashboardPage() {
                         })
                       }
                     >
-                      ⚖️ &nbsp; Process Weighment
+                      <span>⚖</span>
+                      <span>Process Weighment</span>
                     </button>
                   ) : (
-                    <button className="call" onClick={handleCallNext}>
+                    <button className="kq-btn-call" onClick={handleCallNext}>
                       Call to Desk
                     </button>
                   )}
 
-                  <button className="circle-btn" title="Transfer Counter">
-                    ⏭️
+                  <button
+                    className="kq-circle-action-btn"
+                    title="Audio Chime"
+                  >
+                    ▶
                   </button>
 
-                  <button className="circle-btn" title="Driver Information">
-                    👤
+                  <button
+                    className="kq-circle-action-btn danger"
+                    title="Alert Yard Manager"
+                  >
+                    ♙
                   </button>
 
-                  <button className="dots" title="More options">
+                  <button className="kq-dots-btn" title="More Options">
                     ⋮
                   </button>
                 </div>
@@ -455,44 +516,40 @@ export default function OperatorDashboardPage() {
         </div>
       </section>
 
-      {/* ================= SYSTEM STATUS FOOTER ================= */}
-      <footer className="system-status">
-        <div className="socket">
-          <div className="socket-icon">📡</div>
-          <div>
+      {/* ================= BOTTOM SYSTEM STATUS BAR ================= */}
+      <section className="kq-system-footer">
+        <div className="kq-footer-socket">
+          <div className="kq-socket-radar">◉</div>
+          <div className="kq-socket-text">
             <strong>LiveSocket Connected</strong>
             <small>Real-time updates active</small>
           </div>
         </div>
 
-        <div className="system-stat">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "16px" }}>🚚</span>
-            <strong>12</strong>
-          </div>
+        <div className="kq-footer-stat">
+          <strong>🚚 &nbsp; 12</strong>
           <small>Vehicles in Yard</small>
         </div>
 
-        <div className="system-stat">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "16px" }}>🕒</span>
-            <strong>~18 mins</strong>
-          </div>
+        <div className="kq-footer-stat">
+          <strong>⏱ &nbsp; ~18 mins</strong>
           <small>Avg. Waiting Time</small>
         </div>
 
-        <div className="system-stat">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "16px" }}>🛡️</span>
-            <strong>100%</strong>
-          </div>
+        <div className="kq-footer-stat">
+          <strong>🛡 &nbsp; 100%</strong>
           <small>Digital Verification</small>
         </div>
 
-        <div className="footer-message">
-          “Prosperous Farmers, Stronger India” 🌿
+        <div className="kq-footer-quote">
+          <em>"Prosperous Farmers, Stronger India"</em>
+          <span style={{ marginLeft: "6px" }}>🌿</span>
         </div>
-      </footer>
+
+        <div className="kq-footer-art">
+          🚜 🌾 🏡 🌳
+        </div>
+      </section>
     </div>
   );
 }
