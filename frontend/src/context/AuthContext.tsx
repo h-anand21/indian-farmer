@@ -26,6 +26,7 @@ interface AuthContextType extends AuthState {
   logout: () => Promise<void>;
   setUser: (user: UserData) => void;
   refreshUser: () => Promise<void>;
+  switchRole: (newRole: "FARMER" | "OPERATOR" | "ADMIN") => void;
 }
 
 // ── Context ──
@@ -140,9 +141,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [state.firebaseUser, checkRegistration]);
 
+  /**
+   * Switch Active Role for instant demo/testing
+   */
+  const switchRole = useCallback((newRole: "FARMER" | "OPERATOR" | "ADMIN") => {
+    setState((prev) => ({
+      ...prev,
+      role: newRole,
+      user: prev.user
+        ? { ...prev.user, role: newRole }
+        : {
+            id: "demo-user",
+            firebaseUid: "demo-uid",
+            email: "farmer@kisanqueue.gov.in",
+            phone: "+919876543210",
+            name:
+              newRole === "OPERATOR"
+                ? "Ramesh Sharma (Operator)"
+                : newRole === "ADMIN"
+                ? "District Officer (Admin)"
+                : "Gurpreet Singh (Farmer)",
+            role: newRole,
+            avatarUrl: null,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            farmer: {
+              id: "f-101",
+              farmerId: "PMK-98217",
+              state: "Haryana",
+              district: "Ambala",
+              tehsil: "Ambala Cantt",
+              village: "Kurali",
+              pincode: "133001",
+              landArea: 12.5,
+              ownershipType: "Owner",
+            },
+            operator:
+              newRole === "OPERATOR"
+                ? {
+                    id: "op-101",
+                    centreId: "centre-1",
+                    employeeId: "EMP-8820",
+                    centre: { id: "centre-1", name: "Ambala Main Mandi", code: "RN-001" },
+                  }
+                : null,
+          },
+    }));
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ ...state, login, logout, setUser, refreshUser }}
+      value={{ ...state, login, logout, setUser, refreshUser, switchRole }}
     >
       {children}
     </AuthContext.Provider>
