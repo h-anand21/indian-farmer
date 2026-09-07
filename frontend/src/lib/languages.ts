@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────
 // Indian Regional Languages Master Directory & Google Translate Controller
-// Supports all 28 States & 8 Union Territories
+// Exact 22-Language Dataset for Pan-India Mandi Architecture
 // ─────────────────────────────────────────────────────────
 
 export interface IndianLanguage {
@@ -9,9 +9,12 @@ export interface IndianLanguage {
   nativeName: string;
   states: string;
   shortTag: string;
-  badgeBg: string;
-  textColor: string;
+  avatarColor: string;
+  iconClass: string;
+  pinColor: string;
+  region: "national" | "north" | "south" | "east" | "west";
   isPopular?: boolean;
+  landmark: string;
 }
 
 export const INDIAN_LANGUAGES: IndianLanguage[] = [
@@ -19,21 +22,27 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     code: "en",
     name: "English",
     nativeName: "English",
-    states: "All India / Official Default",
+    states: "All India (Official Default)",
     shortTag: "EN",
-    badgeBg: "bg-slate-800",
-    textColor: "text-white",
+    avatarColor: "bg-[#1E293B]",
+    iconClass: "icon-dark",
+    pinColor: "text-emerald-700",
+    region: "national",
     isPopular: true,
+    landmark: "india-gate",
   },
   {
     code: "hi",
     name: "Hindi",
     nativeName: "हिन्दी",
-    states: "UP, MP, Bihar, Rajasthan, Haryana, Delhi, HP, UK",
+    states: "UP, MP, Bihar, Rajasthan, Haryana",
     shortTag: "हि",
-    badgeBg: "bg-amber-600",
-    textColor: "text-white",
+    avatarColor: "bg-[#EA580C]",
+    iconClass: "icon-orange",
+    pinColor: "text-amber-700",
+    region: "north",
     isPopular: true,
+    landmark: "temple",
   },
   {
     code: "pa",
@@ -41,9 +50,12 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "ਪੰਜਾਬੀ",
     states: "Punjab, Chandigarh, Haryana",
     shortTag: "ਪੰ",
-    badgeBg: "bg-orange-600",
-    textColor: "text-white",
+    avatarColor: "bg-[#EA580C]",
+    iconClass: "icon-orange",
+    pinColor: "text-red-700",
+    region: "north",
     isPopular: true,
+    landmark: "golden-temple",
   },
   {
     code: "mr",
@@ -51,29 +63,25 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "मराठी",
     states: "Maharashtra, Goa",
     shortTag: "म",
-    badgeBg: "bg-rose-600",
-    textColor: "text-white",
+    avatarColor: "bg-[#E11D48]",
+    iconClass: "icon-pink",
+    pinColor: "text-rose-700",
+    region: "west",
     isPopular: true,
+    landmark: "gateway",
   },
   {
     code: "gu",
     name: "Gujarati",
     nativeName: "ગુજરાતી",
-    states: "Gujarat, Dadra & Nagar Haveli, Daman & Diu",
+    states: "Gujarat, Dadra & Nagar Haveli",
     shortTag: "ગુ",
-    badgeBg: "bg-cyan-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#0284C7]",
+    iconClass: "icon-teal",
+    pinColor: "text-sky-700",
+    region: "west",
     isPopular: true,
-  },
-  {
-    code: "bn",
-    name: "Bengali",
-    nativeName: "বাংলা",
-    states: "West Bengal, Tripura, Assam",
-    shortTag: "বা",
-    badgeBg: "bg-emerald-700",
-    textColor: "text-white",
-    isPopular: true,
+    landmark: "somnath",
   },
   {
     code: "te",
@@ -81,9 +89,25 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "తెలుగు",
     states: "Andhra Pradesh, Telangana",
     shortTag: "తె",
-    badgeBg: "bg-indigo-600",
-    textColor: "text-white",
+    avatarColor: "bg-[#6366F1]",
+    iconClass: "icon-purple",
+    pinColor: "text-indigo-700",
+    region: "south",
     isPopular: true,
+    landmark: "charminar",
+  },
+  {
+    code: "bn",
+    name: "Bengali",
+    nativeName: "বাংলা",
+    states: "West Bengal, Tripura, Assam",
+    shortTag: "বা",
+    avatarColor: "bg-[#059669]",
+    iconClass: "icon-green",
+    pinColor: "text-emerald-700",
+    region: "east",
+    isPopular: true,
+    landmark: "howrah",
   },
   {
     code: "ta",
@@ -91,9 +115,12 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "தமிழ்",
     states: "Tamil Nadu, Puducherry",
     shortTag: "த",
-    badgeBg: "bg-red-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#B91C1C]",
+    iconClass: "icon-red",
+    pinColor: "text-red-700",
+    region: "south",
     isPopular: true,
+    landmark: "gopuram",
   },
   {
     code: "kn",
@@ -101,9 +128,12 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "ಕನ್ನಡ",
     states: "Karnataka",
     shortTag: "ಕ",
-    badgeBg: "bg-yellow-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#B45309]",
+    iconClass: "icon-brown",
+    pinColor: "text-amber-800",
+    region: "south",
     isPopular: true,
+    landmark: "palace",
   },
   {
     code: "ml",
@@ -111,9 +141,12 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "മലയാളം",
     states: "Kerala, Lakshadweep",
     shortTag: "മ",
-    badgeBg: "bg-teal-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#0D9488]",
+    iconClass: "icon-teal",
+    pinColor: "text-teal-700",
+    region: "south",
     isPopular: true,
+    landmark: "palms",
   },
   {
     code: "or",
@@ -121,9 +154,12 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "ଓଡ଼ିଆ",
     states: "Odisha",
     shortTag: "ଓ",
-    badgeBg: "bg-purple-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#7C3AED]",
+    iconClass: "icon-purple",
+    pinColor: "text-purple-700",
+    region: "east",
     isPopular: true,
+    landmark: "konark",
   },
   {
     code: "as",
@@ -131,18 +167,24 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "অসমীয়া",
     states: "Assam",
     shortTag: "অ",
-    badgeBg: "bg-lime-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#65A30D]",
+    iconClass: "icon-green",
+    pinColor: "text-lime-700",
+    region: "east",
+    landmark: "rhino",
   },
   {
     code: "ur",
     name: "Urdu",
     nativeName: "اردو",
-    states: "Jammu & Kashmir, Telangana, UP, Bihar, Delhi",
+    states: "Jammu & Kashmir, Telangana (minority)",
     shortTag: "اردو",
-    badgeBg: "bg-emerald-800",
-    textColor: "text-white",
+    avatarColor: "bg-[#065F46]",
+    iconClass: "icon-green",
+    pinColor: "text-emerald-800",
+    region: "national",
     isPopular: true,
+    landmark: "minaret",
   },
   {
     code: "bho",
@@ -150,8 +192,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "भोजपुरी",
     states: "Bihar, Eastern UP, Jharkhand",
     shortTag: "भोज",
-    badgeBg: "bg-orange-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#C2410C]",
+    iconClass: "icon-orange",
+    pinColor: "text-orange-700",
+    region: "north",
+    landmark: "bridge",
   },
   {
     code: "mai",
@@ -159,8 +204,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "मैथिली",
     states: "Bihar, Mithila, Jharkhand",
     shortTag: "मै",
-    badgeBg: "bg-pink-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#BE185D]",
+    iconClass: "icon-pink",
+    pinColor: "text-pink-700",
+    region: "north",
+    landmark: "mandir",
   },
   {
     code: "sa",
@@ -168,8 +216,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "संस्कृतम्",
     states: "Classical / Pan-India",
     shortTag: "सं",
-    badgeBg: "bg-amber-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#D97706]",
+    iconClass: "icon-brown",
+    pinColor: "text-amber-800",
+    region: "national",
+    landmark: "lotus",
   },
   {
     code: "kok",
@@ -177,17 +228,23 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "कोंकणी",
     states: "Goa, Coastal Maharashtra, Karnataka",
     shortTag: "कों",
-    badgeBg: "bg-blue-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#2563EB]",
+    iconClass: "icon-blue",
+    pinColor: "text-blue-700",
+    region: "west",
+    landmark: "beach-palms",
   },
   {
     code: "sd",
     name: "Sindhi",
     nativeName: "سنڌي",
-    states: "Gujarat, Rajasthan, Maharashtra",
+    states: "Gujarat, Rajasthan, Maharashtra (minority)",
     shortTag: "سن",
-    badgeBg: "bg-stone-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#3F3F46]",
+    iconClass: "icon-dark",
+    pinColor: "text-stone-700",
+    region: "west",
+    landmark: "fort",
   },
   {
     code: "ne",
@@ -195,8 +252,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "नेपाली",
     states: "Sikkim, West Bengal (Darjeeling)",
     shortTag: "ने",
-    badgeBg: "bg-sky-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#0284C7]",
+    iconClass: "icon-teal",
+    pinColor: "text-sky-700",
+    region: "east",
+    landmark: "himalaya",
   },
   {
     code: "doi",
@@ -204,8 +264,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "डोगरी",
     states: "Jammu & Kashmir, Himachal Pradesh",
     shortTag: "डो",
-    badgeBg: "bg-violet-700",
-    textColor: "text-white",
+    avatarColor: "bg-[#6D28D9]",
+    iconClass: "icon-purple",
+    pinColor: "text-purple-700",
+    region: "north",
+    landmark: "mountain-temple",
   },
   {
     code: "ks",
@@ -213,8 +276,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "کٲشُر",
     states: "Jammu & Kashmir Valley",
     shortTag: "کٲ",
-    badgeBg: "bg-indigo-800",
-    textColor: "text-white",
+    avatarColor: "bg-[#3730A3]",
+    iconClass: "icon-blue",
+    pinColor: "text-indigo-700",
+    region: "north",
+    landmark: "chinar",
   },
   {
     code: "mni-Mtei",
@@ -222,8 +288,11 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
     nativeName: "মৈতৈলোন্",
     states: "Manipur",
     shortTag: "মৈ",
-    badgeBg: "bg-fuchsia-800",
-    textColor: "text-white",
+    avatarColor: "bg-[#831843]",
+    iconClass: "icon-pink",
+    pinColor: "text-pink-800",
+    region: "east",
+    landmark: "palace-gate",
   },
 ];
 
@@ -233,26 +302,22 @@ export const INDIAN_LANGUAGES: IndianLanguage[] = [
 export function getCurrentLanguage(): string {
   if (typeof window === "undefined") return "en";
 
-  // Check googtrans cookie
   const match = document.cookie.match(/(?:^|;\s*)googtrans=\/en\/([a-zA-Z-]+)/);
   if (match && match[1]) {
     return match[1];
   }
 
-  // Fallback to localStorage
   const saved = localStorage.getItem("kisan_lang");
   return saved || "en";
 }
 
 /**
  * Switches the entire website language instantly using Google Website Translator.
- * Default is English. Changing language updates cookies and dispatches events.
  */
 export function changeLanguage(langCode: string) {
   if (typeof window === "undefined") return;
 
   if (langCode === "en") {
-    // Clear cookies to restore pure English
     document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
     localStorage.removeItem("kisan_lang");
@@ -262,12 +327,10 @@ export function changeLanguage(langCode: string) {
       select.value = "en";
       select.dispatchEvent(new Event("change"));
     }
-    // Hard refresh to restore original English layout
     window.location.reload();
     return;
   }
 
-  // Set the google translation cookie
   const cookieVal = `/en/${langCode}`;
   document.cookie = `googtrans=${cookieVal}; path=/;`;
   document.cookie = `googtrans=${cookieVal}; path=/; domain=${window.location.hostname};`;
@@ -278,7 +341,6 @@ export function changeLanguage(langCode: string) {
     select.value = langCode;
     select.dispatchEvent(new Event("change"));
   } else {
-    // If the widget hasn't mounted yet, reload so the cookie takes effect
     window.location.reload();
   }
 }

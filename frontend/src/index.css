@@ -13,6 +13,7 @@
 @import "./styles/queue.css";
 @import "./styles/operator.css";
 @import "./styles/admin.css";
+@import "./styles/language-modal.css";
 
 /* ── Tailwind v4 ── */
 @import "tailwindcss";

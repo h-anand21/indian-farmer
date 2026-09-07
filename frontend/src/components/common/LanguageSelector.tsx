@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Globe, Check, Search, X, ChevronDown, RotateCcw } from "lucide-react";
+import { createPortal } from "react-dom";
+import {
+  Globe,
+  LayoutGrid,
+  Star,
+  MapPin,
+  RotateCcw,
+  ChevronDown,
+} from "lucide-react";
 import {
   INDIAN_LANGUAGES,
   getCurrentLanguage,
@@ -12,6 +20,8 @@ interface LanguageSelectorProps {
   className?: string;
 }
 
+type FilterTab = "all" | "popular" | "north" | "south" | "east" | "west";
+
 export default function LanguageSelector({
   variant = "header",
   className = "",
@@ -19,15 +29,21 @@ export default function LanguageSelector({
   const [isOpen, setIsOpen] = useState(false);
   const [activeCode, setActiveCode] = useState("en");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "popular">("all");
+  const [activeTab, setActiveTab] = useState<FilterTab>("all");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setActiveCode(getCurrentLanguage());
   }, []);
 
-  // Close modal on Escape key
+  // Keyboard shortcut (Ctrl + K) & Escape listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
       if (e.key === "Escape" && isOpen) {
         setIsOpen(false);
       }
@@ -36,7 +52,7 @@ export default function LanguageSelector({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
-  // Lock body scroll when modal is open
+  // Prevent background scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -59,7 +75,12 @@ export default function LanguageSelector({
       l.shortTag.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
+
     if (activeTab === "popular") return l.isPopular;
+    if (activeTab === "north") return l.region === "north";
+    if (activeTab === "south") return l.region === "south";
+    if (activeTab === "east") return l.region === "east";
+    if (activeTab === "west") return l.region === "west";
     return true;
   });
 
@@ -82,214 +103,234 @@ export default function LanguageSelector({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/95 backdrop-blur-md shadow-md hover:shadow-lg border border-emerald-300/80 hover:border-emerald-500 text-slate-800 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-          title="Select Regional Language"
+          className="group flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/95 backdrop-blur-md shadow-md hover:shadow-xl border border-emerald-300 hover:border-emerald-500 text-slate-800 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          title="Select Regional Language (Ctrl+K)"
         >
           <span
-            className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${activeLang.badgeBg}`}
+            className={`w-6 h-6 rounded-full ${activeLang.avatarColor} flex items-center justify-center text-[10px] font-bold text-white shadow-xs`}
           >
             {activeLang.shortTag}
           </span>
-          <span className="font-semibold text-slate-800">
-            {activeLang.nativeName}
-          </span>
-          <ChevronDown size={14} className="text-slate-400" />
+          <div className="flex flex-col text-left">
+            <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider leading-none">
+              Language
+            </span>
+            <span className="font-bold text-slate-900 text-xs mt-0.5">
+              {activeLang.nativeName}
+            </span>
+          </div>
+          <ChevronDown
+            size={14}
+            className="text-slate-400 group-hover:text-emerald-600 transition-colors ml-0.5"
+          />
         </button>
       ) : (
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-800 text-xs font-semibold transition-all shadow-xs cursor-pointer"
-          title="Change Portal Language"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-semibold transition-all shadow-xs cursor-pointer"
+          title="Change Portal Language (Ctrl+K)"
         >
-          <Globe size={14} className="text-emerald-600 flex-shrink-0" />
+          <Globe size={15} className="text-emerald-600 flex-shrink-0" />
           <span
-            className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 ${activeLang.badgeBg}`}
+            className={`w-5 h-5 rounded-full ${activeLang.avatarColor} flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0 shadow-xs`}
           >
             {activeLang.shortTag}
           </span>
-          <span className="max-w-[75px] sm:max-w-none truncate font-medium">
+          <span className="max-w-[85px] sm:max-w-none truncate font-semibold text-slate-800">
             {activeLang.nativeName}
           </span>
           <ChevronDown size={13} className="text-slate-400 flex-shrink-0" />
         </button>
       )}
 
-      {/* ── Center Dialog Modal (Never Clips, Works on Any Screen) ── */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
-          onClick={() => setIsOpen(false)}
-        >
+      {/* ── Exact User Specified CSS Modal via React Portal ── */}
+      {isOpen &&
+        mounted &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
+            className="language-modal-overlay notranslate"
+            translate="no"
+            onClick={() => setIsOpen(false)}
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white p-4 sm:p-5 flex-shrink-0">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white backdrop-blur-xs">
-                    <Globe size={20} />
+            <div
+              className="language-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="modal-header">
+                <div className="modal-header-ribbon">
+                  Apni Bhasha, Apna KisanQueue
+                </div>
+
+                <div className="globe-wrapper">
+                  <div className="globe">
+                    <Globe size={34} />
                   </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                      Choose Language / भाषा चुनें
-                    </h3>
-                    <p className="text-xs text-emerald-100/90 mt-0.5">
-                      Available across all 28 Indian States &amp; 8 UTs
-                    </p>
+                </div>
+
+                <div className="header-content">
+                  <h1>Choose Language</h1>
+                  <p>Available across all 28 Indian States &amp; 8 UTs</p>
+                  <div className="header-tagline">
+                    Same platform. Stronger farmers. In every language.
                   </div>
                 </div>
 
                 <button
                   type="button"
+                  className="close-btn"
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-                  aria-label="Close language selector"
+                  aria-label="Close modal"
                 >
-                  <X size={18} />
+                  &times;
                 </button>
               </div>
 
-              {/* Search Box */}
-              <div className="mt-3.5 relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Search size={16} />
+              {/* Body */}
+              <div className="modal-body">
+                {/* Search */}
+                <div className="search-wrapper">
+                  <span className="search-icon">🔍</span>
+                  <input
+                    type="text"
+                    className="search-box"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by language, script or state (e.g. Punjabi, Marathi, বাংলা)..."
+                    autoFocus
+                  />
+                  <span className="shortcut">Ctrl + K</span>
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by language, script or state (e.g. Punjab, Marathi, বাংলা)..."
-                  className="w-full pl-9 pr-9 py-2.5 bg-white text-slate-900 rounded-xl text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-400 shadow-xs"
-                  autoFocus
-                />
-                {searchQuery && (
+
+                {/* Filters */}
+                <div className="filters">
                   <button
                     type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className={`filter ${activeTab === "all" ? "active" : ""}`}
+                    onClick={() => setActiveTab("all")}
                   >
-                    <X size={15} />
+                    <LayoutGrid size={15} /> All Languages ({INDIAN_LANGUAGES.length})
                   </button>
-                )}
-              </div>
 
-              {/* Quick Tabs */}
-              <div className="flex items-center gap-2 mt-3 pt-2 border-t border-emerald-600/50">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("all")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "all"
-                      ? "bg-white text-emerald-800 shadow-xs"
-                      : "bg-emerald-900/40 text-emerald-100 hover:bg-emerald-900/60"
-                  }`}
-                >
-                  All Languages ({INDIAN_LANGUAGES.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("popular")}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                    activeTab === "popular"
-                      ? "bg-white text-emerald-800 shadow-xs"
-                      : "bg-emerald-900/40 text-emerald-100 hover:bg-emerald-900/60"
-                  }`}
-                >
-                  Most Popular
-                </button>
-              </div>
-            </div>
+                  <button
+                    type="button"
+                    className={`filter ${activeTab === "popular" ? "active" : ""}`}
+                    onClick={() => setActiveTab("popular")}
+                  >
+                    <Star size={15} /> Most Popular
+                  </button>
 
-            {/* Language Cards Grid */}
-            <div className="flex-1 overflow-y-auto p-3 sm:p-4 divide-y divide-slate-100">
-              {filteredLanguages.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Globe size={32} className="mx-auto text-slate-300 mb-2" />
-                  <p className="text-sm font-semibold text-slate-700">
-                    No matching language found
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Try searching for &quot;Punjab&quot;, &quot;Hindi&quot;, or &quot;Marathi&quot;
-                  </p>
+                  <button
+                    type="button"
+                    className={`filter ${activeTab === "north" ? "active" : ""}`}
+                    onClick={() => setActiveTab("north")}
+                  >
+                    <MapPin size={15} /> North India
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`filter ${activeTab === "south" ? "active" : ""}`}
+                    onClick={() => setActiveTab("south")}
+                  >
+                    <MapPin size={15} /> South India
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`filter ${activeTab === "east" ? "active" : ""}`}
+                    onClick={() => setActiveTab("east")}
+                  >
+                    <MapPin size={15} /> East India
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`filter ${activeTab === "west" ? "active" : ""}`}
+                    onClick={() => setActiveTab("west")}
+                  >
+                    <MapPin size={15} /> West India
+                  </button>
+
+                  <button type="button" className="filter-arrow">
+                    &rsaquo;
+                  </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+                {/* Language Grid */}
+                <div className="language-grid">
                   {filteredLanguages.map((lang) => {
                     const isSelected = activeCode === lang.code;
                     return (
-                      <button
+                      <div
                         key={lang.code}
-                        type="button"
+                        className={`language-card ${isSelected ? "selected" : ""}`}
                         onClick={() => handleSelect(lang)}
-                        className={`w-full text-left p-3 rounded-xl border flex items-center justify-between transition-all cursor-pointer ${
-                          isSelected
-                            ? "bg-emerald-50/90 border-emerald-500 shadow-xs ring-1 ring-emerald-500"
-                            : "bg-white hover:bg-slate-50 border-slate-200/80 hover:border-slate-300"
-                        }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {/* Short badge */}
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs ${lang.badgeBg} ${lang.textColor}`}
-                          >
+                        {isSelected && <div className="check">✓</div>}
+
+                        <div className="language-main">
+                          <div className={`language-icon ${lang.iconClass}`}>
                             {lang.shortTag}
                           </div>
-
-                          {/* Language names & state */}
-                          <div className="min-w-0">
-                            <div className="flex items-baseline gap-1.5 truncate">
-                              <span className="text-sm font-bold text-slate-900">
-                                {lang.nativeName}
-                              </span>
-                              <span className="text-xs text-slate-500 font-normal">
-                                ({lang.name})
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-slate-400 truncate mt-0.5 max-w-[170px] sm:max-w-[180px]">
-                              📍 {lang.states}
-                            </p>
+                          <div className="language-info">
+                            <div className="language-native">{lang.nativeName}</div>
+                            <div className="language-english">({lang.name})</div>
                           </div>
                         </div>
 
-                        {/* Selected Checkmark */}
-                        {isSelected && (
-                          <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs ml-2">
-                            <Check size={14} strokeWidth={3} />
-                          </div>
-                        )}
-                      </button>
+                        <div className="language-location">
+                          <span className="location-icon">📍</span>
+                          <span>{lang.states}</span>
+                        </div>
+                      </div>
                     );
                   })}
-                </div>
-              )}
-            </div>
 
-            {/* Footer */}
-            <div className="p-3 sm:px-5 sm:py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-shrink-0">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                <span className="font-medium text-slate-600">
-                  Google Translate Engine &bull; Real-time
-                </span>
+                  {/* Quote Card */}
+                  {activeTab === "all" && searchQuery === "" && (
+                    <div className="quote-card">
+                      <div className="quote-left">
+                        <span style={{ fontSize: "28px" }}>🍃</span>
+                        <div className="quote-text">
+                          &ldquo;Every language grows a stronger tomorrow.&rdquo;
+                        </div>
+                      </div>
+
+                      <div className="quote-right">
+                        <img
+                          src="/images/farmer_hand_seedling.jpg"
+                          alt="Seedling"
+                          className="quote-img"
+                        />
+                        <div className="quote-brand">
+                          <div className="quote-brand-name">KisanQueue</div>
+                          <div className="quote-brand-sub">Farmers First. Always.</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {activeCode !== "en" && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="flex items-center gap-1 text-emerald-700 font-bold hover:text-emerald-800 hover:underline cursor-pointer"
-                >
-                  <RotateCcw size={13} />
-                  Reset to English
-                </button>
-              )}
+              {/* Footer */}
+              <div className="modal-footer">
+                <div className="footer-status">
+                  <span className="footer-dot" />
+                  <span>Google Translate Engine &bull; Real-time Instant Translation</span>
+                </div>
+                {activeCode !== "en" && (
+                  <button type="button" className="reset-btn" onClick={handleReset}>
+                    <RotateCcw size={13} /> Reset to English
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
