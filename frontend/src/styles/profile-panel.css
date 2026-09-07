@@ -1,0 +1,797 @@
+/* ==========================================================================
+   KisanQueue — User Profile & Role Switcher Panel Styles
+   Exact Specification from User
+   ========================================================================== */
+
+:root {
+  --green: #008d65;
+  --green-dark: #006d50;
+  --green-light: #e8f9ef;
+
+  --text: #102b3f;
+  --muted: #58708b;
+
+  --border: #dce6ea;
+}
+
+/* =====================================
+   SIDE POPOVER OVERLAY / PAGE
+===================================== */
+
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* =====================================
+   MAIN PANEL
+===================================== */
+
+.profile-panel {
+  width: min(720px, 96vw);
+  max-height: 90vh;
+  margin-top: 52px;
+  margin-right: 8px;
+
+  background: rgba(250, 253, 251, .98);
+
+  border-radius: 26px;
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(255, 255, 255, .9);
+
+  box-shadow:
+    0 30px 75px rgba(0, 40, 25, .22),
+    0 10px 30px rgba(0, 0, 0, .1);
+  transform-origin: top right;
+}
+
+/* Close button on profile panel */
+.profile-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #dce6ea;
+  color: #102b3f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.2s ease;
+}
+
+.profile-close-btn:hover {
+  transform: rotate(90deg);
+  background: #ffffff;
+  color: #008d65;
+}
+
+/* =====================================
+   HEADER
+===================================== */
+
+.profile-header {
+  min-height: 120px;
+
+  position: relative;
+
+  overflow: hidden;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 20px 24px;
+
+  background:
+    linear-gradient(
+      100deg,
+      #effbf5 0%,
+      #f9fffb 50%,
+      #dcf5e6 100%
+    );
+}
+
+/* =====================================
+   HEADER LANDSCAPE
+===================================== */
+
+.profile-landscape {
+  position: absolute;
+
+  right: 110px;
+  bottom: 0;
+
+  width: 50%;
+  height: 100%;
+
+  pointer-events: none;
+
+  overflow: hidden;
+
+  opacity: .85;
+}
+
+/* soft mountains */
+.profile-landscape::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: 15px;
+
+  width: 100%;
+  height: 60px;
+
+  background:
+    linear-gradient(
+      140deg,
+      transparent 35%,
+      #b5dfc3 36%,
+      #b5dfc3 65%,
+      transparent 66%
+    );
+
+  opacity: .5;
+}
+
+/* fields */
+.profile-landscape::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 45px;
+
+  background:
+    repeating-linear-gradient(
+      -12deg,
+      #75c37e 0px,
+      #75c37e 5px,
+      #9bd88f 5px,
+      #9bd88f 12px
+    );
+
+  opacity: .45;
+}
+
+/* sun */
+.sun {
+  position: absolute;
+
+  right: 48%;
+  top: 25px;
+
+  font-size: 26px;
+
+  color: #f7ce53;
+}
+
+/* farmer */
+.farmer {
+  position: absolute;
+
+  right: 36%;
+  bottom: 6px;
+
+  font-size: 48px;
+}
+
+/* fields */
+.fields {
+  position: absolute;
+
+  bottom: 8px;
+  left: 15%;
+
+  font-size: 26px;
+
+  color: #53a86a;
+}
+
+/* =====================================
+   PROFILE AVATAR
+===================================== */
+
+.profile-avatar {
+  width: 76px;
+  height: 76px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 40% 30%,
+      #c6f2d8,
+      #dff8e8
+    );
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 38px;
+
+  border: 3px solid rgba(255,255,255,.9);
+
+  position: relative;
+
+  z-index: 5;
+  flex-shrink: 0;
+}
+
+.profile-avatar::after {
+  content: "";
+
+  position: absolute;
+
+  width: 18px;
+  height: 18px;
+
+  right: -1px;
+  bottom: 2px;
+
+  border-radius: 50%;
+
+  background: #00a46f;
+
+  border: 3px solid white;
+}
+
+/* =====================================
+   PROFILE INFORMATION
+===================================== */
+
+.profile-info {
+  margin-left: 16px;
+
+  position: relative;
+
+  z-index: 5;
+}
+
+.profile-name {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 20px;
+
+  font-weight: 800;
+
+  letter-spacing: -.4px;
+
+  color: #0d182d;
+}
+
+.verified {
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  background: #0ba671;
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.phone {
+  margin-top: 3px;
+
+  font-size: 13px;
+
+  color: #536b86;
+  font-family: monospace;
+}
+
+.account-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 6px;
+
+  padding: 4px 12px;
+
+  border-radius: 14px;
+
+  background: #d8f4e4;
+
+  color: #08654d;
+
+  font-size: 11px;
+
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* =====================================
+   SLOGAN
+===================================== */
+
+.header-slogan {
+  position: absolute;
+
+  right: 50px;
+  top: 18px;
+
+  z-index: 5;
+
+  font-family: "Segoe Script", "Dancing Script", cursive, sans-serif;
+
+  font-size: 14px;
+
+  line-height: 1.15;
+
+  font-weight: 700;
+
+  color: #14553f;
+
+  transform: rotate(-4deg);
+  text-align: right;
+}
+
+/* =====================================
+   ROLE SECTION
+===================================== */
+
+.role-section {
+  padding: 16px 22px 14px;
+
+  background: #fff;
+}
+
+/* heading */
+.section-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.section-heading h2 {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #102c39;
+
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+.section-heading h2:first-letter {
+  color: #00765b;
+}
+
+.section-heading p {
+  font-size: 11.5px;
+
+  color: #61768e;
+}
+
+/* =====================================
+   ROLE CARDS
+===================================== */
+
+.roles {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 10px;
+}
+
+.role-card {
+  min-height: 80px;
+
+  border-radius: 16px;
+
+  border: 1.5px solid #e5ebef;
+
+  background:
+    linear-gradient(
+      120deg,
+      #fff,
+      #fafcfd
+    );
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 10px 12px;
+
+  position: relative;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(20,70,70,.08);
+}
+
+.role-card.selected {
+  border-color: #008d65;
+  border-width: 2px;
+
+  background:
+    linear-gradient(
+      120deg,
+      #ecfcf2,
+      #f8fffa
+    );
+}
+
+/* role icon */
+.role-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+
+  background: #edf2f6;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
+
+  flex-shrink: 0;
+
+  margin-right: 10px;
+}
+
+.selected .role-icon {
+  background: #cdf3dd;
+}
+
+/* role text */
+.role-content h3 {
+  font-size: 14px;
+
+  color: #0c1831;
+
+  font-weight: 800;
+
+  margin-bottom: 2px;
+}
+
+.role-content p {
+  font-size: 10.5px;
+
+  line-height: 1.3;
+
+  color: #55708a;
+}
+
+/* selected check */
+.role-check {
+  position: absolute;
+
+  right: 10px;
+
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+
+  background: #078e66;
+
+  color: white;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  font-size: 12px;
+
+  font-weight: bold;
+}
+
+/* radio */
+.role-radio {
+  position: absolute;
+
+  right: 10px;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  border: 2.5px solid #b5c3d2;
+}
+
+/* =====================================
+   SEPARATOR
+===================================== */
+
+.separator {
+  height: 1px;
+
+  background: #e1e7ea;
+
+  margin: 14px 0 12px;
+}
+
+/* =====================================
+   MENU
+===================================== */
+
+.profile-menu {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+/* =====================================
+   MENU ITEM
+===================================== */
+
+.menu-item {
+  min-height: 56px;
+
+  border-radius: 14px;
+
+  padding: 8px 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  position: relative;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.menu-item:hover {
+  transform: translateX(3px);
+
+  box-shadow:
+    0 6px 16px rgba(30,60,70,.08);
+}
+
+/* icons */
+.menu-icon {
+  width: 38px;
+  height: 38px;
+
+  border-radius: 10px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+/* text */
+.menu-item h3 {
+  font-size: 13.5px;
+
+  font-weight: 700;
+
+  color: #0e1d3a;
+
+  margin-bottom: 1px;
+}
+
+.menu-item p {
+  font-size: 11px;
+
+  color: #58728d;
+}
+
+/* arrow */
+.menu-arrow {
+  margin-left: auto;
+
+  font-size: 22px;
+
+  font-weight: 400;
+
+  color: #1e4354;
+}
+
+/* =====================================
+   MENU COLORS
+===================================== */
+
+.bookings {
+  background:
+    linear-gradient(
+      90deg,
+      #eefaf2,
+      #f3fbf6
+    );
+  border: 1px solid #d8f2e2;
+}
+
+.bookings .menu-icon {
+  background: #d7f4e3;
+
+  color: #087653;
+}
+
+.payments {
+  background:
+    linear-gradient(
+      90deg,
+      #fff9e9,
+      #fffbf1
+    );
+  border: 1px solid #fceec5;
+}
+
+.payments .menu-icon {
+  background: #ffecbd;
+
+  color: #b06a00;
+}
+
+.support {
+  background:
+    linear-gradient(
+      90deg,
+      #eaf4ff,
+      #eef7ff
+    );
+  border: 1px solid #d8ebff;
+}
+
+.support .menu-icon {
+  background: #d5e8ff;
+
+  color: #1763bd;
+}
+
+/* =====================================
+   LOGOUT
+===================================== */
+
+.logout {
+  min-height: 50px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #fff0f0,
+      #ffe2e2
+    );
+
+  border: 1.5px solid #ff8f8f;
+}
+
+.logout .menu-icon {
+  color: #c62228;
+
+  background: #fdd8d8;
+}
+
+.logout h3 {
+  color: #c62228;
+}
+
+/* =====================================
+   FOOTER
+===================================== */
+
+.profile-footer {
+  min-height: 44px;
+
+  padding: 8px 22px 10px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  color: #58718d;
+
+  font-size: 11px;
+  border-top: 1px solid #e1e7ea;
+}
+
+.profile-footer div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.profile-footer strong {
+  color: #075b4c;
+
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.profile-footer span.footer-sep {
+  width: 1px;
+
+  height: 14px;
+
+  background: #b9c7d1;
+
+  margin: 0 6px;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+@media (max-width: 600px) {
+  .profile-panel {
+    width: 98vw;
+    margin-right: 0;
+  }
+  .header-slogan,
+  .profile-landscape {
+    display: none;
+  }
+  .roles {
+    grid-template-columns: 1fr;
+  }
+}

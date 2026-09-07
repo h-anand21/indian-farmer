@@ -1,18 +1,14 @@
 import { useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 import {
-  User,
-  Shield,
-  Briefcase,
-  Calendar,
+  CalendarCheck,
   CreditCard,
-  HelpCircle,
+  Headphones,
   LogOut,
-  ChevronRight,
-  Sparkles,
-  CheckCircle2,
+  X,
 } from "lucide-react";
 
 interface UserDropdownProps {
@@ -31,11 +27,17 @@ export default function UserDropdown({ isOpen, onClose }: UserDropdownProps) {
         onClose();
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("keydown", handleKeyDown);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
 
@@ -55,137 +57,228 @@ export default function UserDropdown({ isOpen, onClose }: UserDropdownProps) {
 
   if (!isOpen) return null;
 
-  return (
+  const currentRole = role || "FARMER";
+
+  const dropdownModal = (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9990] pointer-events-auto bg-black/10 backdrop-blur-[1px] md:bg-transparent">
+      <div
+        className="profile-overlay"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+      >
         <motion.div
           ref={dropdownRef}
-          initial={{ opacity: 0, y: 10, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 8, scale: 0.96 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className="absolute top-16 right-4 md:right-8 w-[320px] bg-[#163A2D] text-white border border-emerald-500/30 rounded-2xl shadow-2xl backdrop-blur-xl p-4 flex flex-col gap-3 z-[9999]"
+          initial={{ opacity: 0, scale: 0.94, y: -12, x: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: -10, x: 10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className="profile-panel"
         >
-          {/* User Profile Card Header */}
-          <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-stone-950 font-black text-lg flex items-center justify-center shadow-lg shrink-0">
-              {user?.name ? user.name.slice(0, 1).toUpperCase() : "K"}
+          {/* ================= HEADER ================= */}
+          <div className="profile-header">
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="profile-close-btn"
+              title="Close Profile"
+              aria-label="Close Profile Panel"
+            >
+              <X size={16} />
+            </button>
+
+            {/* Profile Avatar */}
+            <div className="profile-avatar">
+              🌱
             </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-sm text-white truncate flex items-center gap-1.5">
-                {user?.name || "Kisan User"}
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-              </h4>
-              <p className="text-[11px] text-stone-300 truncate font-mono">
-                {user?.phone ? `+91 ${user.phone.slice(-10)}` : "Verified Portal User"}
-              </p>
-              <span className="inline-block mt-1 text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/20">
-                {role || "FARMER"} ACCOUNT
-              </span>
+
+            {/* Profile Information */}
+            <div className="profile-info">
+              <div className="profile-name">
+                <span>{user?.name || "HIMANSHU ANAND"}</span>
+                <span className="verified">✓</span>
+              </div>
+              <div className="phone">
+                {user?.phone ? `+91 ${user.phone.slice(-10)}` : "+91 0825262712"}
+              </div>
+              <div className="account-badge">
+                <span>🌱</span>
+                <span>{currentRole} ACCOUNT</span>
+              </div>
+            </div>
+
+            {/* Header Landscape Artwork */}
+            <div className="profile-landscape">
+              <span className="sun">☀️</span>
+              <span className="farmer">👨‍🌾</span>
+              <span className="fields">🌾</span>
+            </div>
+
+            {/* Slogan */}
+            <div className="header-slogan">
+              Growing Together<br />
+              for a Better Tomorrow 🍃
             </div>
           </div>
 
-          {/* Quick Role Switcher */}
-          <div>
-            <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5 flex items-center justify-between px-1">
-              <span>Switch Active Portal Role</span>
-              <Sparkles className="w-3 h-3 text-amber-400" />
+          {/* ================= ROLE SECTION ================= */}
+          <div className="role-section">
+            <div className="section-heading">
+              <h2>
+                <span>🔁</span> Switch Active Portal Role
+              </h2>
+              <p>Access the features based on your role</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-1.5 text-xs">
-              <button
+            {/* Role Cards Grid */}
+            <div className="roles">
+              {/* Farmer Role */}
+              <div
+                className={`role-card ${currentRole === "FARMER" ? "selected" : ""}`}
                 onClick={() => handleRoleChange("FARMER")}
-                className={`px-2 py-2 rounded-xl font-semibold border flex flex-col items-center gap-1 transition-all ${
-                  role === "FARMER" || !role
-                    ? "bg-emerald-500 text-stone-950 border-emerald-400 font-bold shadow-md"
-                    : "bg-white/5 text-stone-300 hover:bg-white/10 border-white/10"
-                }`}
               >
-                <User className="w-4 h-4" />
-                Farmer
-              </button>
+                <div className="role-icon">
+                  👨‍🌾
+                </div>
+                <div className="role-content">
+                  <h3>Farmer</h3>
+                  <p>Manage your bookings, payments and more</p>
+                </div>
+                {currentRole === "FARMER" ? (
+                  <div className="role-check">✓</div>
+                ) : (
+                  <div className="role-radio" />
+                )}
+              </div>
 
-              <button
+              {/* Operator Role */}
+              <div
+                className={`role-card ${currentRole === "OPERATOR" ? "selected" : ""}`}
                 onClick={() => handleRoleChange("OPERATOR")}
-                className={`px-2 py-2 rounded-xl font-semibold border flex flex-col items-center gap-1 transition-all ${
-                  role === "OPERATOR"
-                    ? "bg-amber-500 text-stone-950 border-amber-400 font-bold shadow-md"
-                    : "bg-white/5 text-stone-300 hover:bg-white/10 border-white/10"
-                }`}
               >
-                <Briefcase className="w-4 h-4" />
-                Operator
-              </button>
+                <div className="role-icon">
+                  🎧
+                </div>
+                <div className="role-content">
+                  <h3>Operator</h3>
+                  <p>Handle queue & procurement</p>
+                </div>
+                {currentRole === "OPERATOR" ? (
+                  <div className="role-check">✓</div>
+                ) : (
+                  <div className="role-radio" />
+                )}
+              </div>
 
-              <button
+              {/* Admin Role */}
+              <div
+                className={`role-card ${currentRole === "ADMIN" ? "selected" : ""}`}
                 onClick={() => handleRoleChange("ADMIN")}
-                className={`px-2 py-2 rounded-xl font-semibold border flex flex-col items-center gap-1 transition-all ${
-                  role === "ADMIN"
-                    ? "bg-teal-400 text-stone-950 border-teal-300 font-bold shadow-md"
-                    : "bg-white/5 text-stone-300 hover:bg-white/10 border-white/10"
-                }`}
               >
-                <Shield className="w-4 h-4" />
-                Admin
-              </button>
+                <div className="role-icon">
+                  🛡️
+                </div>
+                <div className="role-content">
+                  <h3>Admin</h3>
+                  <p>Manage system and analytics</p>
+                </div>
+                {currentRole === "ADMIN" ? (
+                  <div className="role-check">✓</div>
+                ) : (
+                  <div className="role-radio" />
+                )}
+              </div>
+            </div>
+
+            {/* Separator */}
+            <div className="separator" />
+
+            {/* ================= PROFILE MENU ================= */}
+            <div className="profile-menu">
+              {/* My Bookings */}
+              <div
+                className="menu-item bookings"
+                onClick={() => {
+                  onClose();
+                  navigate({ to: "/farmer/bookings" });
+                }}
+              >
+                <div className="menu-icon">
+                  <CalendarCheck size={20} />
+                </div>
+                <div>
+                  <h3>My Bookings & QR Pass</h3>
+                  <p>View your tokens, slots, and gate passes</p>
+                </div>
+                <span className="menu-arrow">&rsaquo;</span>
+              </div>
+
+              {/* Payments */}
+              <div
+                className="menu-item payments"
+                onClick={() => {
+                  onClose();
+                  navigate({ to: "/farmer/payments" });
+                }}
+              >
+                <div className="menu-icon">
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                  <h3>Payments & DBT Transfers</h3>
+                  <p>Track payments and bank transfers</p>
+                </div>
+                <span className="menu-arrow">&rsaquo;</span>
+              </div>
+
+              {/* Support */}
+              <div
+                className="menu-item support"
+                onClick={() => {
+                  onClose();
+                  navigate({ to: "/farmer/support" });
+                }}
+              >
+                <div className="menu-icon">
+                  <Headphones size={20} />
+                </div>
+                <div>
+                  <h3>Support & Helpline</h3>
+                  <p>Get help, raise a request, or contact support</p>
+                </div>
+                <span className="menu-arrow">&rsaquo;</span>
+              </div>
+
+              {/* Logout */}
+              <div className="menu-item logout" onClick={handleLogout}>
+                <div className="menu-icon">
+                  <LogOut size={20} />
+                </div>
+                <div>
+                  <h3>Sign Out of Portal</h3>
+                </div>
+                <span className="menu-arrow">&rsaquo;</span>
+              </div>
             </div>
           </div>
 
-          {/* Nav Shortcuts */}
-          <div className="space-y-1 text-xs border-t border-white/10 pt-2">
-            <button
-              onClick={() => {
-                onClose();
-                navigate({ to: "/farmer/bookings" });
-              }}
-              className="w-full flex items-center justify-between p-2 rounded-lg text-stone-200 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              <span className="flex items-center gap-2 font-medium">
-                <Calendar className="w-4 h-4 text-emerald-400" />
-                My Bookings & QR Pass
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-            </button>
-
-            <button
-              onClick={() => {
-                onClose();
-                navigate({ to: "/farmer/payments" });
-              }}
-              className="w-full flex items-center justify-between p-2 rounded-lg text-stone-200 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              <span className="flex items-center gap-2 font-medium">
-                <CreditCard className="w-4 h-4 text-amber-400" />
-                Payments & DBT Transfers
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-            </button>
-
-            <button
-              onClick={() => {
-                onClose();
-                navigate({ to: "/farmer/support" });
-              }}
-              className="w-full flex items-center justify-between p-2 rounded-lg text-stone-200 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              <span className="flex items-center gap-2 font-medium">
-                <HelpCircle className="w-4 h-4 text-sky-400" />
-                Support & Helpline
-              </span>
-              <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
-            </button>
+          {/* ================= FOOTER ================= */}
+          <div className="profile-footer">
+            <div>
+              <strong>🌱 KisanQueue</strong>
+              <span className="footer-sep" />
+              <span>Farmers Today A Brighter Tomorrow</span>
+            </div>
+            <div>
+              <span>🍃 Stay Connected</span>
+              <span className="footer-sep" />
+              <span>Stay Empowered</span>
+            </div>
           </div>
-
-          {/* Logout button */}
-          <button
-            onClick={handleLogout}
-            className="w-full mt-1 py-2 px-3 rounded-xl bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30 font-semibold text-xs flex items-center justify-center gap-2 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out of Portal
-          </button>
         </motion.div>
       </div>
     </AnimatePresence>
   );
+
+  return createPortal(dropdownModal, document.body);
 }
