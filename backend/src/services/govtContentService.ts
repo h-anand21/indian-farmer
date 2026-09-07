@@ -3,9 +3,8 @@
  * Manages Government Hub content: MSP updates, schemes, weather advisories, etc.
  */
 
-import { PrismaClient, GovContentType, GovContentPriority, GovContentStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../config/database';
+import { GovContentType, GovContentPriority, GovContentStatus } from '@prisma/client';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 

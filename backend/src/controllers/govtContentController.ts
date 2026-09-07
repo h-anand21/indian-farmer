@@ -4,11 +4,9 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { govtContentService } from '../services/govtContentService.js';
+import prisma from '../config/database';
+import { govtContentService } from '../services/govtContentService';
 import { GovContentType, GovContentPriority } from '@prisma/client';
-
-const prisma = new PrismaClient();
 
 // Helper — get farmerId from firebaseUid
 async function getFarmerId(firebaseUid: string): Promise<string | null> {

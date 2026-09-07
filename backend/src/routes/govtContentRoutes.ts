@@ -4,7 +4,7 @@
  */
 
 import { Router } from 'express';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware } from '../middleware/auth';
 import {
   listContent,
   getAlerts,
@@ -18,7 +18,7 @@ import {
   updateContent,
   deleteContent,
   seedContent,
-} from '../controllers/govtContentController.js';
+} from '../controllers/govtContentController';
 
 const router = Router();
 
