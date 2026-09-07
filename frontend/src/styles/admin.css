@@ -1,59 +1,66 @@
 /* ══════════════════════════════════════════════
-   KisanQueue — Admin Command Center & Analytics (Phase 6)
-   Theme: Vibrant Indian Agriculture Emerald Green & Gold
+   KISANQUEUE — STATE ADMINISTRATION DASHBOARD
+   Pixel-Perfect Implementation + Google Maps GIS Light/Dark Themes
    ══════════════════════════════════════════════ */
 
 .admin-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  animation: fadeIn 0.4s ease-out;
+  gap: 20px;
+  max-width: 1540px;
+  margin: 0 auto;
+  padding: 12px 18px 36px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #071739;
+  box-sizing: border-box;
 }
 
-/* ── Hero Banner ── */
+/* ── 1. Hero Banner ── */
 .admin-hero-card {
-  background: linear-gradient(135deg, #052e16 0%, #064e3b 45%, #047857 100%);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-  border-radius: 24px;
-  padding: 32px 28px;
+  background: linear-gradient(135deg, #003625 0%, #004d38 48%, #00281c 100%);
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  border-radius: 20px;
+  padding: 24px 28px;
   color: #ffffff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 36px rgba(5, 46, 22, 0.35);
+  box-shadow: 0 14px 34px rgba(0, 48, 32, 0.35);
 }
 
-.admin-hero-card::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 380px;
-  height: 380px;
-  background: radial-gradient(circle, rgba(74, 222, 128, 0.2) 0%, transparent 70%);
-  pointer-events: none;
+.admin-hero-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  gap: 24px;
+}
+
+.admin-hero-left {
+  max-width: 680px;
 }
 
 .admin-badge-live {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(34, 197, 94, 0.2);
-  border: 1px solid rgba(74, 222, 128, 0.4);
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(74, 222, 128, 0.35);
   color: #86efac;
-  padding: 4px 14px;
+  padding: 5px 14px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   margin-bottom: 12px;
 }
 
 .admin-pulse-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #22c55e;
-  box-shadow: 0 0 10px #22c55e;
+  box-shadow: 0 0 8px #22c55e;
   animation: pulseDot 1.8s infinite;
 }
 
@@ -63,98 +70,652 @@
   100% { transform: scale(0.9); opacity: 0.7; }
 }
 
-/* ── Metrics Grid ── */
+.admin-hero-title {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.admin-hero-title .brand-green {
+  color: #4ade80;
+}
+
+.admin-hero-subtitle-main {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 2px 0 8px 0;
+  letter-spacing: -0.01em;
+}
+
+.admin-hero-desc {
+  color: #d1fae5;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.admin-hero-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.admin-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-btn-centre {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+.admin-btn-centre:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.admin-btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+  transition: all 0.2s ease;
+}
+
+.admin-btn-refresh:hover {
+  background: linear-gradient(135deg, #15803d, #166534);
+}
+
+.admin-hero-artwork-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.admin-hero-slogan {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 700;
+  color: #e2f8ef;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.15;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.admin-hero-slogan span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-live-data-box {
+  background: rgba(0, 32, 22, 0.7);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+}
+
+.admin-live-data-icon {
+  color: #86efac;
+}
+
+.admin-live-data-title {
+  font-size: 10.5px;
+  color: #86efac;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-live-data-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* ── 2. KPI Metrics Grid ── */
 .admin-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 
 .admin-kpi-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 16px 18px;
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  cursor: pointer;
 }
 
 .admin-kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.12);
-  border-color: #86efac;
+  box-shadow: 0 8px 22px rgba(22, 163, 74, 0.1);
+  border-color: #bbf7d0;
 }
 
 .admin-kpi-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.admin-kpi-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
+.admin-kpi-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .admin-kpi-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.admin-kpi-icon.green { background: #dcfce7; color: #15803d; }
+.admin-kpi-icon.amber { background: #fef3c7; color: #b45309; }
+.admin-kpi-icon.blue { background: #dbeafe; color: #1d4ed8; }
+.admin-kpi-icon.purple { background: #f3e8ff; color: #7e22ce; }
+
+.admin-kpi-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.admin-kpi-arrow-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-kpi-arrow-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.admin-kpi-val-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .admin-kpi-val {
   font-size: 26px;
-  font-weight: 800;
-  color: #0f172a;
-  font-family: var(--font-mono, monospace);
-  line-height: 1.2;
+  font-weight: 900;
+  color: #071739;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.admin-kpi-sparkline {
+  width: 80px;
+  height: 26px;
 }
 
 .admin-kpi-sub {
-  font-size: 12px;
-  color: #94a3b8;
+  font-size: 11.5px;
+  color: #64748b;
   margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-/* ── GIS Map Canvas ── */
+/* ── 3. Middle Section: GIS Map & Live Mandi Feed ── */
+.admin-middle-grid {
+  display: grid;
+  grid-template-columns: 68% calc(32% - 14px);
+  gap: 14px;
+}
+
+/* ══════════════════════════════════════════════
+   GIS MAP CARD — DUAL THEME (DARK / LIGHT GOOGLE)
+   ══════════════════════════════════════════════ */
 .gis-map-card {
-  background: linear-gradient(180deg, #052414 0%, #03190d 100%);
-  border: 1px solid rgba(74, 222, 128, 0.25);
-  border-radius: 20px;
-  padding: 24px;
-  color: #ffffff;
+  border-radius: 18px;
+  padding: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(5, 46, 22, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Dark Theme */
+.gis-map-card.theme-dark {
+  background: #012115;
+  border: 1px solid #0a472c;
+  color: #ffffff;
+  box-shadow: 0 10px 28px rgba(0, 33, 21, 0.4);
+}
+
+/* Light Google Map Theme */
+.gis-map-card.theme-light {
+  background: #ffffff;
+  border: 1px solid #dce8ef;
+  color: #0f172a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
 .gis-map-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-.gis-map-viewport {
-  width: 100%;
-  height: 360px;
-  background: radial-gradient(rgba(74, 222, 128, 0.22) 1.5px, transparent 1.5px);
-  background-size: 24px 24px;
-  background-color: #02170b;
-  border: 1px solid rgba(74, 222, 128, 0.2);
-  border-radius: 14px;
-  position: relative;
-  overflow: hidden;
+.gis-map-title-wrap h3 {
+  font-size: 16.5px;
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+.theme-dark .gis-map-title-wrap h3 { color: #ffffff; }
+.theme-light .gis-map-title-wrap h3 { color: #071739; }
+
+.gis-map-title-wrap p {
+  font-size: 12px;
+  margin: 2px 0 0 0;
+}
+
+.theme-dark .gis-map-title-wrap p { color: #86efac; opacity: 0.85; }
+.theme-light .gis-map-title-wrap p { color: #64748b; }
+
+.gis-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Theme Switcher Toggle */
+.gis-theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-dark .gis-theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2f8ef;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.theme-dark .gis-theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-light .gis-theme-toggle-btn {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+}
+
+.theme-light .gis-theme-toggle-btn:hover {
+  background: #e2e8f0;
+}
+
+.gis-district-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.gis-district-btn {
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-dark .gis-district-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2f8ef;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.theme-dark .gis-district-btn.active {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  border-color: #4ade80;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
+}
+
+.theme-light .gis-district-btn {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #dce8ef;
+}
+
+.theme-light .gis-district-btn.active {
+  background: #004b38;
+  color: #ffffff;
+  border-color: #004b38;
+  box-shadow: 0 2px 8px rgba(0, 75, 56, 0.2);
+}
+
+.gis-content-layout {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 14px;
+}
+
+/* Left Mandi List in Map */
+.gis-mandi-list-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gis-mandi-grid-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.theme-dark .gis-mandi-grid-badge { color: #86efac; }
+.theme-light .gis-mandi-grid-badge { color: #047857; }
+
+.gis-mandi-item {
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-dark .gis-mandi-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(74, 222, 128, 0.12);
+}
+
+.theme-dark .gis-mandi-item:hover,
+.theme-dark .gis-mandi-item.active {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(74, 222, 128, 0.45);
+}
+
+.theme-light .gis-mandi-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.theme-light .gis-mandi-item:hover,
+.theme-light .gis-mandi-item.active {
+  background: #f0fdf4;
+  border-color: #86efac;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08);
+}
+
+.gis-mandi-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gis-mandi-name {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.theme-dark .gis-mandi-name { color: #ffffff; }
+.theme-light .gis-mandi-name { color: #071739; }
+
+.gis-mandi-code {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.gis-mandi-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+  font-size: 10.5px;
+}
+
+.gis-status-pill-low { color: #16a34a; font-weight: 700; }
+.gis-status-pill-moderate { color: #d97706; font-weight: 700; }
+.gis-status-pill-high { color: #dc2626; font-weight: 700; }
+
+.gis-bays-count {
+  font-weight: 600;
+}
+
+.theme-dark .gis-bays-count { color: #cbd5e1; }
+.theme-light .gis-bays-count { color: #64748b; }
+
+.gis-view-all-link {
+  margin-top: 4px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.theme-dark .gis-view-all-link {
+  background: transparent;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  color: #86efac;
+}
+
+.theme-dark .gis-view-all-link:hover {
+  background: rgba(74, 222, 128, 0.1);
+  border-color: #4ade80;
+}
+
+.theme-light .gis-view-all-link {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.theme-light .gis-view-all-link:hover {
+  background: #dcfce7;
+}
+
+/* ══════════════════════════════════════════════
+   GOOGLE MAPS VIEWPORT
+   ══════════════════════════════════════════════ */
+.gis-map-viewport {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  cursor: grab;
+}
+
+.gis-map-viewport:active {
+  cursor: grabbing;
+}
+
+/* Dark Viewport */
+.theme-dark .gis-map-viewport {
+  background-color: #02170d;
+  background-image: radial-gradient(rgba(74, 222, 128, 0.15) 1px, transparent 1px);
+  background-size: 18px 18px;
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+/* Light Google Viewport */
+.theme-light .gis-map-viewport {
+  background-color: #e5f0e8;
+  background-image: linear-gradient(rgba(200, 225, 210, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 225, 210, 0.4) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Google Watermark Badge */
+.gis-google-watermark {
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.theme-dark .gis-google-watermark {
+  background: rgba(0, 32, 20, 0.85);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  color: #86efac;
+}
+
+.theme-light .gis-google-watermark {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+/* Zoom controls */
+.gis-zoom-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 15;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.theme-dark .gis-zoom-controls {
+  background: rgba(0, 32, 20, 0.95);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.theme-light .gis-zoom-controls {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.gis-zoom-btn {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.theme-dark .gis-zoom-btn {
+  border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+  color: #86efac;
+}
+
+.theme-dark .gis-zoom-btn:hover {
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.theme-light .gis-zoom-btn {
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.theme-light .gis-zoom-btn:hover {
+  background: #f1f5f9;
+}
+
+.gis-zoom-btn:last-child {
+  border-bottom: none;
+}
+
+/* Map Canvas Container with Pan/Zoom Transform */
+.gis-map-canvas-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Map Pins */
 .gis-map-pin {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -162,8 +723,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: all 0.2s ease;
-  z-index: 10;
+  transition: transform 0.2s ease;
+  z-index: 12;
 }
 
 .gis-map-pin:hover {
@@ -172,14 +733,14 @@
 }
 
 .gis-pin-bubble {
-  width: 38px;
-  height: 38px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   position: relative;
 }
 
@@ -199,193 +760,565 @@
 }
 
 .gis-pin-label {
-  background: rgba(5, 36, 19, 0.95);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  backdrop-filter: blur(4px);
-  color: #f8fafc;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-top: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
   white-space: nowrap;
 }
 
-.gis-popup-card {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  max-width: 380px;
-  background: rgba(5, 36, 19, 0.96);
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  backdrop-filter: blur(14px);
-  border-radius: 14px;
-  padding: 16px;
-  z-index: 30;
-  animation: slideUp 0.2s ease-out;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+.theme-dark .gis-pin-label {
+  background: rgba(5, 36, 19, 0.95);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #f8fafc;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
+.theme-light .gis-pin-label {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Floating Popup Card */
+.gis-popup-card {
+  position: absolute;
+  top: 30px;
+  right: 50px;
+  width: 250px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  z-index: 25;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  animation: popupSlide 0.2s ease-out;
+}
+
+@keyframes popupSlide {
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Analytics Visual Charts ── */
-.admin-analytics-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+.theme-dark .gis-popup-card {
+  background: rgba(1, 33, 21, 0.96);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #ffffff;
 }
 
-@media (max-width: 900px) {
-  .admin-analytics-grid {
-    grid-template-columns: 1fr;
-  }
+.theme-light .gis-popup-card {
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  color: #071739;
+  box-shadow: 0 10px 30px rgba(0, 75, 56, 0.15);
+}
+
+.gis-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.gis-popup-loc {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.theme-dark .gis-popup-loc { color: #86efac; }
+.theme-light .gis-popup-loc { color: #047857; }
+
+.gis-popup-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.theme-dark .gis-popup-close { color: #94a3b8; }
+.theme-light .gis-popup-close { color: #64748b; }
+
+.gis-popup-name {
+  font-size: 13px;
+  font-weight: 800;
+  margin: 2px 0 8px 0;
+}
+
+.theme-dark .gis-popup-name { color: #ffffff; }
+.theme-light .gis-popup-name { color: #071739; }
+
+.gis-popup-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.theme-dark .gis-popup-metrics { background: rgba(255, 255, 255, 0.05); }
+.theme-light .gis-popup-metrics { background: #f8fafc; border: 1px solid #e2e8f0; }
+
+.gis-popup-metric-lbl {
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+
+.gis-popup-metric-val {
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+.theme-dark .gis-popup-metric-val { color: #ffffff; }
+.theme-light .gis-popup-metric-val { color: #071739; }
+
+.gis-popup-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 3px 10px rgba(22, 163, 74, 0.3);
+  transition: all 0.2s;
+}
+
+.gis-popup-btn:hover {
+  background: linear-gradient(135deg, #15803d, #166534);
+  transform: translateY(-1px);
+}
+
+/* Map Legend */
+.gis-legend-bar {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  z-index: 10;
+}
+
+.theme-dark .gis-legend-bar {
+  background: rgba(0, 32, 20, 0.85);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.theme-light .gis-legend-bar {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* ── Live Mandi Feed Card ── */
+.admin-feed-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.admin-feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.admin-feed-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #071739;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-feed-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid #bbf7d0;
+}
+
+.admin-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.admin-feed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+
+.admin-feed-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.admin-feed-icon-wrap.green { background: #dcfce7; color: #15803d; }
+.admin-feed-icon-wrap.blue { background: #dbeafe; color: #1d4ed8; }
+.admin-feed-icon-wrap.purple { background: #f3e8ff; color: #7e22ce; }
+.admin-feed-icon-wrap.amber { background: #fef3c7; color: #b45309; }
+
+.admin-feed-details {
+  flex: 1;
+}
+
+.admin-feed-time-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-feed-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.admin-feed-action {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.admin-feed-info {
+  font-size: 11.5px;
+  color: #475569;
+  margin-top: 1px;
+}
+
+.admin-feed-view-all-btn {
+  margin-top: 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 8px;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-feed-view-all-btn:hover {
+  background: #dcfce7;
+}
+
+/* ── 4. Bottom Analytics Grid ── */
+.admin-analytics-grid {
+  display: grid;
+  grid-template-columns: 55% calc(45% - 14px);
+  gap: 14px;
 }
 
 .admin-chart-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 22px;
-  transition: all 0.2s ease;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
 }
 
-.admin-chart-card:hover {
-  border-color: #86efac;
-  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.08);
-}
-
-.admin-svg-chart {
-  width: 100%;
-  height: 220px;
-}
-
-/* ── Admin Table Cards ── */
-.admin-table-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 22px;
-  overflow: hidden;
-}
-
-.admin-table-header {
+.admin-chart-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
 
-.admin-search-input {
+.admin-chart-title-wrap h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #071739;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.admin-chart-title-wrap p {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+.admin-chart-pill-green {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Volume Bar Chart SVG layout */
+.admin-volume-chart-container {
+  display: flex;
+  height: 180px;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 0 10px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.admin-volume-grid-lines {
+  position: absolute;
+  inset: 0 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.admin-volume-grid-line {
+  border-bottom: 1px dashed #f1f5f9;
+  display: flex;
+  justify-content: flex-start;
+  font-size: 9.5px;
+  color: #94a3b8;
+}
+
+.admin-volume-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+  z-index: 2;
+}
+
+.admin-volume-bar-val {
+  font-size: 11px;
+  font-weight: 800;
+  color: #071739;
+}
+
+.admin-volume-bar {
+  width: 100%;
+  background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%);
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
+}
+
+.admin-volume-bar:hover {
+  filter: brightness(1.1);
+}
+
+.admin-volume-bar-date {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Donut Chart & Legend */
+.admin-donut-layout {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: 10px 0 16px;
+}
+
+.admin-donut-visual {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-donut-center-text {
+  position: absolute;
+  text-align: center;
+}
+
+.admin-donut-center-val {
+  font-size: 17px;
+  font-weight: 900;
+  color: #071739;
+}
+
+.admin-donut-center-lbl {
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.admin-crop-legend-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-crop-legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.admin-crop-legend-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.admin-crop-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.admin-crop-legend-pct {
+  font-weight: 800;
+  color: #071739;
+}
+
+.admin-donut-footer-bar {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 8px 14px;
-  min-width: 240px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
 }
 
-.admin-search-input input {
-  border: none;
-  background: transparent;
-  outline: none;
-  font-size: 13px;
-  color: #0f172a;
-  width: 100%;
+/* ── 5. Bottom Trust Banner ── */
+.admin-trust-banner {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.admin-data-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 13px;
+.admin-trust-items {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
 }
 
-.admin-data-table th {
-  background: #f8fafc;
-  color: #475569;
-  font-weight: 700;
-  padding: 12px 16px;
-  border-bottom: 2px solid #e2e8f0;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+.admin-trust-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.admin-data-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
-  vertical-align: middle;
-}
-
-.admin-data-table tr:hover td {
-  background: #f0fdf4;
-}
-
-/* ── Role Badges ── */
-.badge-role-admin {
-  background: #ecfdf5;
+.admin-trust-icon-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #dcfce7;
   color: #15803d;
-  border: 1px solid #86efac;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-.badge-role-operator {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-.badge-role-farmer {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-/* ── Modal Backdrop ── */
-.admin-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(5, 36, 19, 0.7);
-  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
-  padding: 16px;
 }
 
-.admin-modal-panel {
-  background: #ffffff;
-  border-radius: 20px;
-  max-width: 520px;
-  width: 100%;
-  padding: 24px;
-  box-shadow: 0 20px 48px rgba(5, 46, 22, 0.25);
-  border: 1px solid #e2e8f0;
-  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+.admin-trust-col-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #071739;
 }
 
-@keyframes modalPop {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.admin-trust-col-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.admin-trust-art {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-trust-slogan {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 800;
+  color: #004b38;
+  text-align: right;
+  line-height: 1.2;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .admin-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .admin-middle-grid,
+  .admin-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-hero-right {
+    align-items: flex-start;
+  }
+  .gis-content-layout {
+    grid-template-columns: 1fr;
+  }
+  .admin-metrics-grid {
+    grid-template-columns: 1fr;
+  }
 }
