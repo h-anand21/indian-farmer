@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════════
    KisanQueue — Admin Command Center & Analytics (Phase 6)
+   Theme: Vibrant Indian Agriculture Emerald Green & Gold
    ══════════════════════════════════════════════ */
 
 .admin-page {
@@ -11,14 +12,14 @@
 
 /* ── Hero Banner ── */
 .admin-hero-card {
-  background: linear-gradient(135deg, #090d16 0%, #111827 50%, #1e1b4b 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #052e16 0%, #064e3b 45%, #047857 100%);
+  border: 1px solid rgba(74, 222, 128, 0.25);
   border-radius: 24px;
   padding: 32px 28px;
   color: #ffffff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 16px 36px rgba(5, 46, 22, 0.35);
 }
 
 .admin-hero-card::before {
@@ -28,7 +29,7 @@
   right: -20%;
   width: 380px;
   height: 380px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(74, 222, 128, 0.2) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -36,9 +37,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(168, 85, 247, 0.16);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  color: #d8b4fe;
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #86efac;
   padding: 4px 14px;
   border-radius: 999px;
   font-size: 12px;
@@ -51,8 +52,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #a855f7;
-  box-shadow: 0 0 10px #a855f7;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e;
   animation: pulseDot 1.8s infinite;
 }
 
@@ -81,8 +82,8 @@
 
 .admin-kpi-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.12);
+  border-color: #86efac;
 }
 
 .admin-kpi-header {
@@ -99,9 +100,9 @@
 }
 
 .admin-kpi-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -123,13 +124,14 @@
 
 /* ── GIS Map Canvas ── */
 .gis-map-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: linear-gradient(180deg, #052414 0%, #03190d 100%);
+  border: 1px solid rgba(74, 222, 128, 0.25);
   border-radius: 20px;
   padding: 24px;
   color: #ffffff;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 12px 32px rgba(5, 46, 22, 0.3);
 }
 
 .gis-map-header {
@@ -144,10 +146,10 @@
 .gis-map-viewport {
   width: 100%;
   height: 360px;
-  background: radial-gradient(#1e293b 1px, transparent 1px);
-  background-size: 20px 20px;
-  background-color: #090d16;
-  border: 1px solid #1e293b;
+  background: radial-gradient(rgba(74, 222, 128, 0.22) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  background-color: #02170b;
+  border: 1px solid rgba(74, 222, 128, 0.2);
   border-radius: 14px;
   position: relative;
   overflow: hidden;
@@ -197,8 +199,8 @@
 }
 
 .gis-pin-label {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(5, 36, 19, 0.95);
+  border: 1px solid rgba(74, 222, 128, 0.3);
   backdrop-filter: blur(4px);
   color: #f8fafc;
   font-size: 11px;
@@ -215,13 +217,14 @@
   left: 16px;
   right: 16px;
   max-width: 380px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid #334155;
-  backdrop-filter: blur(12px);
+  background: rgba(5, 36, 19, 0.96);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  backdrop-filter: blur(14px);
   border-radius: 14px;
   padding: 16px;
   z-index: 30;
   animation: slideUp 0.2s ease-out;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 @keyframes slideUp {
@@ -247,6 +250,12 @@
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 22px;
+  transition: all 0.2s ease;
+}
+
+.admin-chart-card:hover {
+  border-color: #86efac;
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.08);
 }
 
 .admin-svg-chart {
@@ -318,14 +327,14 @@
 }
 
 .admin-data-table tr:hover td {
-  background: #f8fafc;
+  background: #f0fdf4;
 }
 
 /* ── Role Badges ── */
 .badge-role-admin {
-  background: #f3e8ff;
-  color: #7e22ce;
-  border: 1px solid #d8b4fe;
+  background: #ecfdf5;
+  color: #15803d;
+  border: 1px solid #86efac;
   padding: 3px 8px;
   border-radius: 6px;
   font-weight: 700;
@@ -333,9 +342,9 @@
 }
 
 .badge-role-operator {
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
   padding: 3px 8px;
   border-radius: 6px;
   font-weight: 700;
@@ -356,7 +365,7 @@
 .admin-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(5, 36, 19, 0.7);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -371,7 +380,7 @@
   max-width: 520px;
   width: 100%;
   padding: 24px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 48px rgba(5, 46, 22, 0.25);
   border: 1px solid #e2e8f0;
   animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -195,24 +195,24 @@ export default function AdminCentresPage() {
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <button
-            onClick={() => setShowAddModal(true)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "#a855f7",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "12px",
-              padding: "10px 18px",
-              fontSize: "13px",
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 4px 14px rgba(168, 85, 247, 0.3)",
-            }}
-          >
-            <PlusCircle size={16} /> Add Mandi Centre
+            <button
+              onClick={() => setShowAddModal(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "linear-gradient(135deg, #16a34a, #15803d)",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "12px",
+                padding: "10px 18px",
+                fontSize: "13px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(22, 163, 74, 0.35)",
+              }}
+            >
+              <PlusCircle size={16} /> Add Mandi Centre
           </button>
           <button
             onClick={loadCentres}
@@ -310,7 +310,7 @@ export default function AdminCentresPage() {
                   <tr key={centre.id}>
                     <td>
                       <div style={{ fontWeight: 700, color: "#0f172a" }}>{centre.name}</div>
-                      <div style={{ fontSize: "11px", color: "#a855f7", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
+                      <div style={{ fontSize: "11px", color: "#16a34a", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
                         {centre.code}
                       </div>
                     </td>
@@ -359,9 +359,9 @@ export default function AdminCentresPage() {
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "4px",
-                          background: "#f3e8ff",
-                          color: "#7e22ce",
-                          border: "1px solid #d8b4fe",
+                          background: "#ecfdf5",
+                          color: "#15803d",
+                          border: "1px solid #86efac",
                           borderRadius: "6px",
                           padding: "5px 10px",
                           fontSize: "12px",
@@ -386,7 +386,7 @@ export default function AdminCentresPage() {
           <div className="admin-modal-panel">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                <Warehouse size={18} color="#a855f7" /> Register New Procurement Centre
+                <Warehouse size={18} color="#16a34a" /> Register New Procurement Centre
               </h3>
               <button onClick={() => setShowAddModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer" }}>
                 <X size={18} />
@@ -399,7 +399,7 @@ export default function AdminCentresPage() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Jalandhar Grain Market Complex"
+                  placeholder="e.g. Khanna Grain Terminal"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
@@ -408,150 +408,151 @@ export default function AdminCentresPage() {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Centre Code</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Unique Code</label>
                   <input
                     type="text"
                     required
-                    placeholder="PB-JAL-06"
+                    placeholder="PB-KHN-01"
                     value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Weighbridge Counters</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Weighment Counters</label>
                   <input
                     type="number"
                     min={1}
-                    max={12}
+                    max={20}
                     value={formData.totalCounters}
-                    onChange={(e) => setFormData({ ...formData, totalCounters: parseInt(e.target.value) || 4 })}
+                    onChange={(e) => setFormData({ ...formData, totalCounters: parseInt(e.target.value) || 1 })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc", padding: "10px 14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-                <div style={{ fontSize: "12px", color: "#475569" }}>
-                  <strong>GIS Coordinates:</strong> {formData.latitude.toFixed(4)}° N, {formData.longitude.toFixed(4)}° E
+              {/* State & District Selectors */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>State</label>
+                  <select
+                    value={formData.state}
+                    onChange={(e) => {
+                      const newState = e.target.value;
+                      const newDistricts = getDistrictsForState(newState);
+                      setFormData({
+                        ...formData,
+                        state: newState,
+                        district: newDistricts[0] || "",
+                      });
+                    }}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px", background: "white" }}
+                  >
+                    {allStatesAndUTs.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleDetectCentreGps}
-                  disabled={isDetectingGps}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: "#f3e8ff",
-                    color: "#7e22ce",
-                    border: "1px solid #d8b4fe",
-                    borderRadius: "8px",
-                    padding: "6px 12px",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    cursor: isDetectingGps ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {isDetectingGps ? <Loader2 size={13} className="animate-spin" /> : <Navigation size={13} />}
-                  📍 Auto-Detect GPS
-                </button>
+                <div>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>District</label>
+                  <select
+                    value={formData.district}
+                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px", background: "white" }}
+                  >
+                    {availableDistrictsForModal.map((dist) => (
+                      <option key={dist} value={dist}>
+                        {dist}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Address / Location</label>
+                <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Full Address & Landmark</label>
                 <input
                   type="text"
                   required
-                  placeholder="Near Railway Station Yard, GT Road"
+                  placeholder="GT Road, Near Railway Siding, Khanna"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>State / UT *</label>
-                  <select
-                    value={formData.state}
-                    onChange={(e) => {
-                      const newSt = e.target.value;
-                      const dists = getDistrictsForState(newSt);
-                      setFormData({
-                        ...formData,
-                        state: newSt,
-                        district: dists.length > 0 ? dists[0] : "",
-                      });
+              {/* GPS Coordinates with Quick-Detect Button */}
+              <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Navigation size={14} color="#16a34a" /> GPS Coordinates (For Farmer Distance Sort)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDetectCoordinates}
+                    disabled={isDetectingGps}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      background: "#ecfdf5",
+                      color: "#15803d",
+                      border: "1px solid #86efac",
+                      borderRadius: "6px",
+                      padding: "4px 8px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      cursor: isDetectingGps ? "not-allowed" : "pointer",
                     }}
-                    style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   >
-                    <optgroup label="── 28 States ──">
-                      {allStatesAndUTs
-                        .filter((s) => s.type === "STATE")
-                        .map((st) => (
-                          <option key={st.name} value={st.name}>
-                            {st.name}
-                          </option>
-                        ))}
-                    </optgroup>
-                    <optgroup label="── 8 Union Territories ──">
-                      {allStatesAndUTs
-                        .filter((s) => s.type === "UT")
-                        .map((ut) => (
-                          <option key={ut.name} value={ut.name}>
-                            {ut.name} (UT)
-                          </option>
-                        ))}
-                    </optgroup>
-                  </select>
+                    {isDetectingGps ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
+                    {isDetectingGps ? "Detecting..." : "Detect Current Location"}
+                  </button>
                 </div>
-
-                <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>District *</label>
-                  {availableDistricts.length > 0 ? (
-                    <select
-                      value={formData.district}
-                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                      style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
-                    >
-                      {availableDistricts.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#64748b" }}>Latitude</label>
                     <input
-                      type="text"
+                      type="number"
+                      step="any"
                       required
-                      placeholder="Enter district"
-                      value={formData.district}
-                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                      style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
+                      style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #cbd5e1", marginTop: "2px", fontSize: "12px", background: "white" }}
                     />
-                  )}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "11px", color: "#64748b" }}>Longitude</label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
+                      style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #cbd5e1", marginTop: "2px", fontSize: "12px", background: "white" }}
+                    />
+                  </div>
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>GIS Latitude</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Opens At</label>
                   <input
-                    type="number"
-                    step="0.0001"
-                    value={formData.latitude}
-                    onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    value={formData.operatingHoursStart}
+                    onChange={(e) => setFormData({ ...formData, operatingHoursStart: e.target.value })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>GIS Longitude</label>
+                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Closes At</label>
                   <input
-                    type="number"
-                    step="0.0001"
-                    value={formData.longitude}
-                    onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    value={formData.operatingHoursEnd}
+                    onChange={(e) => setFormData({ ...formData, operatingHoursEnd: e.target.value })}
                     style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginTop: "4px", fontSize: "13px" }}
                   />
                 </div>
@@ -567,7 +568,7 @@ export default function AdminCentresPage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "#a855f7", color: "white", fontWeight: 700, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "white", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
                 >
                   Save Centre
                 </button>
@@ -583,7 +584,7 @@ export default function AdminCentresPage() {
           <div className="admin-modal-panel">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                <CalendarPlus size={18} color="#a855f7" /> Generate Procurement Slots
+                <CalendarPlus size={18} color="#16a34a" /> Generate Procurement Slots
               </h3>
               <button onClick={() => setShowSlotModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer" }}>
                 <X size={18} />
@@ -648,7 +649,7 @@ export default function AdminCentresPage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "#a855f7", color: "white", fontWeight: 700, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "white", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
                 >
                   Generate Slots
                 </button>

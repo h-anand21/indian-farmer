@@ -94,9 +94,9 @@ export default function AdminDashboardPage() {
               CENTRAL APMC COMMAND DESK &bull; STATE TELEMETRY LIVE
             </div>
             <h1 style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-              Kisan<span style={{ color: "#a855f7" }}>Queue</span> State Administration
+              Kisan<span style={{ color: "#facc15" }}>Queue</span> State Administration
             </h1>
-            <p style={{ color: "#94a3b8", fontSize: "14px", marginTop: "6px", maxWidth: "600px", lineHeight: 1.5 }}>
+            <p style={{ color: "#d1fae5", fontSize: "14px", marginTop: "6px", maxWidth: "600px", lineHeight: 1.5 }}>
               State-wide electronic procurement surveillance &bull; Real-time weighbridge telemetry across 52 APMC yards.
             </p>
           </div>
@@ -110,12 +110,13 @@ export default function AdminDashboardPage() {
                 gap: "8px",
                 background: "rgba(255, 255, 255, 0.12)",
                 color: "#ffffff",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
+                border: "1px solid rgba(255, 255, 255, 0.25)",
                 borderRadius: "12px",
                 padding: "10px 16px",
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer",
+                backdropFilter: "blur(4px)",
               }}
             >
               <PlusCircle size={16} /> Add Mandi Centre
@@ -126,7 +127,7 @@ export default function AdminDashboardPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "8px",
-                background: "#a855f7",
+                background: "linear-gradient(135deg, #16a34a, #15803d)",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "12px",
@@ -134,7 +135,7 @@ export default function AdminDashboardPage() {
                 fontSize: "13px",
                 fontWeight: 700,
                 cursor: "pointer",
-                boxShadow: "0 4px 14px rgba(168, 85, 247, 0.4)",
+                boxShadow: "0 4px 14px rgba(22, 163, 74, 0.4)",
               }}
             >
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Refresh Telemetry
@@ -148,14 +149,14 @@ export default function AdminDashboardPage() {
         <div className="admin-kpi-card">
           <div className="admin-kpi-header">
             <span className="admin-kpi-label">Active Mandi Yards</span>
-            <div className="admin-kpi-icon" style={{ background: "#f3e8ff", color: "#7e22ce" }}>
+            <div className="admin-kpi-icon" style={{ background: "#ecfdf5", color: "#15803d" }}>
               <Warehouse size={18} />
             </div>
           </div>
           <div className="admin-kpi-val">
             {metrics ? `${metrics.activeCentres} / ${metrics.totalCentres}` : "--"}
           </div>
-          <div className="admin-kpi-sub" style={{ color: "#10b981", fontWeight: 600 }}>
+          <div className="admin-kpi-sub" style={{ color: "#16a34a", fontWeight: 600 }}>
             ● 100% Operational Telemetry
           </div>
         </div>
@@ -163,7 +164,7 @@ export default function AdminDashboardPage() {
         <div className="admin-kpi-card">
           <div className="admin-kpi-header">
             <span className="admin-kpi-label">Registered Farmers</span>
-            <div className="admin-kpi-icon" style={{ background: "#e0f2fe", color: "#0284c7" }}>
+            <div className="admin-kpi-icon" style={{ background: "#fefce8", color: "#ca8a04" }}>
               <Users size={18} />
             </div>
           </div>
@@ -178,14 +179,14 @@ export default function AdminDashboardPage() {
         <div className="admin-kpi-card">
           <div className="admin-kpi-header">
             <span className="admin-kpi-label">Grain Procured Today</span>
-            <div className="admin-kpi-icon" style={{ background: "#ecfdf5", color: "#059669" }}>
+            <div className="admin-kpi-icon" style={{ background: "#f0fdf4", color: "#16a34a" }}>
               <Sprout size={18} />
             </div>
           </div>
           <div className="admin-kpi-val">
             {metrics ? `${metrics.totalQuintalsProcured.toLocaleString("en-IN")} Qtl` : "--"}
           </div>
-          <div className="admin-kpi-sub" style={{ color: "#059669", fontWeight: 600 }}>
+          <div className="admin-kpi-sub" style={{ color: "#15803d", fontWeight: 600 }}>
             {metrics ? `₹ ${(metrics.totalProcurementValue / 100000).toFixed(2)} Lakhs MSP` : "--"}
           </div>
         </div>
@@ -200,7 +201,7 @@ export default function AdminDashboardPage() {
           <div className="admin-kpi-val">
             {metrics ? `₹ ${(metrics.totalDisbursedAmount / 100000).toFixed(2)}L` : "--"}
           </div>
-          <div className="admin-kpi-sub" style={{ color: "#10b981", fontWeight: 600 }}>
+          <div className="admin-kpi-sub" style={{ color: "#16a34a", fontWeight: 600 }}>
             {metrics ? `✓ ${metrics.totalDisbursedCount} Bank Transfers Settled` : "--"}
           </div>
         </div>
@@ -211,9 +212,9 @@ export default function AdminDashboardPage() {
         <div className="gis-map-header">
           <div>
             <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-              <MapPin size={20} color="#a855f7" /> State Mandi GIS Telemetry & Congestion Map
+              <MapPin size={20} color="#4ade80" /> State Mandi GIS Telemetry & Congestion Map
             </h3>
-            <p style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px", margin: 0 }}>
+            <p style={{ color: "#86efac", fontSize: "13px", marginTop: "4px", margin: 0, opacity: 0.85 }}>
               Real-time traffic load, queue length, and weighbridge capacity utilization
             </p>
           </div>
@@ -225,15 +226,16 @@ export default function AdminDashboardPage() {
                 key={d}
                 onClick={() => setSelectedDistrict(d)}
                 style={{
-                  background: selectedDistrict === d ? "#a855f7" : "rgba(255, 255, 255, 0.08)",
+                  background: selectedDistrict === d ? "linear-gradient(135deg, #16a34a, #15803d)" : "rgba(255, 255, 255, 0.08)",
                   color: "#ffffff",
-                  border: "none",
+                  border: selectedDistrict === d ? "1px solid #4ade80" : "1px solid rgba(255, 255, 255, 0.12)",
                   borderRadius: "8px",
-                  padding: "6px 12px",
+                  padding: "6px 14px",
                   fontSize: "12px",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  boxShadow: selectedDistrict === d ? "0 2px 10px rgba(22, 163, 74, 0.4)" : "none",
                 }}
               >
                 {d}
@@ -245,14 +247,14 @@ export default function AdminDashboardPage() {
         {/* Visual Map Canvas */}
         <div className="gis-map-viewport">
           {/* Map Compass & Legend */}
-          <div style={{ position: "absolute", top: "12px", left: "14px", zIndex: 5, background: "rgba(15,23,42,0.85)", padding: "6px 12px", borderRadius: "8px", border: "1px solid #334155", fontSize: "11px", color: "#94a3b8" }}>
+          <div style={{ position: "absolute", top: "12px", left: "14px", zIndex: 5, background: "rgba(5, 36, 19, 0.9)", padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(74, 222, 128, 0.3)", fontSize: "11px", color: "#86efac", fontWeight: 600 }}>
             📍 Punjab & Haryana Procurement Grid
           </div>
 
-          <div style={{ position: "absolute", top: "12px", right: "14px", zIndex: 5, display: "flex", gap: "10px", background: "rgba(15,23,42,0.85)", padding: "6px 12px", borderRadius: "8px", border: "1px solid #334155", fontSize: "11px" }}>
-            <span style={{ color: "#22c55e" }}>● Low Traffic</span>
-            <span style={{ color: "#f59e0b" }}>● Moderate</span>
-            <span style={{ color: "#ef4444" }}>● High Congestion</span>
+          <div style={{ position: "absolute", top: "12px", right: "14px", zIndex: 5, display: "flex", gap: "10px", background: "rgba(5, 36, 19, 0.9)", padding: "6px 12px", borderRadius: "8px", border: "1px solid rgba(74, 222, 128, 0.3)", fontSize: "11px", fontWeight: 600 }}>
+            <span style={{ color: "#4ade80" }}>● Low Traffic</span>
+            <span style={{ color: "#fbbf24" }}>● Moderate</span>
+            <span style={{ color: "#f87171" }}>● High Congestion</span>
           </div>
 
           {/* Mandi Pins */}
@@ -291,7 +293,7 @@ export default function AdminDashboardPage() {
             <div className="gis-popup-card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                 <div>
-                  <div style={{ fontSize: "11px", color: "#a855f7", fontWeight: 700 }}>
+                  <div style={{ fontSize: "11px", color: "#4ade80", fontWeight: 700 }}>
                     {activePin.district}, {activePin.state} &bull; {activePin.code}
                   </div>
                   <div style={{ fontSize: "15px", fontWeight: 800, color: "#ffffff" }}>
@@ -334,7 +336,7 @@ export default function AdminDashboardPage() {
                   onClick={() => navigate({ to: "/admin/centres" as any })}
                   style={{
                     flex: 1,
-                    background: "#a855f7",
+                    background: "linear-gradient(135deg, #16a34a, #15803d)",
                     color: "#ffffff",
                     border: "none",
                     borderRadius: "8px",
@@ -346,6 +348,7 @@ export default function AdminDashboardPage() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: "6px",
+                    boxShadow: "0 4px 12px rgba(22, 163, 74, 0.35)",
                   }}
                 >
                   Configure Slots & Staff <ExternalLink size={13} />
@@ -363,13 +366,13 @@ export default function AdminDashboardPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <div>
               <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#0f172a", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                <TrendingUp size={18} color="#a855f7" /> State Procurement Volume (Past 7 Days)
+                <TrendingUp size={18} color="#16a34a" /> State Procurement Volume (Past 7 Days)
               </h3>
               <p style={{ fontSize: "12px", color: "#64748b", marginTop: "2px", margin: 0 }}>
                 Aggregated metric quintals received across all districts
               </p>
             </div>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#10b981", background: "#ecfdf5", padding: "4px 10px", borderRadius: "999px" }}>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#15803d", background: "#ecfdf5", padding: "4px 10px", borderRadius: "999px" }}>
               +14.2% vs Last Week
             </span>
           </div>
@@ -386,10 +389,13 @@ export default function AdminDashboardPage() {
                     style={{
                       width: "100%",
                       height: `${heightPct}%`,
-                      background: idx === analytics.procurementTrend.length - 1 ? "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)" : "linear-gradient(180deg, #38bdf8 0%, #0284c7 100%)",
+                      background: idx === analytics.procurementTrend.length - 1
+                        ? "linear-gradient(180deg, #22c55e 0%, #15803d 100%)"
+                        : "linear-gradient(180deg, #86efac 0%, #16a34a 100%)",
                       borderRadius: "6px 6px 0 0",
                       transition: "height 0.4s ease",
                       position: "relative",
+                      boxShadow: idx === analytics.procurementTrend.length - 1 ? "0 4px 12px rgba(34, 197, 94, 0.4)" : "none",
                     }}
                     title={`${day.date}: ${day.quintals} quintals, ₹${day.amount.toLocaleString("en-IN")}`}
                   />
@@ -405,7 +411,7 @@ export default function AdminDashboardPage() {
         {/* Right: Crop-Wise Share Breakdown */}
         <div className="admin-chart-card">
           <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#0f172a", margin: 0, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <BarChart3 size={18} color="#a855f7" /> Crop Share Distribution
+            <BarChart3 size={18} color="#16a34a" /> Crop Share Distribution
           </h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -427,9 +433,9 @@ export default function AdminDashboardPage() {
             ))}
           </div>
 
-          <div style={{ marginTop: "24px", padding: "12px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#475569" }}>
-              <Clock size={15} color="#0284c7" />
+          <div style={{ marginTop: "24px", padding: "12px", background: "#f0fdf4", borderRadius: "12px", border: "1px solid #bbf7d0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#166534" }}>
+              <Clock size={15} color="#16a34a" />
               <span>Avg Turnaround Time: <strong>8.5 mins / vehicle</strong></span>
             </div>
           </div>

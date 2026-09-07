@@ -176,7 +176,7 @@ export default function AdminCropsPage() {
                       </div>
                       <div>
                         <div style={{ fontWeight: 700, color: "#0f172a" }}>{crop.name}</div>
-                        <div style={{ fontSize: "11px", color: "#a855f7", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
+                        <div style={{ fontSize: "11px", color: "#16a34a", fontFamily: "var(--font-mono)", fontWeight: 700 }}>
                           {crop.code}
                         </div>
                       </div>
@@ -211,9 +211,9 @@ export default function AdminCropsPage() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: "6px",
-                        background: "#f1f5f9",
-                        color: "#0f172a",
-                        border: "1px solid #cbd5e1",
+                        background: "#ecfdf5",
+                        color: "#15803d",
+                        border: "1px solid #86efac",
                         borderRadius: "8px",
                         padding: "6px 12px",
                         fontSize: "12px",
@@ -237,7 +237,7 @@ export default function AdminCropsPage() {
           <div className="admin-modal-panel">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                <Edit2 size={18} color="#a855f7" /> Revise Crop MSP & Quota
+                <Edit2 size={18} color="#16a34a" /> Revise Crop MSP & Quota
               </h3>
               <button onClick={() => setSelectedCrop(null)} style={{ background: "transparent", border: "none", cursor: "pointer" }}>
                 <X size={18} />
@@ -301,7 +301,7 @@ export default function AdminCropsPage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "#a855f7", color: "white", fontWeight: 700, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "white", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
                 >
                   Save Changes
                 </button>

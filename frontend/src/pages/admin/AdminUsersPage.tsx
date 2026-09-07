@@ -215,8 +215,8 @@ export default function AdminUsersPage() {
                             width: "36px",
                             height: "36px",
                             borderRadius: "50%",
-                            background: user.role === "ADMIN" ? "#f3e8ff" : user.role === "OPERATOR" ? "#e0f2fe" : "#ecfdf5",
-                            color: user.role === "ADMIN" ? "#7e22ce" : user.role === "OPERATOR" ? "#0369a1" : "#047857",
+                            background: user.role === "ADMIN" ? "#fef3c7" : user.role === "OPERATOR" ? "#e0f2fe" : "#ecfdf5",
+                            color: user.role === "ADMIN" ? "#b45309" : user.role === "OPERATOR" ? "#0369a1" : "#047857",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -321,7 +321,7 @@ export default function AdminUsersPage() {
           <div className="admin-modal-panel">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                <ShieldCheck size={18} color="#a855f7" /> Manage Staff Access & Roles
+                <ShieldCheck size={18} color="#16a34a" /> Manage Staff Access & Roles
               </h3>
               <button onClick={() => setSelectedUser(null)} style={{ background: "transparent", border: "none", cursor: "pointer" }}>
                 <X size={18} />
@@ -350,9 +350,9 @@ export default function AdminUsersPage() {
                       style={{
                         padding: "10px",
                         borderRadius: "8px",
-                        border: newRole === r ? "2px solid #a855f7" : "1px solid #cbd5e1",
-                        background: newRole === r ? "#f3e8ff" : "transparent",
-                        color: newRole === r ? "#7e22ce" : "#475569",
+                        border: newRole === r ? "2px solid #16a34a" : "1px solid #cbd5e1",
+                        background: newRole === r ? "#ecfdf5" : "transparent",
+                        color: newRole === r ? "#15803d" : "#475569",
                         fontWeight: 700,
                         fontSize: "12px",
                         cursor: "pointer",
@@ -398,7 +398,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "#a855f7", color: "white", fontWeight: 700, cursor: "pointer" }}
+                  style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: "linear-gradient(135deg, #16a34a, #15803d)", color: "white", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}
                 >
                   Update Role
                 </button>
