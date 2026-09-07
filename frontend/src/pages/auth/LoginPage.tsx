@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Sparkles,
 } from "lucide-react";
+import LanguageSelector from "@/components/common/LanguageSelector";
 
 // ── Types ──
 type AuthRole = "FARMER" | "OPERATOR" | "ADMIN";
@@ -83,7 +84,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page">
+    <div className="login-page relative">
+      {/* ── Regional Language Selector (Top Right) ── */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSelector variant="floating" />
+      </div>
+
       {/* ── Left Column: Cinematic Branding ── */}
       <div className="login-left">
         <div className="login-left-overlay" />

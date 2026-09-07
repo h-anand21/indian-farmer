@@ -22,6 +22,8 @@ import {
   getCurrentBrowserCoordinates,
   reverseGeocodeCoords,
 } from "@/lib/indiaGeoData";
+import LanguageSelector from "@/components/common/LanguageSelector";
+
 
 export default function RegisterPage() {
   const { firebaseUser, isRegistered, role, setUser } = useAuth();
@@ -212,7 +214,12 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="register-page">
+    <div className="register-page relative">
+      {/* ── Regional Language Selector (Top Right) ── */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSelector variant="floating" />
+      </div>
+
       <div className="register-container">
         {/* Header */}
         <div className="register-header">
