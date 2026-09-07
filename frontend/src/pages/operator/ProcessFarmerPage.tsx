@@ -40,7 +40,7 @@ export const ProcessFarmerPage: React.FC = () => {
     setActualWeight(45);
     setRemarks("Conforms to FAQ standards");
     setAutoDbt(true);
-    toast.info("Form reset to default parameters.");
+    toast.info("Parameters reset to default standards.");
   };
 
   const handleCompleteProcurement = async () => {
@@ -101,9 +101,9 @@ export const ProcessFarmerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ================= FARMER HERO BANNER (Optimized Layout) ================= */}
+      {/* ================= FARMER HERO BANNER ================= */}
       <section className="procure-farmer-hero">
-        {/* 1. Left: Token Box */}
+        {/* Left: Token Box */}
         <div className="procure-token-box">
           <span>Token No.</span>
           <strong>{activeBooking.token}</strong>
@@ -112,7 +112,7 @@ export const ProcessFarmerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Middle: Farmer Details */}
+        {/* Center: Farmer Information */}
         <div className="procure-farmer-info">
           <div className="procure-avatar">👤</div>
 
@@ -131,24 +131,26 @@ export const ProcessFarmerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 3. Right: MSP Benchmark Card & Slogan */}
-        <div className="procure-hero-right">
+        {/* Right: MSP Benchmark Box & Slogan */}
+        <div className="procure-hero-right-group">
           <div className="procure-msp-box">
-            <div className="procure-msp-box-icon">₹</div>
-            <div className="procure-msp-box-text">
-              <span>Govt. MSP Benchmark</span>
-              <strong>₹{activeBooking.mspRate} / Quintal</strong>
-              <small>({activeBooking.cropName})</small>
+            <div className="procure-msp-box-header">
+              <div className="procure-msp-icon">₹</div>
+              <span className="procure-msp-label">Govt. MSP Benchmark</span>
             </div>
+            <div className="procure-msp-rate">
+              ₹{activeBooking.mspRate} / Quintal
+            </div>
+            <div className="procure-msp-crop">({activeBooking.cropName})</div>
           </div>
 
           <div className="procure-hero-slogan-box">
-            <div className="procure-hero-text">
+            <div className="procure-hero-slogan">
               Kisan ki Mehnat,<br />
               Desh ki Pehchaan! 🌿
             </div>
             <div className="procure-hero-sub">
-              <span>🌾</span> Support Farmers Stronger India
+              Support Farmers Stronger India
             </div>
           </div>
         </div>
@@ -219,14 +221,16 @@ export const ProcessFarmerPage: React.FC = () => {
               <div className="procure-field">
                 <label>Quality Grade</label>
                 <div className="procure-select-box">
+                  <span>🌾</span>
                   <select
                     value={qualityGrade}
                     onChange={(e) => setQualityGrade(e.target.value)}
                   >
-                    <option value="Grade A (Premium)">🌾 Grade A (Premium)</option>
-                    <option value="Grade B (FAQ)">🌾 Grade B (FAQ Standard)</option>
-                    <option value="Grade C (Acceptable)">🌾 Grade C (Acceptable)</option>
+                    <option value="Grade A (Premium)">Grade A (Premium Standard)</option>
+                    <option value="Grade B (FAQ)">Grade B (FAQ Standard)</option>
+                    <option value="Grade C (Acceptable)">Grade C (Acceptable)</option>
                   </select>
+                  <span>⌄</span>
                 </div>
               </div>
 
@@ -265,7 +269,8 @@ export const ProcessFarmerPage: React.FC = () => {
           <div className="procure-info procure-green-info">
             <span>🛡️</span>
             <span>
-              Quality parameters are within government standards. Proceed to weighbridge measurement.
+              Quality parameters are within government standards.
+              Proceed to weighbridge measurement.
             </span>
           </div>
         </div>
@@ -314,7 +319,8 @@ export const ProcessFarmerPage: React.FC = () => {
           <div className="procure-info procure-blue-info">
             <span>ℹ️</span>
             <span>
-              Please ensure the vehicle is fully unloaded and verified at the weighbridge. Cross-check the weight with the slip.
+              Please ensure the vehicle is fully unloaded and verified at the weighbridge.
+              Cross-check the weight with the slip.
             </span>
           </div>
         </div>
