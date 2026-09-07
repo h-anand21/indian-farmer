@@ -1,265 +1,501 @@
+import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import {
-  CalendarPlus,
-  Users,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  MapPin,
-  Sparkles,
-} from "lucide-react";
+import "@/styles/FarmerDashboard.css";
+
+/* ================= HELPER SUB-COMPONENTS ================= */
+
+function QuickCard({
+  type,
+  icon,
+  title,
+  value,
+  description,
+  onClick,
+}: {
+  type: string;
+  icon: React.ReactNode;
+  title: string;
+  value: string;
+  description: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className={`quick-card ${type}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      title={`View ${title}`}
+    >
+      <div className="quick-icon">{icon}</div>
+
+      <div className="quick-info">
+        <span className="quick-label">{title}</span>
+        <strong className="quick-value">{value}</strong>
+        <small className="quick-desc">{description}</small>
+      </div>
+
+      <div className="quick-arrow" aria-hidden="true">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M7 17L17 7M17 7H9M17 7V15" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function PanelHeader({
+  title,
+  badge,
+  icon,
+  onClick,
+}: {
+  title: string;
+  badge?: string;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className="panel-header"
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default" }}
+    >
+      <h2>{title}</h2>
+
+      {badge && <span className="panel-badge">{badge}</span>}
+
+      {icon && (
+        <button className="panel-arrow" title="View section">
+          {icon}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TimelineItem({
+  done,
+  active,
+  title,
+  text,
+}: {
+  done?: boolean;
+  active?: boolean;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div
+      className={`
+        timeline-item
+        ${done ? "done" : ""}
+        ${active ? "active" : ""}
+      `}
+    >
+      <div className="timeline-dot">{done ? "✓" : active ? "●" : ""}</div>
+
+      <div>
+        <strong>{title}</strong>
+        <p>{text}</p>
+      </div>
+    </div>
+  );
+}
+
+function QueueRow({
+  number,
+  token,
+  farmer,
+  status,
+  type,
+}: {
+  number: string;
+  token: string;
+  farmer: string;
+  status: string;
+  type: "completed" | "process" | "waiting";
+}) {
+  return (
+    <tr>
+      <td>{number}</td>
+      <td>{token}</td>
+      <td>
+        <strong>{farmer}</strong>
+      </td>
+      <td>
+        <span className={`queue-status ${type}`}>{status}</span>
+      </td>
+    </tr>
+  );
+}
+
+function Update({
+  text,
+  time,
+  onClick,
+}: {
+  text: string;
+  time: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div className="update-row" onClick={onClick}>
+      <span className="update-icon">✓</span>
+      <p>{text}</p>
+      <small>{time}</small>
+      <b>›</b>
+    </div>
+  );
+}
+
+/* ================= MAIN DASHBOARD PAGE ================= */
 
 export default function FarmerDashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const greeting = "Namaste";
-  const farmerName = user?.name || "Kisan Mitra";
+  const farmerName = user?.name || "HIMANSHU ANAND";
+  const landArea = user?.farmer?.landArea || 4;
+  const district = user?.farmer?.district || "Kaimur (Bhabua)";
+  const state = user?.farmer?.state || "Bihar";
 
   return (
-    <div className="farmer-dashboard">
-      {/* ── Welcome Hero Banner ── */}
-      <motion.div
-        className="dashboard-hero"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{
-          background: "linear-gradient(135deg, #163A2D 0%, #1F4D3D 100%)",
-          color: "#ffffff",
-          borderRadius: "20px",
-          padding: "clamp(24px, 4vw, 36px)",
-          position: "relative",
-          overflow: "hidden",
-          marginBottom: "28px",
-          boxShadow: "0 10px 30px rgba(22, 58, 45, 0.15)",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: "-40px",
-            right: "-40px",
-            width: "200px",
-            height: "200px",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(216, 182, 90, 0.25) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
+    <div className="dashboard-content-area">
+      {/* ================= HERO BANNER ================= */}
+      <section className="hero">
+        <div className="hero-content">
+          <div className="season">
+            🌿 Mandi Procurement Season 2026-27
+          </div>
+
+          <h1>Namaste, {farmerName}! 👋</h1>
+
+          <p>
+            Your digital pass to transparent, hassle-free grain procurement at
+            your nearest APMC Mandi.
+          </p>
+
+          <div className="hero-buttons">
+            <button
+              className="primary-btn"
+              onClick={() => navigate({ to: "/farmer/book-slot" as any })}
+            >
+              📅 &nbsp; Book Procurement Slot →
+            </button>
+
+            <button
+              className="white-btn"
+              onClick={() => navigate({ to: "/farmer/bookings" as any })}
+            >
+              📄 &nbsp; My Bookings
+            </button>
+
+            <button
+              className="white-btn"
+              onClick={() => navigate({ to: "/farmer/queue" as any })}
+            >
+              👥 &nbsp; View Live Queue
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-art">
+          <div className="hero-sun"></div>
+          <div className="hero-mountain"></div>
+          <div className="hero-field"></div>
+
+          <div className="hero-mandi">
+            <span>APMC MANDI</span>
+          </div>
+
+          <div className="hero-farmer">👨‍🌾</div>
+
+          <div className="hero-tractor">🚜</div>
+        </div>
+
+        <div className="hero-slogan">
+          Kisan ka<br />
+          Sammaan<br />
+          Desh ki Pehchaan 🌿
+        </div>
+
+        <div className="govt-quote">
+          “Annadata ki<br />
+          seva, Desh ki unnati”<br />
+          — Govt. of India
+        </div>
+      </section>
+
+      {/* ================= QUICK STATS (4 Cards) ================= */}
+      <section className="quick-stats">
+        <QuickCard
+          type="green"
+          icon="📅"
+          title="Next Scheduled Slot"
+          value="Tomorrow, 09:30 AM"
+          description="Gate #2 • Wheat (Kanak)"
+          onClick={() => navigate({ to: "/farmer/bookings" as any })}
         />
 
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255, 255, 255, 0.12)", padding: "4px 12px", borderRadius: "999px", fontSize: "12px", fontWeight: 600, color: "#D8B65A", marginBottom: "12px" }}>
-          <Sparkles size={14} /> Mandi Procurement Season 2026-27 Active
-        </div>
+        <QuickCard
+          type="yellow"
+          icon="👥"
+          title="Live Queue Token"
+          value="KQ-1048"
+          description="Currently Serving: KQ-1035"
+          onClick={() => navigate({ to: "/farmer/queue" as any })}
+        />
 
-        <h1 style={{ fontFamily: "var(--font-brand)", fontSize: "clamp(24px, 3.5vw, 34px)", fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-          {greeting}, {farmerName}!
-        </h1>
-        <p style={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "15px", marginTop: "8px", maxWidth: "540px" }}>
-          Your digital pass to transparent, hassle-free grain procurement at your nearest APMC Mandi.
-        </p>
+        <QuickCard
+          type="blue"
+          icon="📖"
+          title="Verified Land Area"
+          value={`${landArea} Acres`}
+          description={`${district}, ${state}`}
+          onClick={() => navigate({ to: "/farmer/book-slot" as any })}
+        />
 
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "20px" }}>
-          <button
-            onClick={() => navigate({ to: "/farmer/book-slot" as any })}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "#D8B65A",
-              color: "#163A2D",
-              border: "none",
-              borderRadius: "10px",
-              padding: "10px 20px",
-              fontWeight: 700,
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
-          >
-            <CalendarPlus size={18} /> Book Procurement Slot
-          </button>
-          <button
-            onClick={() => navigate({ to: "/farmer/bookings" as any })}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "rgba(255, 255, 255, 0.12)",
-              color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.25)",
-              borderRadius: "10px",
-              padding: "10px 18px",
-              fontWeight: 600,
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
-          >
-            <Clock size={18} /> My Bookings
-          </button>
-          <button
-            onClick={() => navigate({ to: "/farmer/queue" as any })}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "rgba(255, 255, 255, 0.12)",
-              color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.25)",
-              borderRadius: "10px",
-              padding: "10px 18px",
-              fontWeight: 600,
-              fontSize: "14px",
-              cursor: "pointer",
-            }}
-          >
-            <Users size={18} /> View Live Queue
-          </button>
-        </div>
-      </motion.div>
+        <QuickCard
+          type="purple"
+          icon="₹"
+          title="Total Paid Out"
+          value="₹ 1,84,200"
+          description="Direct DBT to A/c ending 4821"
+          onClick={() => navigate({ to: "/farmer/payments" as any })}
+        />
+      </section>
 
-      {/* ── Metric Stat Cards ── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "18px",
-          marginBottom: "28px",
-        }}
-      >
-        {[
-          {
-            title: "Next Scheduled Slot",
-            value: "Tomorrow, 09:30 AM",
-            desc: "Gate #2 • Wheat (Kanak)",
-            icon: Clock,
-            color: "#4F7D45",
-            bg: "rgba(79, 125, 69, 0.1)",
-          },
-          {
-            title: "Live Queue Token",
-            value: "KQ-1048",
-            desc: "Currently Serving: KQ-1035",
-            icon: Users,
-            color: "#D8B65A",
-            bg: "rgba(216, 182, 90, 0.12)",
-          },
-          {
-            title: "Verified Land Area",
-            value: `${user?.farmer?.landArea || 4.5} Acres`,
-            desc: `${user?.farmer?.district || "Ludhiana"}, ${user?.farmer?.state || "Punjab"}`,
-            icon: MapPin,
-            color: "#163A2D",
-            bg: "rgba(22, 58, 45, 0.08)",
-          },
-          {
-            title: "Total Paid Out",
-            value: "₹ 1,84,200",
-            desc: "Direct DBT to A/C ending 4821",
-            icon: TrendingUp,
-            color: "#2563EB",
-            bg: "rgba(37, 99, 235, 0.1)",
-          },
-        ].map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: idx * 0.08 }}
-              style={{
-                background: "#ffffff",
-                borderRadius: "16px",
-                padding: "20px",
-                border: "1px solid #E2E8F0",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "#64748B" }}>
-                  {card.title}
-                </span>
-                <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: card.bg, display: "flex", alignItems: "center", justifyContent: "center", color: card.color }}>
-                  <Icon size={18} />
-                </div>
-              </div>
-              <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--deep-forest)", fontFamily: "var(--font-mono)" }}>
-                {card.value}
-              </div>
-              <p style={{ fontSize: "12px", color: "#64748B", marginTop: "4px", margin: 0 }}>
-                {card.desc}
-              </p>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* ================= CONTENT GRID (3 Columns) ================= */}
+      <section className="dashboard-grid">
+        {/* COLUMN 1: PROCUREMENT STATUS */}
+        <div className="panel procurement-status">
+          <PanelHeader
+            title="Current Procurement Status"
+            icon="›"
+            onClick={() => navigate({ to: "/farmer/procurements" as any })}
+          />
 
-      {/* ── Active Token Quick Status ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-        style={{
-          background: "#ffffff",
-          borderRadius: "18px",
-          padding: "24px",
-          border: "1px solid #E2E8F0",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "18px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <div
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              background: "#F0FDF4",
-              border: "1px solid #BBF7D0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#166534",
-            }}
-          >
-            <CheckCircle2 size={26} />
+          <div className="vertical-timeline">
+            <TimelineItem
+              done
+              title="Slot Booked"
+              text="12 Sep 2026, 09:00 AM"
+            />
+
+            <TimelineItem
+              done
+              title="Gate Check-In"
+              text="Verified at Yard Entry"
+            />
+
+            <TimelineItem
+              active
+              title="Quality & Weight"
+              text="Pending"
+            />
+
+            <TimelineItem
+              title="DBT Bank Payout"
+              text="Yet to be processed"
+            />
           </div>
+        </div>
+
+        {/* COLUMN 2: LIVE QUEUE */}
+        <div className="panel live-queue">
+          <PanelHeader
+            title="Live Queue at Khanna Mandi"
+            badge="✦ Live"
+            onClick={() => navigate({ to: "/farmer/queue" as any })}
+          />
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Token No.</th>
+                <th>Farmer Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <QueueRow
+                number="1033"
+                token="KQ-1033"
+                farmer="Ram Kumar"
+                status="Completed"
+                type="completed"
+              />
+              <QueueRow
+                number="1034"
+                token="KQ-1034"
+                farmer="Suresh Yadav"
+                status="Completed"
+                type="completed"
+              />
+              <QueueRow
+                number="1035"
+                token="KQ-1035"
+                farmer="Manoj Singh"
+                status="In Process"
+                type="process"
+              />
+              <QueueRow
+                number="1036"
+                token="KQ-1036"
+                farmer="Ajay Paswan"
+                status="Waiting"
+                type="waiting"
+              />
+              <QueueRow
+                number="1037"
+                token="KQ-1037"
+                farmer="Vikash Patel"
+                status="Waiting"
+                type="waiting"
+              />
+              <QueueRow
+                number="1038"
+                token="KQ-1038"
+                farmer="Ramesh Sharma"
+                status="Waiting"
+                type="waiting"
+              />
+              <QueueRow
+                number="1039"
+                token="KQ-1039"
+                farmer="Sunil Kumar"
+                status="Waiting"
+                type="waiting"
+              />
+            </tbody>
+          </table>
+
+          <div className="queue-footer">
+            <span>⟳ Auto-refreshing every 30 seconds</span>
+
+            <strong onClick={() => navigate({ to: "/farmer/queue" as any })}>
+              View Full Queue →
+            </strong>
+          </div>
+        </div>
+
+        {/* COLUMN 3: GOVERNMENT UPDATES & BANNER */}
+        <div className="right-column">
+          <div className="panel govt-updates">
+            <PanelHeader
+              title="📢 Government Updates"
+              badge="View All →"
+              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+            />
+
+            <Update
+              text="MSP for Wheat (Rabi 2026-27) announced"
+              time="2 days ago"
+              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+            />
+
+            <Update
+              text="New e-KYC mandatory for procurement from Oct 2026"
+              time="4 days ago"
+              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+            />
+
+            <Update
+              text="Special procurement drive for pulses"
+              time="1 week ago"
+              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+            />
+
+            <Update
+              text="DBT payment timeline reduced to 48 hours"
+              time="1 week ago"
+              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+            />
+          </div>
+
+          <div
+            className="farmer-banner"
+            onClick={() => navigate({ to: "/farmer/payments" as any })}
+          >
+            <div className="farmer-banner-content">
+              <div className="grain-art">🌱</div>
+
+              <h2>
+                Fair Price<br />
+                Stronger Farmers<br />
+                Brighter India
+              </h2>
+            </div>
+
+            <button className="banner-arrow-btn" aria-label="View Details">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= BOTTOM ROW ================= */}
+      <section className="bottom-row">
+        <div className="help-card" onClick={() => navigate({ to: "/farmer/govt-hub" as any })}>
+          <div className="help-icon">🎧</div>
+
           <div>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--deep-forest)", margin: 0 }}>
-              Token Confirmed: Slot #PB-WHT-492
-            </h3>
-            <p style={{ fontSize: "13px", color: "#64748B", margin: "4px 0 0 0" }}>
-              Centre: Khanna Mandi Yard 3 &bull; Estimated Waiting Time: ~35 mins
+            <h3>Need Help?</h3>
+
+            <p>
+              Call 1800-180-1551
+              <span>|</span>
+              Chat Support
+              <span>|</span>
+              Visit Nearest Help Desk
             </p>
           </div>
+
+          <button className="help-arrow-btn" aria-label="Get Help">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
-        <button
-          onClick={() => navigate({ to: "/farmer/queue" as any })}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "#F1F5F9",
-            color: "var(--deep-forest)",
-            border: "none",
-            borderRadius: "10px",
-            padding: "10px 16px",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Track Queue Live <ArrowRight size={16} />
-        </button>
-      </motion.div>
+        <div className="bottom-quote">
+          “Prosperous Farmers,<br />
+          Stronger India” 🌿
+        </div>
+      </section>
     </div>
   );
 }

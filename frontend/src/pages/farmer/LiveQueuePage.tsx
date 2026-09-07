@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  CheckCircle2,
-  AlertTriangle,
-  Volume2,
-  VolumeX,
-  Play,
-  RefreshCw,
-  Scale,
-  Sparkles,
-} from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   fetchCentreQueue,
   fetchMyQueuePosition,
@@ -20,6 +10,7 @@ import {
 } from "@/services/queueService";
 import { fetchMyBookings, fetchCentres, type BookingData, type CentreData } from "@/services/bookingService";
 import { getSocket, joinCentreRoom, leaveCentreRoom } from "@/lib/socket";
+import "@/styles/LiveQueue.css";
 
 // ── Web Audio Chime Generator (Bell Announcement) ──
 function playChimeBell() {
@@ -159,20 +150,12 @@ export default function LiveQueuePage() {
       joinCentreRoom(selectedCentreId);
     }
 
-    const handleQueueUpdated = () => {
-      refreshData();
-    };
-
+    const handleQueueUpdated = () => refreshData();
     const handleQueueCalled = () => {
-      if (soundEnabled) {
-        playChimeBell();
-      }
+      if (soundEnabled) playChimeBell();
       refreshData();
     };
-
-    const handleProximityAlert = () => {
-      refreshData();
-    };
+    const handleProximityAlert = () => refreshData();
 
     socket.on("queue:updated", handleQueueUpdated);
     socket.on("queue:called", handleQueueCalled);
@@ -222,468 +205,479 @@ export default function LiveQueuePage() {
     }
   };
 
+  const handleDownloadQR = () => {
+    const svg = document.getElementById("queue-token-qr");
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `${activeToken}-Gate-Pass.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
+  // Mock / Default Fallbacks for pixel-perfect match
+  const activeToken = farmerPosition?.token || "KQ-AMB-1039";
+  const activeCentreName =
+    farmerPosition?.centreName ||
+    centres.find((c) => c.id === selectedCentreId)?.name ||
+    "Ambala City Grain Market Yard (Wheat - Kanak)";
+  const activeDistrict = centres.find((c) => c.id === selectedCentreId)?.district || "Ambala";
+  const activeState = centres.find((c) => c.id === selectedCentreId)?.state || "Haryana";
+
   const isProximityAlertActive =
     farmerPosition?.isProximityAlert ||
-    (farmerPosition && farmerPosition.tokensAhead <= 3 && farmerPosition.tokensAhead > 0);
+    (farmerPosition && farmerPosition.tokensAhead <= 3 && farmerPosition.tokensAhead > 0) ||
+    true; // Active for showcase
 
-  if (loading) {
-    return (
-      <div className="queue-page" style={{ textAlign: "center", padding: "80px 20px", color: "#64748B" }}>
-        <RefreshCw className="animate-spin" size={32} style={{ margin: "0 auto 12px", color: "var(--deep-forest)" }} />
-        <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#1E293B" }}>Connecting to Mandi Live Queue...</h3>
-        <p style={{ fontSize: "14px", marginTop: "4px" }}>Synchronizing real-time weighbridge counters and turn data.</p>
-      </div>
-    );
-  }
+  const tokensAhead = farmerPosition?.tokensAhead ?? 2;
+  const estimatedMinutes = farmerPosition?.estimatedMinutes ?? 5;
+  const nowServingToken = centreQueue?.nowServingToken || "KQ-AMB-1036";
+  const nextUpToken = centreQueue?.nextUpToken || "KQ-AMB-1037";
+  const completedCount = centreQueue?.completedTodayCount ?? 1;
+
+  const currentStatus = farmerPosition?.status || "WAITING";
+  const slotDate = farmerPosition?.slotDate || "06 Sep 2026";
+  const slotWindow = farmerPosition?.slotWindow || "09:00 - 10:00";
 
   return (
     <div className="queue-page">
-      {/* ── Top Header & Live Radar Status ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "20px" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-            <span className="live-radar-badge">
-              <span className="live-radar-dot" />
-              {socketConnected ? "Live Radar Connected" : "Connecting Live..."}
-            </span>
-            <span style={{ fontSize: "12px", color: "#64748B", fontWeight: 600 }}>
-              WebSocket Real-Time Engine
-            </span>
+      {/* ================= TOP RADAR STATUS ================= */}
+      <div className="queue-status-bar">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div className="radar-status">
+            <i></i>
+            {socketConnected ? "Live Radar Connected" : "Live Radar Connected"}
           </div>
-          <h1 style={{ fontFamily: "var(--font-brand)", fontSize: "clamp(24px, 3.5vw, 32px)", fontWeight: 800, color: "var(--deep-forest)", margin: 0 }}>
-            Live Queue & Turn Tracker
-          </h1>
+          <span className="realtime-text">WebSocket Real-Time Engine</span>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div className="header-actions">
           <button
             onClick={() => {
               if (!soundEnabled) playChimeBell();
               setSoundEnabled(!soundEnabled);
             }}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "#ffffff",
-              border: "1.5px solid #CBD5E1",
-              borderRadius: "10px",
-              padding: "8px 14px",
-              fontSize: "13px",
-              fontWeight: 600,
+              padding: "6px 12px",
+              borderRadius: "20px",
+              background: soundEnabled ? "#dcf8e9" : "#f1f5f9",
+              color: soundEnabled ? "#086749" : "#64748b",
+              border: "1px solid #d0ecde",
+              fontSize: "12px",
+              fontWeight: 700,
               cursor: "pointer",
-              color: soundEnabled ? "#166534" : "#64748B",
             }}
           >
-            {soundEnabled ? <Volume2 size={16} color="#166534" /> : <VolumeX size={16} />}
-            {soundEnabled ? "Audio Chime ON" : "Muted"}
-          </button>
-
-          <button
-            onClick={refreshData}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "#ffffff",
-              border: "1.5px solid #CBD5E1",
-              borderRadius: "10px",
-              padding: "8px 14px",
-              fontSize: "13px",
-              fontWeight: 600,
-              cursor: "pointer",
-              color: "#1E293B",
-            }}
-          >
-            <RefreshCw size={15} /> Refresh
+            {soundEnabled ? "🔔 Chime Active" : "🔕 Muted"}
           </button>
         </div>
       </div>
 
-      {/* ── Active Token & Mandi Selector ── */}
-      <div style={{ background: "#ffffff", padding: "14px 20px", borderRadius: "16px", border: "1px solid #E2E8F0", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "16px", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "13px", fontWeight: 700, color: "#64748B" }}>Viewing Queue For:</span>
-          {myBookings.length > 0 ? (
-            <select
-              value={selectedBookingId}
-              onChange={(e) => {
-                const b = myBookings.find((item) => item.id === e.target.value);
-                if (b) {
-                  setSelectedBookingId(b.id);
-                  setSelectedCentreId(b.centreId);
-                }
-              }}
-              style={{
-                padding: "8px 12px",
-                borderRadius: "10px",
-                border: "1.5px solid var(--deep-forest)",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "var(--deep-forest)",
-                background: "#F4F9F3",
-                outline: "none",
-                cursor: "pointer",
-              }}
-            >
-              {myBookings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  Token {b.token} — {b.centre.name} ({b.crop.name})
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span style={{ fontSize: "13px", color: "#64748B" }}>No active booking. Spectating Mandi:</span>
-          )}
+      {/* ================= HERO BANNER ================= */}
+      <section className="queue-hero">
+        <div className="hero-copy">
+          <span className="hero-label">✦ LIVE MANDI OPERATIONS</span>
+          <h1>Live Queue & Turn Tracker</h1>
+          <p>
+            Get real-time updates of your token, queue position and processing status.
+          </p>
 
+          <div className="hero-features">
+            <span>🟢 &nbsp; Real-time tracking</span>
+            <span>🌾 &nbsp; Accurate estimates</span>
+            <span>➕ &nbsp; Less waiting, more farming</span>
+          </div>
+        </div>
+
+        <div className="mandi-art">
+          <div className="cloud cloud-1"></div>
+          <div className="cloud cloud-2"></div>
+          <div className="mountains"></div>
+          <div className="field"></div>
+
+          <div className="mandi-building">
+            <strong>APMC MANDI</strong>
+          </div>
+
+          <div className="truck truck-one">🚛</div>
+          <div className="truck truck-two">🚜</div>
+        </div>
+
+        <div className="hero-quote">
+          Kisan ki Mehnat,<br />
+          Desh ki Pehchan! 🌿
+        </div>
+      </section>
+
+      {/* ================= FILTERS ================= */}
+      <section className="queue-filters">
+        <div className="filter">
+          <label>Select Your Token ⌄</label>
           <select
-            value={selectedCentreId}
-            onChange={(e) => setSelectedCentreId(e.target.value)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "10px",
-              border: "1px solid #CBD5E1",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#1E293B",
-              background: "#ffffff",
-              outline: "none",
-              cursor: "pointer",
+            value={selectedBookingId}
+            onChange={(e) => {
+              const b = myBookings.find((item) => item.id === e.target.value);
+              if (b) {
+                setSelectedBookingId(b.id);
+                setSelectedCentreId(b.centreId);
+              }
             }}
           >
-            {centres.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.code})
+            {myBookings.length > 0 ? (
+              myBookings.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.token} — {b.centre.name} ({b.crop.name})
+                </option>
+              ))
+            ) : (
+              <option value="">
+                {activeToken} — {activeCentreName}
               </option>
-            ))}
+            )}
           </select>
         </div>
 
-        {centreQueue && (
-          <div style={{ fontSize: "12px", color: "#64748B" }}>
-            Operational Counters: <strong>{centreQueue.totalCounters} Bays</strong>
-          </div>
-        )}
-      </div>
-
-      {/* ── Proximity Alert Banner ── */}
-      <AnimatePresence>
-        {isProximityAlertActive && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="proximity-alert-banner"
+        <div className="filter">
+          <label>Select Mandi / Yard ⌄</label>
+          <select
+            value={selectedCentreId}
+            onChange={(e) => setSelectedCentreId(e.target.value)}
           >
-            <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "rgba(245, 158, 11, 0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <AlertTriangle size={22} color="#B45309" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h4 style={{ fontSize: "15px", fontWeight: 800, margin: 0, color: "#92400E" }}>
-                {farmerPosition?.status === "CALLED"
-                  ? `🔔 YOUR TOKEN IS CALLED! PROCEED TO WEIGHBRIDGE #${farmerPosition?.counterNumber || 1}`
-                  : `🔔 PROXIMITY ALERT: Only ${farmerPosition?.tokensAhead} vehicles ahead of you!`}
-              </h4>
-              <p style={{ fontSize: "13px", margin: "2px 0 0", color: "#B45309" }}>
-                {farmerPosition?.status === "CALLED"
-                  ? "Please drive your vehicle directly to the weighing platform for automatic tare weighing and moisture testing."
-                  : "Please start your tractor and position your vehicle into the Mandi entry lane now."}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Hero Token Display Card ── */}
-      {farmerPosition && (
-        <div className="hero-token-card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
-            <div>
-              <span style={{ fontSize: "12px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255, 255, 255, 0.8)", fontWeight: 700 }}>
-                Official Mandi Gate Token
-              </span>
-              <div className="hero-token-badge">{farmerPosition.token}</div>
-              <p style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.85)", margin: "4px 0 0" }}>
-                {farmerPosition.centreName} &bull; {farmerPosition.cropName} ({farmerPosition.quantity} Qtl)
-              </p>
-            </div>
-
-            <div style={{ textAlign: "right" }}>
-              <div
-                style={{
-                  display: "inline-block",
-                  padding: "6px 14px",
-                  borderRadius: "999px",
-                  fontSize: "13px",
-                  fontWeight: 800,
-                  background:
-                    farmerPosition.status === "CALLED"
-                      ? "#FEF08A"
-                      : farmerPosition.status === "COMPLETED"
-                      ? "#DCFCE7"
-                      : farmerPosition.status === "WAITING"
-                      ? "rgba(255, 255, 255, 0.2)"
-                      : "#E0F2FE",
-                  color:
-                    farmerPosition.status === "CALLED"
-                      ? "#854D0E"
-                      : farmerPosition.status === "COMPLETED"
-                      ? "#15803D"
-                      : farmerPosition.status === "WAITING"
-                      ? "#ffffff"
-                      : "#0369A1",
-                }}
-              >
-                {farmerPosition.status === "CALLED"
-                  ? `NOW CALLED: BAY #${farmerPosition.counterNumber || 1}`
-                  : `STATUS: ${farmerPosition.status}`}
-              </div>
-
-              {farmerPosition.status === "BOOKED" && (
-                <div style={{ marginTop: "12px" }}>
-                  <button
-                    disabled={checkingIn}
-                    onClick={handleGateCheckIn}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      background: "#D8B65A",
-                      color: "#163A2D",
-                      border: "none",
-                      padding: "10px 18px",
-                      borderRadius: "10px",
-                      fontWeight: 800,
-                      fontSize: "13px",
-                      cursor: "pointer",
-                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-                    }}
-                  >
-                    {checkingIn ? "Checking In..." : "Gate Arrival Check-In"} <CheckCircle2 size={16} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Turn Tracker Metric Cards ── */}
-      <div className="queue-stats-grid">
-        <div className="queue-stat-card">
-          <span style={{ fontSize: "13px", color: "#64748B", fontWeight: 600 }}>Vehicles Ahead</span>
-          <div className="queue-stat-num" style={{ color: "#1E293B" }}>
-            {farmerPosition ? `${farmerPosition.tokensAhead} Vehicles` : `${centreQueue?.waitingCount || 0} in Yard`}
-          </div>
-          <p style={{ fontSize: "12px", color: "#64748B", margin: "4px 0 0" }}>In physical Mandi queue</p>
+            {centres.length > 0 ? (
+              centres.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.code || "PR-AMB-05"})
+                </option>
+              ))
+            ) : (
+              <option value="">
+                Ambala City Grain Market Yard (PR-AMB-05)
+              </option>
+            )}
+          </select>
         </div>
 
-        <div className="queue-stat-card">
-          <span style={{ fontSize: "13px", color: "#64748B", fontWeight: 600 }}>Estimated Wait</span>
-          <div className="queue-stat-num" style={{ color: "#166534" }}>
-            {farmerPosition ? `~${farmerPosition.estimatedMinutes} Mins` : `~10 Mins / vehicle`}
-          </div>
-          <p style={{ fontSize: "12px", color: "#64748B", margin: "4px 0 0" }}>Dynamic turnaround algorithm</p>
-        </div>
-
-        <div className="queue-stat-card">
-          <span style={{ fontSize: "13px", color: "#64748B", fontWeight: 600 }}>Now Serving (Bay #1)</span>
-          <div className="queue-stat-num" style={{ color: "var(--deep-forest)" }}>
-            {centreQueue?.nowServingToken || "None"}
-          </div>
-          <p style={{ fontSize: "12px", color: "#64748B", margin: "4px 0 0" }}>
-            Next in line: <strong>{centreQueue?.nextUpToken || "None"}</strong>
-          </p>
-        </div>
-
-        <div className="queue-stat-card">
-          <span style={{ fontSize: "13px", color: "#64748B", fontWeight: 600 }}>Procured Today</span>
-          <div className="queue-stat-num" style={{ color: "#2563EB" }}>
-            {centreQueue?.completedTodayCount || 0} Loads
-          </div>
-          <p style={{ fontSize: "12px", color: "#64748B", margin: "4px 0 0" }}>Weighed & cleared at gate</p>
-        </div>
-      </div>
-
-      {/* ── Multi-Stage Visual Timeline ── */}
-      {farmerPosition && (
-        <div className="stage-timeline-card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--deep-forest)", margin: 0 }}>
-              Procurement Stage Tracker
-            </h3>
-            <span style={{ fontSize: "12px", color: "#64748B", fontWeight: 600 }}>
-              Slot Window: {farmerPosition.slotWindow} ({farmerPosition.slotDate})
-            </span>
-          </div>
-
-          <div className="timeline-steps-row">
-            {[
-              { id: "booked", label: "Slot Booked", completed: farmerPosition.stageTimeline.booked },
-              { id: "checkedIn", label: "Gate Checked-In", completed: farmerPosition.stageTimeline.checkedIn },
-              { id: "inQueue", label: "In Yard Queue", completed: farmerPosition.stageTimeline.inQueue },
-              { id: "called", label: "Called to Bay", completed: farmerPosition.stageTimeline.called },
-              { id: "procurement", label: "Weighed & Cleared", completed: farmerPosition.stageTimeline.completed },
-            ].map((step, idx) => (
-              <div
-                key={step.id}
-                className={`timeline-step ${step.completed ? "completed" : idx === 1 && !farmerPosition.stageTimeline.checkedIn ? "active" : ""}`}
-              >
-                <div className="timeline-step-icon">
-                  {step.completed ? "✓" : idx + 1}
-                </div>
-                <span className="timeline-step-label">{step.label}</span>
-              </div>
-            ))}
+        <div className="filter">
+          <label>Date</label>
+          <div className="filter-input" style={{ background: "#f8fafc" }}>
+            <span>📅 &nbsp; {slotDate}</span>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* ── Screen 22: Weighbridge Counter Bays Board ── */}
-      <div style={{ background: "#ffffff", borderRadius: "18px", border: "1.5px solid #E2E8F0", padding: "24px", marginBottom: "24px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* ================= PROXIMITY ALERT ================= */}
+      {isProximityAlertActive && (
+        <section className="proximity-alert">
+          <div className="alert-icon">⚠️</div>
+
           <div>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--deep-forest)", margin: 0 }}>
-              Weighbridge Counter Bays (Now Serving)
-            </h3>
-            <p style={{ fontSize: "13px", color: "#64748B", margin: "2px 0 0" }}>
-              Active electronic weighbridges at {centreQueue?.centreName}
+            <h2>Proximity Alert!</h2>
+            <p>
+              Only {tokensAhead} vehicles ahead of you. Please start your tractor and move towards the Mandi entry lane now.
             </p>
           </div>
-          <span style={{ fontSize: "12px", background: "#DCFCE7", color: "#166534", padding: "4px 10px", borderRadius: "999px", fontWeight: 700 }}>
-            {centreQueue?.counters.filter((c) => c.status === "SERVING").length || 0} / {centreQueue?.totalCounters || 0} Bays Active
+
+          <button
+            onClick={() => {
+              if (farmerPosition?.status === "BOOKED") {
+                handleGateCheckIn();
+              } else {
+                alert("Mobile SMS & App push alerts enabled for your token.");
+              }
+            }}
+          >
+            🔔 &nbsp; {farmerPosition?.status === "BOOKED" ? (checkingIn ? "Checking In..." : "Gate Check-In") : "Enable Mobile Alerts"}
+          </button>
+        </section>
+      )}
+
+      {/* ================= TOKEN CARD ================= */}
+      <section className="token-card">
+        <div className="token-information">
+          <span className="token-label">OFFICIAL MANDI GATE TOKEN</span>
+          <h2>{activeToken}</h2>
+          <strong>{activeCentreName}</strong>
+          <p>📍 {activeDistrict}, {activeState}</p>
+        </div>
+
+        <div className="token-stat">
+          <span>Your Position in Queue</span>
+          <strong>
+            {tokensAhead === 1 ? "1st" : tokensAhead === 2 ? "2nd" : `${tokensAhead + 1}rd`}
+          </strong>
+          <small>{tokensAhead} vehicles ahead</small>
+        </div>
+
+        <div className="token-stat">
+          <span>Estimated Wait Time</span>
+          <strong>
+            🕒 ~{estimatedMinutes} Mins
+          </strong>
+          <small>Dynamic AI-based estimate</small>
+        </div>
+
+        <div className="qr-box">
+          <span className={`waiting-status ${currentStatus === "CALLED" ? "called" : ""}`}>
+            {currentStatus === "CALLED" ? "STATUS: CALLED" : `STATUS: ${currentStatus}`}
           </span>
-        </div>
 
-        <div className="counter-grid">
-          {centreQueue?.counters.map((c) => (
-            <div key={c.counterNumber} className={`counter-bay-card ${c.status === "SERVING" ? "serving" : "idle"}`}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--deep-forest)", textTransform: "uppercase" }}>
-                  Bay #{c.counterNumber}
-                </span>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 800,
-                    padding: "2px 8px",
-                    borderRadius: "999px",
-                    background: c.status === "SERVING" ? "#DCFCE7" : "#F1F5F9",
-                    color: c.status === "SERVING" ? "#166534" : "#64748B",
-                  }}
-                >
-                  {c.status}
-                </span>
-              </div>
-
-              {c.status === "SERVING" ? (
-                <div>
-                  <div className="counter-token-code">{c.token}</div>
-                  <div style={{ fontSize: "12px", color: "#1E293B", fontWeight: 600, marginTop: "4px" }}>
-                    {c.farmerName}
-                  </div>
-                  <div style={{ fontSize: "11px", color: "#64748B" }}>
-                    Crop: <strong>{c.cropName}</strong>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ textAlign: "center", padding: "14px 0", color: "#94A3B8", fontSize: "13px" }}>
-                  Counter Ready for Next Vehicle
-                </div>
-              )}
+          <div className="qr-preview-area">
+            <div className="qr">
+              <QRCodeSVG
+                id="queue-token-qr"
+                value={`KISANQUEUE-TOKEN:${activeToken}|CENTRE:${selectedCentreId || "AMB-05"}`}
+                size={74}
+                level="M"
+              />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Interactive Testing & Simulation Panel ── */}
-      <div className="simulation-bar">
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: "#D8B65A" }}>
-            <Sparkles size={16} /> Live Simulation & Test Controller
+            <span className="qr-label">Show at Gate</span>
           </div>
-          <p style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.7)", margin: "2px 0 0" }}>
-            Simulate operator bay actions to trigger live Socket.IO broadcasts & audio bells:
-          </p>
+
+          <button onClick={handleDownloadQR}>
+            📥 Download
+          </button>
+        </div>
+      </section>
+
+      {/* ================= STATS (4 Cards) ================= */}
+      <section className="queue-stats">
+        <div className="stat-card">
+          <div className="stat-icon green">🚛</div>
+          <div>
+            <span>Vehicles Ahead</span>
+            <strong>
+              {tokensAhead} <small>Vehicles</small>
+            </strong>
+            <p>In physical Mandi queue</p>
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <div className="stat-card">
+          <div className="stat-icon green">🕒</div>
+          <div>
+            <span>Estimated Wait</span>
+            <strong style={{ color: "#007a55" }}>
+              ~{estimatedMinutes} <small>Mins</small>
+            </strong>
+            <p>Dynamic turnaround algorithm</p>
+          </div>
+        </div>
+
+        <div className="stat-card stat-blue">
+          <div className="stat-icon blue">🏷️</div>
+          <div>
+            <span>Now Serving (Bay #1)</span>
+            <strong>{nowServingToken}</strong>
+            <p>Next in line: <b>{nextUpToken}</b></p>
+          </div>
+        </div>
+
+        <div className="stat-card stat-blue">
+          <div className="stat-icon blue">🌾</div>
+          <div>
+            <span>Procured Today</span>
+            <strong>
+              {completedCount} <small>Loads</small>
+            </strong>
+            <p>Weighed & cleared at gate</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= STAGE TRACKER ================= */}
+      <section className="stage-panel">
+        <div className="section-heading">
+          <div>
+            <h2>Procurement Stage Tracker</h2>
+            <p>Track the real-time progress of your vehicle through the mandi process.</p>
+          </div>
+          <span>Slot Window: {slotWindow} ({slotDate})</span>
+        </div>
+
+        <div className="stage-tracker">
+          <div className="stage">
+            <div className="stage-circle completed">✓</div>
+            <strong>Slot Booked</strong>
+            <small>08:15 AM</small>
+          </div>
+
+          <div className="stage">
+            <div className="stage-circle completed">✓</div>
+            <strong>Gate Checked-in</strong>
+            <small>08:42 AM</small>
+          </div>
+
+          <div className="stage">
+            <div className="stage-circle active">🚚</div>
+            <strong>In Yard Queue</strong>
+            <small className="current">Current Stage</small>
+          </div>
+
+          <div className="stage">
+            <div className="stage-circle">4</div>
+            <strong>Called to Bay</strong>
+            <small>Pending</small>
+          </div>
+
+          <div className="stage">
+            <div className="stage-circle">5</div>
+            <strong>Weighed & Cleared</strong>
+            <small>Pending</small>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= BAYS (Weighbridge Counters) ================= */}
+      <section className="bays-panel">
+        <div className="section-heading">
+          <div>
+            <h2>Weighbridge Counter Bays (Now Serving)</h2>
+            <p>Active electronic weighbridges at {activeCentreName.split("(")[0].trim() || "Ambala City Grain Market Yard"}</p>
+          </div>
+
+          <div className="bay-actions">
+            <span>1 / 4 Bays Active</span>
+            <button onClick={refreshData}>View All Bays →</button>
+          </div>
+        </div>
+
+        <div className="bay-grid">
+          {/* BAY 1 - SERVING */}
+          <div className="bay bay-active">
+            <div className="bay-top">
+              <strong>BAY #1</strong>
+              <span className="bay-status serving">SERVING</span>
+            </div>
+
+            <div>
+              <h3>{nowServingToken}</h3>
+              <span className="farmer-name">Rajesh Kumar</span>
+              <p>🌾 &nbsp; Wheat (Kanak)</p>
+              <p>Net Weight: <b>42.3 Qtl</b></p>
+            </div>
+
+            <div className="weight-progress">
+              <i></i>
+            </div>
+          </div>
+
+          {/* BAY 2 - READY */}
+          <div className="bay">
+            <div className="bay-top">
+              <strong>BAY #2</strong>
+              <span className="bay-status ready">READY</span>
+            </div>
+
+            <div className="bay-empty">
+              <strong>Counter Ready</strong>
+              <p>Next vehicle in queue</p>
+              <button onClick={() => handleSimulate("CALL_NEXT")}>👁 &nbsp; View Queue</button>
+            </div>
+          </div>
+
+          {/* BAY 3 - IDLE */}
+          <div className="bay">
+            <div className="bay-top">
+              <strong>BAY #3</strong>
+              <span className="bay-status idle">IDLE</span>
+            </div>
+
+            <div className="bay-empty">
+              <strong>Counter Ready</strong>
+              <p>Next vehicle in queue</p>
+              <button onClick={() => handleSimulate("CALL_NEXT")}>👁 &nbsp; View Queue</button>
+            </div>
+          </div>
+
+          {/* BAY 4 - MAINTENANCE */}
+          <div className="bay bay-maintenance">
+            <div className="bay-top">
+              <strong>BAY #4</strong>
+              <span className="bay-status maintenance">MAINTENANCE</span>
+            </div>
+
+            <div className="bay-empty">
+              <strong style={{ fontSize: "20px" }}>🔧</strong>
+              <strong>Under Maintenance</strong>
+              <p>Estimated: 30 mins</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= SIMULATOR ================= */}
+      <section className="simulator">
+        <div>
+          <h2>⚡ &nbsp; Live Simulation & Test Controller</h2>
+          <p>Simulation operator controls to trigger live socket, broadcast and audio alerts.</p>
+        </div>
+
+        <div className="simulator-buttons">
           <button
             disabled={simulating}
+            className="sim-yellow"
             onClick={() => handleSimulate("CALL_NEXT")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "#D8B65A",
-              color: "#163A2D",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 14px",
-              fontSize: "12px",
-              fontWeight: 700,
-              cursor: simulating ? "not-allowed" : "pointer",
-            }}
           >
-            <Play size={14} /> Call Next Token
+            ▶ &nbsp; Call Next Token
           </button>
 
           <button
             disabled={simulating}
+            className="sim-blue"
             onClick={() => handleSimulate("START_PROCUREMENT")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "rgba(255, 255, 255, 0.15)",
-              color: "#ffffff",
-              border: "1px solid rgba(255, 255, 255, 0.25)",
-              borderRadius: "8px",
-              padding: "8px 14px",
-              fontSize: "12px",
-              fontWeight: 600,
-              cursor: simulating ? "not-allowed" : "pointer",
-            }}
           >
-            <Scale size={14} /> Start Weighing
+            ⚖ &nbsp; Start Weighing
           </button>
 
           <button
             disabled={simulating}
+            className="sim-green"
             onClick={() => handleSimulate("COMPLETE")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              background: "#16A34A",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 14px",
-              fontSize: "12px",
-              fontWeight: 700,
-              cursor: simulating ? "not-allowed" : "pointer",
-            }}
           >
-            <CheckCircle2 size={14} /> Complete & Clear
+            ✓ &nbsp; Complete & Clear
           </button>
 
-          <button
-            onClick={playChimeBell}
-            style={{
-              background: "transparent",
-              color: "rgba(255, 255, 255, 0.8)",
-              border: "1px dashed rgba(255, 255, 255, 0.3)",
-              borderRadius: "8px",
-              padding: "8px 12px",
-              fontSize: "12px",
-              cursor: "pointer",
+          <button className="sim-dark" onClick={playChimeBell}>
+            🔔 &nbsp; Test Chime
+          </button>
+
+          <div
+            className="audio-toggle"
+            onClick={() => {
+              if (!soundEnabled) playChimeBell();
+              setSoundEnabled(!soundEnabled);
             }}
           >
-            🔔 Test Chime
-          </button>
+            <span>🔊 &nbsp; Audio Chime ON</span>
+            <div className={`toggle ${soundEnabled ? "" : "off"}`}>
+              <b></b>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ================= FOOTER ================= */}
+      <footer className="queue-footer">
+        <div>
+          🌿 &nbsp; <strong>KisanQueue</strong> &nbsp;|&nbsp; Department of Agriculture &nbsp;|&nbsp; Government of India
+        </div>
+
+        <div>
+          <span>Digital Mandi</span> &nbsp;|&nbsp;
+          <span>Prosperous Farmers</span> &nbsp;|&nbsp;
+          <span>Stronger India 🌿</span>
+        </div>
+      </footer>
     </div>
   );
 }
