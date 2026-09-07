@@ -9,9 +9,11 @@ import { UserRole } from "../types/enums";
 
 interface CreateUserInput {
   firebaseUid: string;
-  phone: string;
+  email?: string;
+  phone?: string;
   name: string;
   role: UserRole;
+  avatarUrl?: string;
 }
 
 interface CreateFarmerProfileInput {
@@ -58,6 +60,21 @@ export async function findUserByPhone(phone: string) {
 }
 
 /**
+ * Find user by email
+ */
+export async function findUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    include: {
+      farmer: true,
+      operator: {
+        include: { centre: true },
+      },
+    },
+  });
+}
+
+/**
  * Create a new user + farmer profile in a single transaction
  */
 export async function createFarmerUser(
@@ -69,9 +86,11 @@ export async function createFarmerUser(
     const user = await tx.user.create({
       data: {
         firebaseUid: input.firebaseUid,
+        email: input.email,
         phone: input.phone,
         name: input.name,
         role: input.role,
+        avatarUrl: input.avatarUrl,
       },
     });
 
@@ -155,7 +174,12 @@ export async function setFirebaseCustomClaims(
   firebaseUid: string,
   role: string
 ) {
-  // Import here to avoid circular dependency
-  const { firebaseAuth } = await import("../config/firebase-admin");
-  await firebaseAuth.setCustomUserClaims(firebaseUid, { role });
+  try {
+    const { firebaseAuth, isFirebaseDevMode } = await import("../config/firebase-admin");
+    if (!isFirebaseDevMode) {
+      await firebaseAuth.setCustomUserClaims(firebaseUid, { role });
+    }
+  } catch (err) {
+    console.warn("⚠️ Could not set Firebase custom claims in dev mode:", err);
+  }
 }

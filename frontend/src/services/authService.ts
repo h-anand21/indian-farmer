@@ -6,7 +6,9 @@ import api from "./api";
 
 export interface RegisterInput {
   name: string;
-  phone: string;
+  email?: string;
+  phone?: string;
+  avatarUrl?: string;
   role?: string;
   farmerId?: string;
   state?: string;
@@ -21,7 +23,8 @@ export interface RegisterInput {
 export interface UserData {
   id: string;
   firebaseUid: string;
-  phone: string;
+  email: string | null;
+  phone: string | null;
   name: string;
   role: string;
   avatarUrl: string | null;

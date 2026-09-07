@@ -13,7 +13,9 @@ import { UserRole } from "../types/enums";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  phone: z.string().regex(/^[6-9]\d{9}$/, "Invalid Indian mobile number"),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  avatarUrl: z.string().optional(),
   role: z.enum(["FARMER", "OPERATOR", "ADMIN"]).default("FARMER"),
   // Farmer profile (optional during registration)
   farmerId: z.string().optional(),
@@ -69,9 +71,11 @@ export async function register(
     const user = await createFarmerUser(
       {
         firebaseUid,
-        phone: data.phone,
+        email: req.user?.email || data.email,
+        phone: req.user?.phone || data.phone,
         name: data.name,
         role: data.role as UserRole,
+        avatarUrl: data.avatarUrl,
       },
       {
         farmerId: data.farmerId,
@@ -203,7 +207,8 @@ export async function verifyToken(
       isRegistered: !!user,
       data: user || null,
       firebaseUid,
-      phone: req.user!.phone,
+      email: req.user?.email || null,
+      phone: req.user?.phone || null,
     });
   } catch (error) {
     next(error);

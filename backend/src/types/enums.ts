@@ -1,6 +1,7 @@
-/**
- * Backend Enums — mirror of Prisma enums for use outside of generated client
- */
+// ══════════════════════════════════════════════
+// KisanQueue — Backend TypeScript Enums
+// Mirrors Prisma schema enums for type safety
+// ══════════════════════════════════════════════
 
 export enum UserRole {
   FARMER = "FARMER",
@@ -35,6 +36,12 @@ export enum QualityGrade {
   GRADE_B = "GRADE_B",
   GRADE_C = "GRADE_C",
   FAQ_STANDARD = "FAQ_STANDARD",
+}
+
+export enum CongestionLevel {
+  LOW = "LOW",
+  MODERATE = "MODERATE",
+  HIGH = "HIGH",
 }
 
 export enum NotificationType {

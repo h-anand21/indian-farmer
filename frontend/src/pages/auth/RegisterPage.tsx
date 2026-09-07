@@ -56,8 +56,10 @@ export default function RegisterPage() {
 
   // Form State
   const [formData, setFormData] = useState({
-    name: "",
+    name: firebaseUser?.displayName || "",
+    email: firebaseUser?.email || "",
     phone: firebaseUser?.phoneNumber ? firebaseUser.phoneNumber.replace("+91", "") : "",
+    avatarUrl: firebaseUser?.photoURL || "",
     role: "FARMER",
     farmerId: "",
     state: "Punjab",
@@ -70,12 +72,15 @@ export default function RegisterPage() {
     agreeTerms: false,
   });
 
-  // Sync phone if firebaseUser loads late
+  // Sync Google User profile when loaded
   useEffect(() => {
-    if (firebaseUser?.phoneNumber && !formData.phone) {
+    if (firebaseUser) {
       setFormData((prev) => ({
         ...prev,
-        phone: firebaseUser.phoneNumber ? firebaseUser.phoneNumber.replace("+91", "") : "",
+        name: prev.name || firebaseUser.displayName || "",
+        email: prev.email || firebaseUser.email || "",
+        avatarUrl: prev.avatarUrl || firebaseUser.photoURL || "",
+        phone: prev.phone || (firebaseUser.phoneNumber ? firebaseUser.phoneNumber.replace("+91", "") : ""),
       }));
     }
   }, [firebaseUser]);
@@ -90,9 +95,8 @@ export default function RegisterPage() {
       setError("Please enter your full name (minimum 2 characters)");
       return false;
     }
-    const cleanPhone = formData.phone.replace(/\D/g, "");
-    if (cleanPhone.length !== 10) {
-      setError("Please provide a valid 10-digit mobile number");
+    if (formData.phone && formData.phone.replace(/\D/g, "").length !== 10) {
+      setError("If providing a mobile number, it must be 10 digits");
       return false;
     }
     return true;
@@ -135,10 +139,12 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const cleanPhone = formData.phone.replace(/\D/g, "");
+      const cleanPhone = formData.phone ? formData.phone.replace(/\D/g, "") : undefined;
       const res = await registerUser({
         name: formData.name.trim(),
+        email: formData.email.trim() || undefined,
         phone: cleanPhone,
+        avatarUrl: formData.avatarUrl || undefined,
         role: formData.role,
         farmerId: formData.farmerId.trim() || undefined,
         state: formData.state,

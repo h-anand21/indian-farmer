@@ -72,7 +72,8 @@ enum NotificationType {
 model User {
   id          String   @id @default(cuid())
   firebaseUid String   @unique @map("firebase_uid")
-  phone       String   @unique
+  phone       String?  @unique
+  email       String?  @unique
   name        String
   role        UserRole @default(FARMER)
   avatarUrl   String?  @map("avatar_url")

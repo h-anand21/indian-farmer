@@ -4,19 +4,40 @@ import { getDatabase } from "firebase-admin/database";
 import { env } from "./env";
 
 // Initialize Firebase Admin SDK with service account credentials from env vars
-// This avoids storing a JSON file in the repo (security best practice)
-const app =
-  getApps().length === 0
-    ? initializeApp({
-        credential: cert({
-          projectId: env.FIREBASE_PROJECT_ID,
-          clientEmail: env.FIREBASE_CLIENT_EMAIL,
-          privateKey: env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }),
-        databaseURL: env.FIREBASE_DATABASE_URL,
-      })
-    : getApps()[0]!;
+// In development, if private key is not provided yet, fallback gracefully to dev mode
+let app: any;
+let isDevAuth = false;
 
+try {
+  if (
+    !env.FIREBASE_PRIVATE_KEY ||
+    env.FIREBASE_PRIVATE_KEY.includes("YOUR_PRIVATE_KEY_HERE") ||
+    env.FIREBASE_CLIENT_EMAIL.includes("xxxxx")
+  ) {
+    throw new Error("Placeholder credentials detected");
+  }
+
+  app =
+    getApps().length === 0
+      ? initializeApp({
+          credential: cert({
+            projectId: env.FIREBASE_PROJECT_ID,
+            clientEmail: env.FIREBASE_CLIENT_EMAIL,
+            privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+          }),
+          databaseURL: env.FIREBASE_DATABASE_URL,
+        })
+      : getApps()[0]!;
+} catch {
+  // Graceful fallback for local development before downloading serviceAccountKey.json
+  isDevAuth = true;
+  app =
+    getApps().length === 0
+      ? initializeApp({ projectId: env.FIREBASE_PROJECT_ID })
+      : getApps()[0]!;
+}
+
+export const isFirebaseDevMode = isDevAuth;
 export const firebaseAuth = getAuth(app);
 export const firebaseDB = getDatabase(app);
 export default app;

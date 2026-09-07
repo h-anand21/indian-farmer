@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { firebaseAuth } from "../config/firebase-admin";
+import { firebaseAuth, isFirebaseDevMode } from "../config/firebase-admin";
 
 // Extend Express Request type to include authenticated user
 declare global {
@@ -38,7 +38,26 @@ export async function authMiddleware(
     }
 
     const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+    let decodedToken: any;
+
+    if (isFirebaseDevMode) {
+      // In dev mode without service account key, decode the Firebase JWT payload
+      try {
+        const payloadBase64 = idToken.split(".")[1];
+        const payloadJson = Buffer.from(payloadBase64, "base64").toString("utf-8");
+        const parsed = JSON.parse(payloadJson);
+        decodedToken = {
+          uid: parsed.user_id || parsed.sub,
+          email: parsed.email,
+          phone_number: parsed.phone_number,
+          role: parsed.role,
+        };
+      } catch {
+        decodedToken = await firebaseAuth.verifyIdToken(idToken);
+      }
+    } else {
+      decodedToken = await firebaseAuth.verifyIdToken(idToken);
+    }
 
     req.user = {
       uid: decodedToken.uid,
