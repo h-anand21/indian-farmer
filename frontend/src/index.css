@@ -1,0 +1,277 @@
+/* KisanQueue — Global Styles */
+
+/* ── Design Tokens ── */
+@import "./styles/design-tokens.css";
+
+/* ── Tailwind v4 ── */
+@import "tailwindcss";
+
+/* ── Google Fonts ── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@500;600;700;800&display=swap");
+
+/* ── Retro Display Font ── */
+@import url("https://db.onlinewebfonts.com/c/8cb707a9b8a73f8a7403336b861c3074?family=BubbledotICG-FinePos");
+
+/* ── Font Awesome Icons ── */
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css");
+
+/* ══════════════════════════════════════════════
+   BASE STYLES
+   ══════════════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--nav-text);
+  background-color: var(--earth-cream);
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── Focus Styles (Accessibility) ── */
+:focus-visible {
+  outline: 2px solid var(--leaf-green);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--soil-warm);
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--leaf-green);
+  color: white;
+}
+
+/* ══════════════════════════════════════════════
+   UTILITY CLASSES
+   ══════════════════════════════════════════════ */
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-brand {
+  font-family: var(--font-brand);
+}
+
+/* ── Token Number Style ── */
+.token-number {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ── Animated Status Pulse ── */
+@keyframes status-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
+.pulse-called {
+  animation: status-pulse 1s ease infinite;
+}
+
+/* ── Live Indicator ── */
+@keyframes live-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.live-indicator::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-right: 6px;
+  animation: live-dot 1.2s ease-in-out infinite;
+}
+
+/* ── Page Container ── */
+.page-container {
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* ── Card Surface ── */
+.card-surface {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid #E2E8F0;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.card-surface:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* ── Congestion Badge ── */
+.congestion-low {
+  background: rgba(120, 169, 91, 0.12);
+  color: var(--congestion-low);
+  border: 1px solid rgba(120, 169, 91, 0.3);
+}
+
+.congestion-moderate {
+  background: rgba(216, 182, 90, 0.12);
+  color: var(--congestion-moderate);
+  border: 1px solid rgba(216, 182, 90, 0.3);
+}
+
+.congestion-high {
+  background: rgba(184, 110, 75, 0.12);
+  color: var(--congestion-high);
+  border: 1px solid rgba(184, 110, 75, 0.3);
+}
+
+/* ══════════════════════════════════════════════
+   LANDING PAGE (FULL-BLEED VIDEO)
+   ══════════════════════════════════════════════ */
+
+.landing-page {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  position: relative;
+}
+
+.landing-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.landing-bg video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.landing-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: clamp(16px, 2.4vh, 28px) clamp(14px, 3vw, 32px);
+}
+
+/* ── Entrance Animations ── */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes headlineFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes revealPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-headlineFade {
+  animation: headlineFade 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-revealPulse {
+  animation: revealPulse 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ══════════════════════════════════════════════ */
+
+/* Mobile-first: base styles are for 360px+ */
+/* sm: 640px+ */
+/* md: 768px+ */
+/* lg: 1024px+ */
+/* xl: 1280px+ */
+
+@media (max-width: 720px) {
+  .landing-content {
+    padding: 12px 16px;
+  }
+}

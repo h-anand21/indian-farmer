@@ -1,0 +1,329 @@
+// KisanQueue — Prisma Schema
+// Smart Procurement Queue Platform
+// Database: Neon Serverless PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ══════════════════════════════════════════════
+// ENUMS
+// ══════════════════════════════════════════════
+
+enum UserRole {
+  FARMER
+  OPERATOR
+  ADMIN
+}
+
+enum BookingStatus {
+  BOOKED
+  CHECKED_IN
+  WAITING
+  CALLED
+  IN_PROCUREMENT
+  WEIGHED
+  COMPLETED
+  PAYMENT_PENDING
+  PAID
+  REJECTED
+  NO_SHOW
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  DISBURSED
+  FAILED
+}
+
+enum QualityGrade {
+  GRADE_A
+  GRADE_B
+  GRADE_C
+  FAQ_STANDARD
+}
+
+enum CongestionLevel {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum NotificationType {
+  QUEUE_ALERT
+  BOOKING_CONFIRMATION
+  TURN_CALLED
+  PAYMENT_UPDATE
+  SYSTEM
+  PROXIMITY_ALERT
+}
+
+// ══════════════════════════════════════════════
+// MODELS
+// ══════════════════════════════════════════════
+
+/// User account — linked to Firebase Auth via firebaseUid
+model User {
+  id          String   @id @default(cuid())
+  firebaseUid String   @unique @map("firebase_uid")
+  phone       String   @unique
+  name        String
+  role        UserRole @default(FARMER)
+  avatarUrl   String?  @map("avatar_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  farmer     Farmer?
+  operator   Operator?
+  auditLogs  AuditLog[]
+
+  @@map("users")
+}
+
+/// Farmer profile — extended details for registered farmers
+model Farmer {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  farmerId        String?  @unique @map("farmer_id") // PM-Kisan / Aadhaar ID
+  dateOfBirth     DateTime? @map("date_of_birth")
+
+  // Address
+  state           String?
+  district        String?
+  tehsil          String?
+  village         String?
+  pincode         String?
+
+  // Farm Details
+  landArea        Float?   @map("land_area") // in acres
+  ownershipType   String?  @map("ownership_type") // Owner / Tenant
+  preferredCentreId String? @map("preferred_centre_id")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferredCentre  ProcurementCentre?  @relation("PreferredCentre", fields: [preferredCentreId], references: [id])
+  crops            Crop[]
+  bookings         Booking[]
+  payments         Payment[]
+  notifications    Notification[]
+
+  @@map("farmers")
+}
+
+/// Procurement Centre — government MSP procurement facility
+model ProcurementCentre {
+  id              String   @id @default(cuid())
+  name            String
+  code            String   @unique // e.g. "RN-001"
+  address         String
+  district        String
+  state           String
+  latitude        Float?
+  longitude       Float?
+  totalCounters   Int      @default(1) @map("total_counters")
+  operatingHoursStart String @default("08:00") @map("operating_hours_start")
+  operatingHoursEnd   String @default("17:00") @map("operating_hours_end")
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  preferredByFarmers Farmer[]   @relation("PreferredCentre")
+  operators          Operator[]
+  slots              Slot[]
+  bookings           Booking[]
+  queueEntries       QueueEntry[]
+
+  @@map("procurement_centres")
+}
+
+/// Operator — centre staff who manage procurement
+model Operator {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  centreId    String   @map("centre_id")
+  employeeId  String?  @unique @map("employee_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  centre      ProcurementCentre @relation(fields: [centreId], references: [id])
+  procurements ProcurementRecord[]
+
+  @@map("operators")
+}
+
+/// Crop — farmer's registered produce
+model Crop {
+  id            String   @id @default(cuid())
+  farmerId      String   @map("farmer_id")
+  name          String   // Wheat, Paddy, Maize, Mustard, etc.
+  quantity      Float    // in Quintals
+  harvestMonth  String?  @map("harvest_month")
+  year          Int?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  farmer        Farmer    @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+
+  @@map("crops")
+}
+
+/// Slot — time-based capacity bucket for a centre
+model Slot {
+  id          String   @id @default(cuid())
+  centreId    String   @map("centre_id")
+  date        DateTime @db.Date
+  startTime   String   @map("start_time") // "09:00"
+  endTime     String   @map("end_time")   // "10:00"
+  capacity    Int      @default(50)
+  booked      Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  centre      ProcurementCentre @relation(fields: [centreId], references: [id])
+  bookings    Booking[]
+
+  @@unique([centreId, date, startTime])
+  @@map("slots")
+}
+
+/// Booking — farmer's slot reservation with a unique token
+model Booking {
+  id          String        @id @default(cuid())
+  farmerId    String        @map("farmer_id")
+  centreId    String        @map("centre_id")
+  slotId      String        @map("slot_id")
+  cropId      String        @map("crop_id")
+  token       String        @unique // e.g. "A-118"
+  quantity    Float         // Expected quintals
+  status      BookingStatus @default(BOOKED)
+  qrCode      String?       @map("qr_code") // Base64 QR
+  bookedAt    DateTime      @default(now()) @map("booked_at")
+  checkedInAt DateTime?     @map("checked_in_at")
+  completedAt DateTime?     @map("completed_at")
+  cancelledAt DateTime?     @map("cancelled_at")
+
+  // Relations
+  farmer      Farmer            @relation(fields: [farmerId], references: [id])
+  centre      ProcurementCentre @relation(fields: [centreId], references: [id])
+  slot        Slot              @relation(fields: [slotId], references: [id])
+  crop        Crop              @relation(fields: [cropId], references: [id])
+  queueEntry  QueueEntry?
+  procurement ProcurementRecord?
+  payment     Payment?
+
+  @@map("bookings")
+}
+
+/// QueueEntry — real-time position tracking for checked-in farmers
+model QueueEntry {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique @map("booking_id")
+  centreId    String   @map("centre_id")
+  position    Int      // Current position in queue
+  counterNo   Int?     @map("counter_no") // Assigned counter when called
+  estimatedWaitMins Int? @map("estimated_wait_mins")
+  calledAt    DateTime? @map("called_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  booking     Booking           @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  centre      ProcurementCentre @relation(fields: [centreId], references: [id])
+
+  @@map("queue_entries")
+}
+
+/// ProcurementRecord — weighbridge + quality data after procurement
+model ProcurementRecord {
+  id              String       @id @default(cuid())
+  bookingId       String       @unique @map("booking_id")
+  operatorId      String       @map("operator_id")
+  receiptNumber   String       @unique @map("receipt_number") // PR-00128
+  actualWeight    Float        @map("actual_weight") // Actual quintals weighed
+  qualityGrade    QualityGrade @default(GRADE_A) @map("quality_grade")
+  moisturePercent Float?       @map("moisture_pct")
+  foreignMatter   Float?       @map("foreign_matter_pct")
+  mspRate         Float?       @map("msp_rate") // ₹/quintal
+  totalAmount     Float?       @map("total_amount") // mspRate * actualWeight
+  remarks         String?
+  completedAt     DateTime     @default(now()) @map("completed_at")
+
+  // Relations
+  booking         Booking  @relation(fields: [bookingId], references: [id])
+  operator        Operator @relation(fields: [operatorId], references: [id])
+
+  @@map("procurement_records")
+}
+
+/// Payment — DBT payment tracking for farmers
+model Payment {
+  id              String        @id @default(cuid())
+  farmerId        String        @map("farmer_id")
+  bookingId       String        @unique @map("booking_id")
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  bankAccount     String?       @map("bank_account") // Masked: ••••4821
+  utrNumber       String?       @map("utr_number") // Bank reference
+  disbursedAt     DateTime?     @map("disbursed_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  farmer          Farmer  @relation(fields: [farmerId], references: [id])
+  booking         Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+/// Notification — multi-channel alert system
+model Notification {
+  id        String           @id @default(cuid())
+  farmerId  String           @map("farmer_id")
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  metadata  Json?            // Extra data (token, centreId, etc.)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  farmer    Farmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+/// AuditLog — immutable trail of every critical action
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String   // e.g. "BOOKING_CREATED", "STATUS_CHANGED"
+  entity    String   // e.g. "Booking", "QueueEntry"
+  entityId  String   @map("entity_id")
+  oldValue  Json?    @map("old_value")
+  newValue  Json?    @map("new_value")
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}

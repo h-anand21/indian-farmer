@@ -1,0 +1,118 @@
+/*
+ * KisanQueue — Design System Tokens
+ * Core CSS Custom Properties for the agricultural premium UI
+ */
+
+:root {
+  /* ── Core Palette ── */
+  --bg: #000000;
+  --text: #ffffff;
+  --muted: #8e8e8e;
+  --nav-text: #2e2e2e;
+  --pill-dark: #28282a;
+  --sign-in-text: #c8c8c8;
+
+  /* ── Shadows ── */
+  --nav-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --card-shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --elevation-2: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --elevation-3: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+  /* ── Trust Row ── */
+  --trust-bg: #28282a;
+  --trust-border: rgba(255, 255, 255, 0.4);
+  --trust-text: #c4c2c3;
+  --trust-size: clamp(36px, 4.5vw, 42px);
+
+  /* ── Application Colors ── */
+  --deep-forest: #163A2D;
+  --deep-forest-hover: #102B21;
+  --leaf-green: #4F7D45;
+  --fresh-green: #78A95B;
+  --wheat: #D8B65A;
+  --terracotta: #B86E4B;
+  --earth-cream: #F7F5EE;
+  --soil-warm: #6B5140;
+
+  /* ── Status Colors ── */
+  --status-booked-bg: #E8F0E5;
+  --status-booked-text: #163A2D;
+  --status-booked-border: #4F7D45;
+
+  --status-checked-in-bg: #E5EDDF;
+  --status-checked-in-text: #163A2D;
+  --status-checked-in-border: #78A95B;
+
+  --status-waiting-bg: #FDF6E3;
+  --status-waiting-text: #6B5140;
+  --status-waiting-border: #D8B65A;
+
+  --status-called-bg: #FEF0E5;
+  --status-called-text: #B86E4B;
+  --status-called-border: #B86E4B;
+
+  --status-completed-bg: #D4EDDA;
+  --status-completed-text: #163A2D;
+  --status-completed-border: #78A95B;
+
+  --status-rejected-bg: #FDECEA;
+  --status-rejected-text: #B86E4B;
+  --status-rejected-border: #B86E4B;
+
+  --status-muted-bg: #F0F0EC;
+  --status-muted-text: #788078;
+  --status-muted-border: #788078;
+
+  /* ── Typography ── */
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "BubbledotICG-FinePos", "Geist Pixel Circle", monospace;
+  --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+  --font-brand: "Manrope", "Inter", system-ui, sans-serif;
+
+  /* ── Spacing Scale ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Border Radius ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* ── Transitions ── */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+  --transition-spring: 500ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── Touch Targets ── */
+  --min-touch: 44px;
+
+  /* ── Layout ── */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --bottom-nav-height: 72px;
+  --max-content: 1200px;
+
+  /* ── Congestion Indicators ── */
+  --congestion-low: #78A95B;
+  --congestion-moderate: #D8B65A;
+  --congestion-high: #B86E4B;
+}
+
+/* ── Dark Mode Overrides ── */
+[data-theme="dark"] {
+  --earth-cream: #1a1a1a;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
