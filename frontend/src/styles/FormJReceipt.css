@@ -1,5 +1,6 @@
 /* =====================================
    FORM J — MANDI SALE & DBT SETTLEMENT RECEIPT STYLES
+   Compact, Crisp & High-Precision Design
 ===================================== */
 
 :root {
@@ -21,7 +22,7 @@
 
 .receipt-page {
   min-height: 100vh;
-  padding: 24px;
+  padding: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -40,14 +41,14 @@
 }
 
 .receipt-container {
-  width: min(1430px, 97vw);
-  max-height: 94vh;
+  width: min(920px, 96vw);
+  max-height: 92vh;
   overflow-y: auto;
   background: linear-gradient(135deg, #f8fffb, #ffffff);
-  border-radius: 28px;
+  border-radius: 24px;
   overflow-x: hidden;
   border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 35px 90px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.15);
   position: relative;
 }
 
@@ -56,10 +57,10 @@
 ===================================== */
 
 .receipt-header {
-  min-height: 185px;
+  min-height: 130px;
   position: relative;
   overflow: hidden;
-  padding: 28px 30px 20px 360px;
+  padding: 18px 20px 14px 240px;
   background: linear-gradient(100deg, #effbf5 0%, #f7fffb 50%, #dff5e9 100%);
   border-bottom: 1px solid #dcebe2;
 }
@@ -70,19 +71,19 @@
 
 .government-block {
   position: absolute;
-  left: 30px;
-  top: 28px;
-  width: 285px;
+  left: 20px;
+  top: 16px;
+  width: 200px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   color: #0d1836;
   z-index: 8;
 }
 
 .emblem {
-  width: 75px;
-  height: 95px;
+  width: 50px;
+  height: 65px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -91,24 +92,25 @@
 
 .government-block strong {
   display: block;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .government-block span {
   display: block;
   margin-top: 2px;
-  font-size: 12.5px;
+  font-size: 10px;
   color: #4a637d;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .government-block small {
   display: block;
-  margin-top: 6px;
-  font-size: 11px;
+  margin-top: 4px;
+  font-size: 9.5px;
   font-weight: 800;
   color: #086247;
 }
@@ -117,10 +119,10 @@
 
 .government-divider {
   position: absolute;
-  left: 330px;
-  top: 32px;
-  height: 100px;
-  width: 2px;
+  left: 226px;
+  top: 20px;
+  height: 75px;
+  width: 1.5px;
   background: #b6c8c5;
   z-index: 8;
 }
@@ -137,29 +139,29 @@
 .official-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 18px;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 14px;
   background: #d5f5e3;
   color: #086247;
-  font-size: 12.5px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
 }
 
 .document-heading h1 {
-  margin-top: 8px;
-  font-size: clamp(20px, 2.3vw, 28px);
+  margin-top: 6px;
+  font-size: clamp(16px, 1.8vw, 20px);
   line-height: 1.15;
   font-weight: 850;
   color: #081537;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
 }
 
 .document-heading p {
-  margin-top: 5px;
+  margin-top: 3px;
   color: #58729b;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -171,7 +173,7 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 47%;
+  width: 44%;
   height: 100%;
   overflow: hidden;
   pointer-events: none;
@@ -179,9 +181,9 @@
 
 .receipt-mountains {
   position: absolute;
-  bottom: 43px;
+  bottom: 30px;
   width: 100%;
-  height: 90px;
+  height: 65px;
   background: linear-gradient(
     140deg,
     transparent 30%,
@@ -196,11 +198,11 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 58px;
+  height: 40px;
   background: repeating-linear-gradient(
     -10deg,
-    #91cd7d 0 7px,
-    #c1e7a5 7px 14px
+    #91cd7d 0 6px,
+    #c1e7a5 6px 12px
   );
   opacity: 0.6;
 }
@@ -208,25 +210,25 @@
 .mandi-building {
   position: absolute;
   right: 18%;
-  bottom: 36px;
-  width: 170px;
-  height: 60px;
-  border-radius: 8px 8px 0 0;
+  bottom: 24px;
+  width: 120px;
+  height: 42px;
+  border-radius: 6px 6px 0 0;
   background: linear-gradient(#ddd5bd, #b7ad93);
   display: flex;
   justify-content: center;
   align-items: center;
   color: #4a5448;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  box-shadow: inset 0 -10px 0 rgba(50, 70, 50, 0.1);
+  box-shadow: inset 0 -6px 0 rgba(50, 70, 50, 0.1);
 }
 
 .receipt-tree {
   position: absolute;
-  bottom: 40px;
-  font-size: 40px;
+  bottom: 26px;
+  font-size: 26px;
 }
 
 .tree-a {
@@ -239,9 +241,9 @@
 
 .receipt-truck {
   position: absolute;
-  bottom: 18px;
+  bottom: 12px;
   left: 23%;
-  font-size: 32px;
+  font-size: 22px;
 }
 
 /* =====================================
@@ -250,14 +252,14 @@
 
 .receipt-slogan {
   position: absolute;
-  right: 85px;
-  top: 22px;
+  right: 60px;
+  top: 14px;
   color: #106045;
   font-family: 'Brush Script MT', cursive, sans-serif;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.05;
-  transform: rotate(-5deg);
+  transform: rotate(-4deg);
   z-index: 9;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
 }
@@ -268,37 +270,37 @@
 
 .receipt-close {
   position: absolute;
-  top: 18px;
-  right: 20px;
-  width: 48px;
-  height: 48px;
+  top: 14px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid #dce7e5;
   background: rgba(255, 255, 255, 0.95);
   color: #132b3b;
-  font-size: 28px;
+  font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 20;
   transition: 0.2s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .receipt-close:hover {
   transform: rotate(90deg) scale(1.05);
-  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   background: #f8fafc;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 860px) {
   .receipt-header {
-    padding: 24px 24px 20px 24px;
+    padding: 16px 16px 12px 16px;
     height: auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
   .government-block {
     position: static;
@@ -318,11 +320,11 @@
 ===================================== */
 
 .payout-hero {
-  margin: 18px auto 7px;
-  width: min(850px, 92%);
-  min-height: 155px;
-  border-radius: 25px;
-  border: 1px solid #2db48a;
+  margin: 10px auto 4px;
+  width: min(600px, 94%);
+  min-height: 95px;
+  border-radius: 18px;
+  border: 1.5px solid #2db48a;
   background: radial-gradient(circle at 50% 100%, #e7faf1, #f7fffb 70%);
   display: flex;
   flex-direction: column;
@@ -330,30 +332,30 @@
   justify-content: center;
   position: relative;
   z-index: 4;
-  padding: 16px 20px;
-  box-shadow: 0 8px 20px rgba(0, 100, 70, 0.04);
+  padding: 10px 16px;
+  box-shadow: 0 4px 14px rgba(0, 100, 70, 0.04);
 }
 
 /* guaranteed */
 
 .payout-guaranteed {
-  padding: 6px 18px;
-  border-radius: 20px;
+  padding: 3px 12px;
+  border-radius: 14px;
   background: #d1f7e2;
   color: #056a4b;
-  font-size: 13.5px;
+  font-size: 10.5px;
   font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 8px;
-  letter-spacing: 0.5px;
+  gap: 6px;
+  letter-spacing: 0.4px;
 }
 
 /* amount */
 
 .hero-amount {
-  margin-top: 8px;
-  font-size: clamp(38px, 5vw, 56px);
+  margin-top: 3px;
+  font-size: clamp(28px, 3.5vw, 38px);
   line-height: 1;
   color: #006344;
   font-weight: 850;
@@ -364,21 +366,21 @@
 /* UTR */
 
 .utr-line {
-  margin-top: 8px;
+  margin-top: 4px;
   color: #60779d;
-  font-size: 15px;
+  font-size: 11.5px;
   font-family: 'Courier New', monospace;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .utr-line strong {
-  padding: 3px 8px;
-  border-radius: 7px;
+  padding: 2px 6px;
+  border-radius: 5px;
   background: #d7f5e5;
   color: #08724f;
   font-weight: 800;
@@ -389,32 +391,32 @@
 ===================================== */
 
 .transaction-card {
-  margin: 14px 20px;
-  border-radius: 24px;
+  margin: 10px 16px;
+  border-radius: 18px;
   border: 1px solid #e2ebed;
   background: rgba(255, 255, 255, 0.98);
-  padding: 20px 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  padding: 14px 18px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
 }
 
 /* heading */
 
 .transaction-heading {
-  min-height: 47px;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #dce7ea;
-  padding-bottom: 12px;
+  padding-bottom: 8px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .transaction-heading h2 {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 20px;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 800;
   color: #081536;
 }
@@ -426,15 +428,15 @@
 /* success */
 
 .success-badge {
-  padding: 6px 18px;
-  border-radius: 20px;
+  padding: 4px 12px;
+  border-radius: 14px;
   background: #d5f7e3;
   color: #087050;
-  font-size: 13.5px;
+  font-size: 11px;
   font-weight: 800;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* =====================================
@@ -444,14 +446,14 @@
 .details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 35px;
-  margin-top: 14px;
+  gap: 24px;
+  margin-top: 10px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 768px) {
   .details-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 }
 
@@ -464,27 +466,27 @@
 ===================================== */
 
 .detail-row {
-  min-height: 48px;
+  min-height: 36px;
   display: grid;
-  grid-template-columns: 48px 1fr 1.15fr;
+  grid-template-columns: 32px 1fr 1.15fr;
   align-items: center;
-  border-bottom: 1px solid #e0e8eb;
-  gap: 12px;
-  padding: 4px 0;
+  border-bottom: 1px solid #eef3f5;
+  gap: 8px;
+  padding: 2px 0;
 }
 
 /* icon */
 
 .detail-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
   background: #e1f7ec;
   color: #087554;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -497,7 +499,7 @@
 
 .detail-label {
   color: #58749c;
-  font-size: 13.5px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 
@@ -505,14 +507,14 @@
 
 .detail-row strong {
   color: #111a3a;
-  font-size: 14.5px;
+  font-size: 12px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .detail-row .highlight-value {
   color: #087653;
-  font-size: 18px;
+  font-size: 15px;
   font-family: monospace, sans-serif;
   font-weight: 900;
 }
@@ -522,22 +524,22 @@
 ===================================== */
 
 .verification-strip {
-  min-height: 100px;
-  margin-top: 18px;
-  padding: 12px 18px;
-  border-radius: 17px;
+  min-height: 72px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 14px;
   border: 1px solid #dfe8eb;
   background: linear-gradient(90deg, #f9fcfd, #f5faf9);
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.15fr;
+  grid-template-columns: 1.15fr 1fr 1.1fr;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-@media (max-width: 990px) {
+@media (max-width: 768px) {
   .verification-strip {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 10px;
   }
   .qr-section,
   .digital-verification {
@@ -555,48 +557,48 @@
 .qr-section {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding-right: 20px;
+  gap: 10px;
+  padding-right: 12px;
   border-right: 1px solid #ccdbe0;
 }
 
 .fake-qr {
-  width: 72px;
-  height: 72px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   background: repeating-conic-gradient(#111 0 25%, white 0 50%);
-  background-size: 10px 10px;
-  border: 4px solid white;
+  background-size: 8px 8px;
+  border: 3px solid white;
   box-shadow: 0 0 0 1px #cbd8dc;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .fake-qr span {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
   background: white;
   color: black;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  border-radius: 4px;
+  font-size: 13px;
+  border-radius: 3px;
 }
 
 .qr-section strong {
-  font-size: 14px;
+  font-size: 11.5px;
   font-weight: 800;
   color: #102040;
 }
 
 .qr-section p {
-  margin-top: 3px;
+  margin-top: 2px;
   color: #55719a;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 /* =====================================
@@ -606,52 +608,52 @@
 .digital-verification {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 20px;
+  gap: 10px;
+  padding: 0 12px;
   border-right: 1px solid #ccdbe0;
 }
 
 .fingerprint {
-  width: 60px;
-  height: 60px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
   border-radius: 50%;
   background: #e3f1f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: 24px;
   color: #087c68;
   position: relative;
 }
 
 .fingerprint b {
   position: absolute;
-  right: -2px;
-  bottom: 0px;
-  width: 20px;
-  height: 20px;
+  right: -1px;
+  bottom: -1px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #087653;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 800;
 }
 
 .digital-verification strong {
   color: #087653;
-  font-size: 14.5px;
+  font-size: 11.5px;
   font-weight: 800;
 }
 
 .digital-verification p {
-  margin-top: 3px;
+  margin-top: 2px;
   color: #57739b;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 /* =====================================
@@ -659,26 +661,26 @@
 ===================================== */
 
 .document-notice {
-  margin-left: 12px;
-  min-height: 65px;
-  padding: 10px 16px;
-  border-radius: 12px;
+  margin-left: 8px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border-radius: 10px;
   background: #edf4f9;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .notice-icon {
   color: #53759a;
-  font-size: 28px;
+  font-size: 20px;
   flex-shrink: 0;
 }
 
 .document-notice p {
   color: #58739a;
-  font-size: 12.5px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.3;
 }
 
 /* =====================================
@@ -686,15 +688,15 @@
 ===================================== */
 
 .receipt-footer {
-  min-height: 80px;
-  padding: 16px 28px;
+  min-height: 56px;
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: linear-gradient(90deg, #f3fcf7, #ffffff);
   border-top: 1px solid #e1ece6;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 10px;
 }
 
 /* brand */
@@ -702,33 +704,33 @@
 .footer-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   color: #58739a;
-  font-size: 13.5px;
+  font-size: 11.5px;
   font-weight: 600;
   flex-wrap: wrap;
 }
 
 .footer-leaf {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #dff7e9;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 15px;
 }
 
 .footer-brand strong {
   color: #075c4a;
-  font-size: 15px;
+  font-size: 12.5px;
   font-weight: 800;
 }
 
 .footer-brand i {
   width: 1px;
-  height: 20px;
+  height: 14px;
   background: #bdcdd2;
 }
 
@@ -738,42 +740,42 @@
 
 .footer-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .print-button,
 .close-form {
-  height: 46px;
-  border-radius: 12px;
-  padding: 0 26px;
-  font-size: 14px;
+  height: 36px;
+  border-radius: 10px;
+  padding: 0 20px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .print-button {
-  min-width: 160px;
+  min-width: 125px;
   background: white;
   color: #101a37;
   border: 1px solid #7188a6;
 }
 
 .close-form {
-  min-width: 140px;
+  min-width: 110px;
   background: #00865f;
   color: white;
   border: 1px solid #00865f;
-  box-shadow: 0 4px 12px rgba(0, 134, 95, 0.2);
+  box-shadow: 0 3px 8px rgba(0, 134, 95, 0.2);
 }
 
 .print-button:hover,
 .close-form:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 7px 18px rgba(20, 70, 60, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(20, 70, 60, 0.12);
 }
