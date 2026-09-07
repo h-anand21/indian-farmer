@@ -12,6 +12,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import FarmerDashboardPage from "./pages/farmer/FarmerDashboardPage";
 import BookSlotPage from "./pages/farmer/BookSlotPage";
 import MyBookingsPage from "./pages/farmer/MyBookingsPage";
+import LiveQueuePage from "./pages/farmer/LiveQueuePage";
 import OperatorDashboardPage from "./pages/operator/OperatorDashboardPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import { Leaf, ArrowRight, ShieldCheck, Clock, Users } from "lucide-react";
@@ -245,10 +246,7 @@ const farmerQueueRoute = createRoute({
   path: "/farmer/queue",
   component: () => (
     <ProtectedRoute allowedRoles={["FARMER", "ADMIN"]}>
-      <div style={{ background: "white", padding: "32px", borderRadius: "16px", border: "1px solid #E2E8F0" }}>
-        <h2>👥 Live Queue Tracking</h2>
-        <p style={{ color: "#64748B" }}>Phase 3 feature — Real-time Socket.IO token display and SMS alerts.</p>
-      </div>
+      <LiveQueuePage />
     </ProtectedRoute>
   ),
 });

@@ -10,6 +10,7 @@
 @import "./styles/auth.css";
 @import "./styles/layout.css";
 @import "./styles/booking.css";
+@import "./styles/queue.css";
 
 /* ── Tailwind v4 ── */
 @import "tailwindcss";

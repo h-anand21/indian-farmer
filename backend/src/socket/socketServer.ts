@@ -121,3 +121,23 @@ export function broadcastETAUpdate(
     timestamp: Date.now(),
   });
 }
+
+/**
+ * Utility: Send proximity alert to a specific farmer when turn is near (<= 3 tokens ahead)
+ */
+export function sendProximityAlert(
+  io: Server,
+  farmerId: string,
+  data: {
+    token: string;
+    tokensAhead: number;
+    estimatedMinutes: number;
+    centreName: string;
+  }
+): void {
+  io.to(`farmer:${farmerId}`).emit("queue:proximity_alert", {
+    ...data,
+    timestamp: Date.now(),
+  });
+}
+
