@@ -686,3 +686,477 @@ select.reg-input-field {
     grid-template-columns: 1fr;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   DIGILOCKER & DIGITAL KYC STYLES
+   ════════════════════════════════════════════════════════════════ */
+.reg-kyc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 680px) {
+  .reg-kyc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.reg-kyc-card {
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.reg-kyc-card:hover {
+  border-color: #16a34a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.12);
+}
+
+.reg-kyc-card.recommended {
+  border-color: #0284c7;
+  background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.reg-kyc-card.recommended:hover {
+  border-color: #0284c7;
+  box-shadow: 0 8px 20px rgba(2, 132, 199, 0.14);
+}
+
+.reg-kyc-rec-badge {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+
+.reg-kyc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reg-kyc-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reg-kyc-icon-circle.digilocker {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.reg-kyc-icon-circle.ekisan {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.reg-kyc-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.reg-kyc-sub {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.reg-kyc-btn-action {
+  width: 100%;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reg-kyc-btn-action.blue {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.reg-kyc-btn-action.blue:hover {
+  background: #0369a1;
+}
+
+.reg-kyc-btn-action.green {
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.reg-kyc-btn-action.green:hover {
+  background: #15803d;
+}
+
+/* ── Verified Banner ── */
+.reg-kyc-verified-banner {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: pulseBorder 3s infinite;
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.1);
+  }
+}
+
+.reg-kyc-verified-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reg-kyc-verified-icon {
+  width: 42px;
+  height: 42px;
+  background: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+.reg-kyc-verified-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #14532d;
+  margin: 0;
+}
+
+.reg-kyc-verified-sub {
+  font-size: 12px;
+  color: #166534;
+  margin: 2px 0 0;
+  font-weight: 500;
+}
+
+.reg-kyc-stamp-badge {
+  background: #ffffff;
+  border: 1.5px solid #22c55e;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #15803d;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* ── DigiLocker Modal ── */
+.digilocker-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.digilocker-modal-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.digilocker-topbar {
+  background: #0f172a;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+}
+
+.digilocker-branding {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.digilocker-emblem-wrap {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.digilocker-portal-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.digilocker-portal-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.digilocker-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #cbd5e1;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.digilocker-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.digilocker-body {
+  padding: 24px;
+}
+
+.digilocker-prompt-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.digilocker-icon-badge {
+  width: 46px;
+  height: 46px;
+  background: #e0f2fe;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.digilocker-icon-badge.green {
+  background: #dcfce7;
+}
+
+.digilocker-heading {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.digilocker-desc {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.digilocker-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.digilocker-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.digilocker-field-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+}
+
+.digilocker-input {
+  width: 100%;
+  padding: 13px 14px 13px 44px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.digilocker-input.otp-field {
+  letter-spacing: 0.35em;
+  font-size: 20px;
+  text-align: center;
+  padding-left: 14px;
+}
+
+.digilocker-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+}
+
+.digilocker-input-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.digilocker-consent-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.digilocker-consent-label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.digilocker-consent-label input {
+  margin-top: 2px;
+  accent-color: #0284c7;
+  width: 15px;
+  height: 15px;
+}
+
+.digilocker-btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  transition: all 0.2s ease;
+}
+
+.digilocker-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  transform: translateY(-1px);
+}
+
+.digilocker-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.digilocker-footer {
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 20px;
+  text-align: center;
+}
+
+.digilocker-security-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.digilocker-error-alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.digilocker-success-state {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.digilocker-success-circle {
+  width: 72px;
+  height: 72px;
+  background: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+

@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-router";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
+import DigiLockerPortalPage from "./pages/auth/DigiLockerPortalPage";
+import DigiLockerCallbackPage from "./pages/auth/DigiLockerCallbackPage";
 import AppLayout from "./components/layout/AppLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import FarmerDashboardPage from "./pages/farmer/FarmerDashboardPage";
@@ -63,6 +65,18 @@ const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/register",
   component: RegisterPage,
+});
+
+const digiLockerPortalRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auth/digilocker/portal",
+  component: DigiLockerPortalPage,
+});
+
+const digiLockerCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/auth/digilocker/callback",
+  component: DigiLockerCallbackPage,
 });
 
 // ══════════════════════════════════════════════
@@ -316,6 +330,8 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  digiLockerPortalRoute,
+  digiLockerCallbackRoute,
   appLayoutRoute.addChildren([
     farmerDashboardRoute,
     farmerBookSlotRoute,

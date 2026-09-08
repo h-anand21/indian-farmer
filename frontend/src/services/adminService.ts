@@ -253,3 +253,19 @@ export async function fetchStrategicAnalytics(): Promise<StrategicAnalytics> {
   const res = await api.get("/admin/analytics");
   return res.data.data;
 }
+
+/**
+ * Fetch all whitelisted admin emails
+ */
+export async function fetchWhitelistedAdmins(): Promise<string[]> {
+  const res = await api.get("/admin/admins");
+  return res.data.data;
+}
+
+/**
+ * Whitelist a new admin email
+ */
+export async function addWhitelistedAdmin(email: string): Promise<{ success: boolean; message: string; data: string[] }> {
+  const res = await api.post("/admin/admins", { email });
+  return res.data;
+}

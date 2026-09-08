@@ -55,16 +55,18 @@ export interface UserData {
 }
 
 /**
- * Verify Firebase token and check if user is registered
+ * Verify Firebase token and check if user is registered with RBAC role
  */
-export async function verifyToken() {
+export async function verifyToken(requestedRole?: string) {
   const res = await api.post<{
     success: boolean;
     isRegistered: boolean;
     data: UserData | null;
     firebaseUid: string;
     phone: string;
-  }>("/auth/verify-token");
+    error?: string;
+    message?: string;
+  }>("/auth/verify-token", { requestedRole });
   return res.data;
 }
 

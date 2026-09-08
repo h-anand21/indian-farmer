@@ -10,6 +10,7 @@ import {
   setFirebaseCustomClaims,
 } from "../services/authService";
 import { UserRole } from "../types/enums";
+import { isWhitelistedAdminEmail } from "../config/env";
 
 // ── Validation Schemas ──
 
@@ -46,7 +47,7 @@ const updateProfileSchema = z.object({
 
 /**
  * POST /api/auth/register
- * Register a new user after Firebase phone auth
+ * Register a new user after Firebase phone/Google auth
  * Requires: Bearer token (Firebase ID token)
  */
 export async function register(
@@ -59,6 +60,25 @@ export async function register(
     const firebaseUid = req.user!.uid;
     const email = req.user?.email || data.email;
     const phone = req.user?.phone || data.phone;
+
+    // RBAC Security Checks
+    if (data.role === "ADMIN") {
+      if (!isWhitelistedAdminEmail(email)) {
+        res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED_ADMIN",
+          message: `Access Denied: The account (${email || "unknown"}) is not whitelisted as an Administrator.`,
+        });
+        return;
+      }
+    } else if (data.role === "OPERATOR") {
+      res.status(403).json({
+        success: false,
+        error: "ACCESS_DENIED_OPERATOR",
+        message: "Mandi Operator accounts cannot be self-registered. Please ask your Mandi Administrator to authorize your email first.",
+      });
+      return;
+    }
 
     // Check if user already exists by firebaseUid, email, or phone
     let existing = await findUserByFirebaseUid(firebaseUid);
@@ -93,6 +113,9 @@ export async function register(
       return;
     }
 
+    // If email is in whitelisted admin list, create with ADMIN role
+    const assignedRole = (isWhitelistedAdminEmail(email) ? "ADMIN" : data.role) as UserRole;
+
     // Create user + farmer profile
     const user = await createFarmerUser(
       {
@@ -100,7 +123,7 @@ export async function register(
         email,
         phone,
         name: data.name,
-        role: data.role as UserRole,
+        role: assignedRole,
         avatarUrl: data.avatarUrl,
       },
       {
@@ -116,7 +139,7 @@ export async function register(
     );
 
     // Set Firebase custom claims for role
-    await setFirebaseCustomClaims(firebaseUid, data.role);
+    await setFirebaseCustomClaims(firebaseUid, assignedRole);
 
     res.status(201).json({
       success: true,
@@ -127,7 +150,6 @@ export async function register(
     next(error);
   }
 }
-
 
 /**
  * GET /api/auth/me
@@ -217,8 +239,7 @@ export async function updateProfile(
 
 /**
  * POST /api/auth/verify-token
- * Verify a Firebase token and return user data
- * Used by frontend to check if user exists after Firebase auth
+ * Verify a Firebase token and return user data with strict RBAC whitelisting
  */
 export async function verifyToken(
   req: Request,
@@ -229,6 +250,7 @@ export async function verifyToken(
     const firebaseUid = req.user!.uid;
     const email = req.user?.email;
     const phone = req.user?.phone;
+    const requestedRole = (req.body?.requestedRole || req.query?.role || "") as string;
 
     let user = await findUserByFirebaseUid(firebaseUid);
 
@@ -265,7 +287,85 @@ export async function verifyToken(
       }
     }
 
-    // If user is not found in database, return isRegistered: false so they can complete farmer onboarding
+    // ── 🛡️ 1. ADMIN WHITELIST CHECK ──
+    if (email && isWhitelistedAdminEmail(email)) {
+      const prisma = (await import("../config/database")).default;
+      if (user) {
+        if (user.role !== "ADMIN") {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { role: "ADMIN" },
+            include: {
+              farmer: true,
+              operator: { include: { centre: true } },
+            },
+          });
+        }
+      } else {
+        // Auto-provision whitelisted administrator
+        user = await prisma.user.create({
+          data: {
+            firebaseUid,
+            email,
+            name: (req.user as any)?.name || "KisanQueue Administrator",
+            phone: phone || "9999999999",
+            role: "ADMIN",
+            isActive: true,
+          },
+          include: {
+            farmer: true,
+            operator: { include: { centre: true } },
+          },
+        });
+      }
+
+      await setFirebaseCustomClaims(firebaseUid, "ADMIN");
+
+      res.json({
+        success: true,
+        isRegistered: true,
+        data: user,
+        firebaseUid,
+        email: email || null,
+        phone: phone || null,
+      });
+      return;
+    }
+
+    // If user specifically requested ADMIN role but is NOT whitelisted
+    if (requestedRole === "ADMIN") {
+      if (!user || user.role !== "ADMIN") {
+        res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED_ADMIN",
+          message: `Access Denied: The Google account (${email || "unknown"}) is not authorized as an Administrator. Only whitelisted admin emails can access this portal.`,
+        });
+        return;
+      }
+    }
+
+    // ── 🏢 2. MANDI OPERATOR AUTHORIZATION CHECK ──
+    if (requestedRole === "OPERATOR") {
+      if (!user || user.role !== "OPERATOR") {
+        res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED_OPERATOR",
+          message: `Access Denied: The email (${email || "unknown"}) is not registered as an authorized Mandi Operator. Please contact your Mandi Administrator to get authorized.`,
+        });
+        return;
+      }
+
+      if (!user.isActive) {
+        res.status(403).json({
+          success: false,
+          error: "ACCESS_DENIED_DEACTIVATED",
+          message: "Access Denied: Your Mandi Operator account has been deactivated. Please contact your Administrator.",
+        });
+        return;
+      }
+    }
+
+    // ── 🌾 3. FARMER / OPEN USER SYSTEM ──
     if (!user) {
       res.json({
         success: true,

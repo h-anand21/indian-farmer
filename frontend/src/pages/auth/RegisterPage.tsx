@@ -34,6 +34,7 @@ import {
   type TehsilInfo,
 } from "@/lib/indiaGeoData";
 import LanguageSelector from "@/components/common/LanguageSelector";
+import DigiLockerModal from "@/components/auth/DigiLockerModal";
 import "@/styles/register.css";
 
 export default function RegisterPage() {
@@ -74,9 +75,41 @@ export default function RegisterPage() {
     agreeTerms: true,
   });
 
+  // Digital KYC States
+  const [isDigiLockerOpen, setIsDigiLockerOpen] = useState(false);
+  const [isOpeningDigiLocker, setIsOpeningDigiLocker] = useState(false);
+  const [kycVerification, setKycVerification] = useState<{
+    kycStatus: "PENDING" | "VERIFIED";
+    kycType: "DIGILOCKER_AADHAAR" | "E_KISAN_DBT" | "PM_KISAN" | null;
+    kycReferenceId?: string;
+    verifiedAadhaarLast4?: string;
+    maskedAadhaar?: string;
+    verifiedKisanId?: string;
+    issuer?: string;
+    verifiedAt?: string;
+  }>({
+    kycStatus: "PENDING",
+    kycType: null,
+  });
+  const [isVerifyingEKisan, setIsVerifyingEKisan] = useState(false);
+  const [eKisanIdInput, setEKisanIdInput] = useState("");
+
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsAddressMsg, setGpsAddressMsg] = useState<string | null>(null);
+
+  // Listen for DigiLocker Web Popup OAuth2 postMessage
+  useEffect(() => {
+    const handleAuthMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data && event.data.type === "DIGILOCKER_AUTH_SUCCESS") {
+        const kycResult = event.data.kycResult;
+        handleDigiLockerVerified(kycResult);
+      }
+    };
+    window.addEventListener("message", handleAuthMessage);
+    return () => window.removeEventListener("message", handleAuthMessage);
+  }, []);
 
   const allStatesAndUTs = getAllStatesAndUTs();
   const availableDistricts = getDistrictsForState(formData.state);
@@ -248,6 +281,105 @@ export default function RegisterPage() {
     return true;
   };
 
+  const handleOpenDigiLockerWeb = async () => {
+    try {
+      setIsOpeningDigiLocker(true);
+      setError("");
+
+      const res = await fetch("http://localhost:3001/api/kyc/digilocker/auth-url");
+      const data = await res.json();
+
+      if (data.success && data.authUrl) {
+        const width = 500;
+        const height = 720;
+        const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
+        const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
+
+        const popup = window.open(
+          data.authUrl,
+          "DigiLockerMeriPehchanAuth",
+          `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=1,resizable=yes`
+        );
+
+        if (!popup || popup.closed || typeof popup.closed === "undefined") {
+          toast.info("Opening DigiLocker in-app verification assistant...");
+          setIsDigiLockerOpen(true);
+        } else {
+          toast.info("DigiLocker Official Web Portal opened. Please complete Aadhaar consent.");
+          popup.focus();
+        }
+      } else {
+        setIsDigiLockerOpen(true);
+      }
+    } catch (err) {
+      console.warn("DigiLocker web popup note, switching to assistant:", err);
+      setIsDigiLockerOpen(true);
+    } finally {
+      setIsOpeningDigiLocker(false);
+    }
+  };
+
+  const handleDigiLockerVerified = (result: any) => {
+    setKycVerification({
+      kycStatus: "VERIFIED",
+      kycType: "DIGILOCKER_AADHAAR",
+      kycReferenceId: result.kycReferenceId,
+      verifiedAadhaarLast4: result.verifiedAadhaarLast4,
+      maskedAadhaar: result.maskedAadhaar,
+      issuer: result.issuer,
+      verifiedAt: result.verifiedAt,
+    });
+    setFormData((prev) => ({
+      ...prev,
+      farmerId: prev.farmerId || `AADH-${result.verifiedAadhaarLast4}`,
+    }));
+    toast.success("Aadhaar Identity successfully verified via DigiLocker!");
+  };
+
+  const handleVerifyEKisan = async () => {
+    const idToVerify = eKisanIdInput.trim() || formData.farmerId.trim();
+    if (!idToVerify) {
+      setError("Please enter your State e-Kisan or PM-KISAN Registration ID.");
+      return;
+    }
+
+    setIsVerifyingEKisan(true);
+    setError("");
+
+    try {
+      const res = await fetch("http://localhost:3001/api/kyc/ekisan/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kisanId: idToVerify,
+          state: formData.state,
+          district: formData.district,
+          farmerName: formData.name,
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setKycVerification({
+          kycStatus: "VERIFIED",
+          kycType: data.kycType,
+          kycReferenceId: data.kycReferenceId,
+          verifiedKisanId: data.verifiedKisanId,
+          issuer: data.issuer,
+          verifiedAt: data.verifiedAt,
+        });
+        setFormData((prev) => ({ ...prev, farmerId: data.verifiedKisanId }));
+        toast.success(data.message || "e-Kisan ID Verified Successfully!");
+      } else {
+        setError(data.message || "Could not verify e-Kisan ID.");
+      }
+    } catch (err) {
+      setError("Failed to connect to Government e-Kisan DBT registry.");
+    } finally {
+      setIsVerifyingEKisan(false);
+    }
+  };
+
   const handleNext = () => {
     setError("");
     if (currentStep === 1) {
@@ -276,7 +408,7 @@ export default function RegisterPage() {
         phone: cleanPhone,
         avatarUrl: formData.avatarUrl || undefined,
         role: formData.role,
-        farmerId: formData.farmerId.trim() || undefined,
+        farmerId: (kycVerification.verifiedKisanId || formData.farmerId || "").trim() || undefined,
         state: formData.state,
         district: formData.district.trim() || undefined,
         tehsil: formData.tehsil.trim() || undefined,
@@ -287,7 +419,7 @@ export default function RegisterPage() {
       });
 
       setUser(res.data);
-      toast.success(`Welcome, ${formData.name}! Kisan profile created successfully.`);
+      toast.success(`Welcome, ${formData.name}! Verified Kisan profile created successfully.`);
       const redirectPath = res.data.role === "OPERATOR" ? "/operator/dashboard" : "/farmer/dashboard";
       navigate({ to: redirectPath });
     } catch (err: any) {
@@ -305,9 +437,11 @@ export default function RegisterPage() {
         isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        kycStatus: kycVerification.kycStatus,
+        kycType: kycVerification.kycType,
         farmer: {
           id: `f-${Date.now()}`,
-          farmerId: formData.farmerId.trim() || `PMK-${Math.floor(100000 + Math.random() * 900000)}`,
+          farmerId: kycVerification.verifiedKisanId || formData.farmerId.trim() || `PMK-${Math.floor(100000 + Math.random() * 900000)}`,
           state: formData.state || "Punjab",
           district: formData.district.trim() || "Ludhiana",
           tehsil: formData.tehsil.trim() || "Khanna",
@@ -320,7 +454,7 @@ export default function RegisterPage() {
       };
 
       setUser(localFarmer);
-      toast.success(`Welcome, ${formData.name}! Profile activated.`);
+      toast.success(`Welcome, ${formData.name}! Verified Profile activated.`);
       const redirectPath = formData.role === "OPERATOR" ? "/operator/dashboard" : "/farmer/dashboard";
       navigate({ to: redirectPath });
     } finally {
@@ -818,7 +952,7 @@ export default function RegisterPage() {
               </motion.div>
             )}
 
-            {/* ── STEP 3: Review & Digital Pass Preview ── */}
+            {/* ── STEP 3: Digital KYC Verification & Digital Pass ── */}
             {currentStep === 3 && (
               <motion.div
                 key="step3"
@@ -826,22 +960,151 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                style={{ display: "flex", flexDirection: "column", gap: "18px" }}
+                style={{ display: "flex", flexDirection: "column", gap: "20px" }}
               >
                 <div className="reg-section-header">
                   <div className="reg-section-title-group">
                     <div className="reg-section-icon">
-                      <QrCode size={18} />
+                      <ShieldCheck size={18} />
                     </div>
                     <div>
-                      <h3 className="reg-section-title">Digital Kisan Card Verification</h3>
-                      <p className="reg-section-desc">Review your details before issuing your mandi pass</p>
+                      <h3 className="reg-section-title">Digital Identity &amp; KYC Verification</h3>
+                      <p className="reg-section-desc">Verify your Aadhaar or e-Kisan ID for priority Mandi queue allotment</p>
                     </div>
                   </div>
+                  {kycVerification.kycStatus === "VERIFIED" && (
+                    <div style={{ fontSize: "11px", color: "#16a34a", background: "#f0fdf4", padding: "4px 10px", borderRadius: "8px", fontWeight: 800, border: "1px solid #86efac" }}>
+                      ✓ KYC VERIFIED
+                    </div>
+                  )}
                 </div>
 
+                {/* ── KYC Options or Verified Status ── */}
+                {kycVerification.kycStatus === "VERIFIED" ? (
+                  <motion.div
+                    initial={{ scale: 0.96, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="reg-kyc-verified-banner"
+                  >
+                    <div className="reg-kyc-verified-left">
+                      <div className="reg-kyc-verified-icon">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <div>
+                        <h4 className="reg-kyc-verified-title">
+                          {kycVerification.kycType === "DIGILOCKER_AADHAAR"
+                            ? "Aadhaar Identity Verified via DigiLocker"
+                            : "Government e-Kisan DBT Verified"}
+                        </h4>
+                        <p className="reg-kyc-verified-sub">
+                          {kycVerification.maskedAadhaar
+                            ? `Aadhaar: ${kycVerification.maskedAadhaar}`
+                            : `Kisan ID: ${kycVerification.verifiedKisanId}`}{" "}
+                          • Ref: {kycVerification.kycReferenceId?.slice(0, 18)}...
+                        </p>
+                      </div>
+                    </div>
+                    <div className="reg-kyc-stamp-badge">
+                      GOVT VERIFIED ✓
+                    </div>
+                  </motion.div>
+                ) : (
+                  <div className="reg-kyc-grid">
+                    {/* Option 1: DigiLocker Aadhaar Verification */}
+                    <div
+                      className="reg-kyc-card recommended"
+                      onClick={() => setIsDigiLockerOpen(true)}
+                    >
+                      <div className="reg-kyc-rec-badge">Recommended</div>
+                      <div className="reg-kyc-header">
+                        <div className="reg-kyc-icon-circle digilocker">
+                          <ShieldCheck size={22} />
+                        </div>
+                        <div>
+                          <h4 className="reg-kyc-title">DigiLocker / Aadhaar Verification</h4>
+                          <p className="reg-kyc-sub">Fast e-Aadhaar UIDAI OTP verification (Demo: 123456)</p>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                        <button
+                          type="button"
+                          className="reg-kyc-btn-action blue"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsDigiLockerOpen(true);
+                          }}
+                        >
+                          <ShieldCheck size={16} /> Verify via DigiLocker OTP
+                        </button>
+                        <button
+                          type="button"
+                          className="reg-kyc-btn-action outline"
+                          style={{
+                            width: "auto",
+                            padding: "8px 12px",
+                            fontSize: "12px",
+                            background: "rgba(59, 130, 246, 0.08)",
+                            color: "#1d4ed8",
+                            border: "1px solid rgba(59, 130, 246, 0.3)",
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            flexShrink: 0,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDigiLockerWeb();
+                          }}
+                        >
+                          🌐 Web Portal
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Option 2: State e-Kisan / PM-KISAN ID Verification */}
+                    <div className="reg-kyc-card">
+                      <div className="reg-kyc-header">
+                        <div className="reg-kyc-icon-circle ekisan">
+                          <Wheat size={22} />
+                        </div>
+                        <div>
+                          <h4 className="reg-kyc-title">e-Kisan / PM-KISAN Portal</h4>
+                          <p className="reg-kyc-sub">Verify state agriculture DBT farmer ID</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "8px" }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          className="reg-input-field no-icon"
+                          placeholder="e.g. BR-2025-984210"
+                          style={{ padding: "8px 12px", fontSize: "12.5px" }}
+                          value={eKisanIdInput}
+                          onChange={(e) => setEKisanIdInput(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="reg-kyc-btn-action green"
+                          style={{ width: "auto", padding: "8px 14px", flexShrink: 0 }}
+                          onClick={handleVerifyEKisan}
+                          disabled={isVerifyingEKisan}
+                        >
+                          {isVerifyingEKisan ? <Loader2 size={14} className="animate-spin" /> : "Verify"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* 🌟 Authentic Digital Farmer Card Preview */}
-                <div className="reg-id-card-preview">
+                <div
+                  className={`reg-id-card-preview ${
+                    kycVerification.kycStatus === "VERIFIED" ? "verified-glow" : ""
+                  }`}
+                >
                   <div className="reg-id-card-top">
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <Leaf size={18} color="#4ade80" />
@@ -849,7 +1112,9 @@ export default function RegisterPage() {
                         KISANQUEUE DIGITAL PASS
                       </span>
                     </div>
-                    <span className="reg-id-badge-chip">VERIFIED APMC</span>
+                    <span className="reg-id-badge-chip">
+                      {kycVerification.kycStatus === "VERIFIED" ? "✅ GOVT. VERIFIED" : "PENDING KYC"}
+                    </span>
                   </div>
 
                   <div className="reg-id-card-body">
@@ -876,7 +1141,7 @@ export default function RegisterPage() {
                       <div>
                         <div className="reg-id-item-label">Location</div>
                         <div className="reg-id-item-val">
-                          {formData.village}, {formData.district}
+                          {formData.village}, {formData.tehsil}, {formData.district}
                         </div>
                       </div>
 
@@ -890,8 +1155,12 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="reg-id-card-footer">
-                    <span>Farmer ID: <strong>{formData.farmerId || "PMK-" + Math.floor(100000 + Math.random() * 900000)}</strong></span>
-                    <span>State: <strong>{formData.state}</strong></span>
+                    <span>
+                      Farmer ID: <strong>{formData.farmerId || (kycVerification.verifiedAadhaarLast4 ? `AADH-${kycVerification.verifiedAadhaarLast4}` : "PMK-984210")}</strong>
+                    </span>
+                    <span>
+                      PIN: <strong>{formData.pincode}</strong> • State: <strong>{formData.state}</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -915,7 +1184,7 @@ export default function RegisterPage() {
                     style={{ marginTop: "3px", width: "16px", height: "16px", accentColor: "#16a34a" }}
                   />
                   <span>
-                    I certify that the above agricultural details are accurate and agree to follow Mandi Queue regulations and MSP procurement norms.
+                    I certify that the above agricultural details and KYC documents are genuine and agree to follow Mandi Queue regulations and MSP procurement norms.
                   </span>
                 </label>
               </motion.div>
@@ -960,6 +1229,18 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+
+      {/* ── DigiLocker Verification Modal ── */}
+      <AnimatePresence>
+        {isDigiLockerOpen && (
+          <DigiLockerModal
+            isOpen={isDigiLockerOpen}
+            onClose={() => setIsDigiLockerOpen(false)}
+            farmerName={formData.name}
+            onVerified={handleDigiLockerVerified}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

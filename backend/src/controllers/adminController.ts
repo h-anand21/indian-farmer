@@ -273,3 +273,42 @@ export async function getAnalytics(_req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+
+/**
+ * GET /api/admin/admins
+ * List all whitelisted administrator emails
+ */
+export async function getWhitelistedAdmins(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const { getDynamicAdminEmails } = await import("../config/env");
+    const admins = getDynamicAdminEmails();
+    res.json({ success: true, data: admins });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/admin/admins
+ * Whitelist a new administrator email
+ */
+export async function postWhitelistedAdmin(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== "string" || !email.includes("@")) {
+      res.status(400).json({ success: false, message: "A valid email address is required." });
+      return;
+    }
+
+    const { addDynamicAdminEmail } = await import("../config/env");
+    const updatedList = addDynamicAdminEmail(email);
+
+    res.status(201).json({
+      success: true,
+      message: `Administrator '${email.trim().toLowerCase()}' has been whitelisted successfully.`,
+      data: updatedList,
+    });
+  } catch (error) {
+    next(error);
+  }
+}

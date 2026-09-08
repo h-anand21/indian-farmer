@@ -22,7 +22,7 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (firebaseUser: FirebaseUser) => Promise<void>;
+  login: (firebaseUser: FirebaseUser, requestedRole?: string) => Promise<void>;
   loginAsDemo: (demoRole: "FARMER" | "OPERATOR" | "ADMIN") => void;
   logout: () => Promise<void>;
   setUser: (user: UserData) => void;
@@ -48,11 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * After Firebase auth, verify token with backend
-   * to check if user is registered in our DB
+   * to check if user is registered and authorized in our DB
    */
-  const checkRegistration = useCallback(async (fbUser: FirebaseUser) => {
+  const checkRegistration = useCallback(async (fbUser: FirebaseUser, requestedRole?: string) => {
     try {
-      const result = await verifyToken();
+      const result = await verifyToken(requestedRole);
 
       setState({
         firebaseUser: fbUser,
@@ -62,9 +62,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isRegistered: Boolean(result.isRegistered && result.data),
         role: result.data?.role || "FARMER",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.warn("Token verification note:", error);
-      // For new Google account without backend profile yet
+
+      // If backend explicitly rejected due to RBAC (403 Forbidden)
+      const errorMsg = error?.response?.data?.message || error?.message;
+      if (error?.response?.status === 403 || error?.response?.data?.error?.startsWith("ACCESS_DENIED")) {
+        await signOut(auth);
+        setState({
+          firebaseUser: null,
+          user: null,
+          isLoading: false,
+          isAuthenticated: false,
+          isRegistered: false,
+          role: null,
+        });
+        throw new Error(errorMsg || "Access Denied: You are not authorized for this role.");
+      }
+
+      // For new Google account without backend profile yet (Farmer onboarding)
       setState({
         firebaseUser: fbUser,
         user: null,
@@ -80,7 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        await checkRegistration(fbUser);
+        try {
+          await checkRegistration(fbUser);
+        } catch {
+          // Handled in checkRegistration
+        }
       } else {
         setState({
           firebaseUser: null,
@@ -97,12 +117,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [checkRegistration]);
 
   /**
-   * Manual login trigger (after OTP / Google sign in)
+   * Manual login trigger (after Google sign in with role)
    */
   const login = useCallback(
-    async (fbUser: FirebaseUser) => {
+    async (fbUser: FirebaseUser, requestedRole?: string) => {
       setState((prev) => ({ ...prev, isLoading: true }));
-      await checkRegistration(fbUser);
+      await checkRegistration(fbUser, requestedRole);
     },
     [checkRegistration]
   );

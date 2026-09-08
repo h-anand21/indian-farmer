@@ -13,6 +13,8 @@ import {
   patchUserStatus,
   getAuditLogs,
   getAnalytics,
+  getWhitelistedAdmins,
+  postWhitelistedAdmin,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -22,6 +24,10 @@ router.get("/metrics", getMetrics);
 
 // Strategic analytics
 router.get("/analytics", getAnalytics);
+
+// Admin Whitelist Management
+router.get("/admins", getWhitelistedAdmins);
+router.post("/admins", postWhitelistedAdmin);
 
 // Centre management
 router.get("/centres", getCentres);

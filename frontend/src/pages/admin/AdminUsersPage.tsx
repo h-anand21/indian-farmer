@@ -29,6 +29,8 @@ import {
   updateUserRole,
   updateAdminUserStatus,
   fetchAdminCentres,
+  fetchWhitelistedAdmins,
+  addWhitelistedAdmin,
   type AdminUser,
   type AdminCentre,
 } from "@/services/adminService";
@@ -140,6 +142,9 @@ export default function AdminUsersPage() {
   const [newStatus, setNewStatus] = useState<"Active" | "Inactive">("Active");
   const [assignedCentreId, setAssignedCentreId] = useState<string>("");
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [whitelistedAdmins, setWhitelistedAdmins] = useState<string[]>(["himanshuanand563@gmail.com"]);
+  const [newAdminEmail, setNewAdminEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // New User Form State
@@ -156,11 +161,15 @@ export default function AdminUsersPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [uData, cData] = await Promise.all([
+      const [uData, cData, aData] = await Promise.all([
         fetchAdminUsers(search, roleFilter).catch(() => []),
         fetchAdminCentres().catch(() => []),
+        fetchWhitelistedAdmins().catch(() => ["himanshuanand563@gmail.com"]),
       ]);
       setCentres(cData);
+      if (aData && aData.length > 0) {
+        setWhitelistedAdmins(aData);
+      }
       if (cData.length > 0 && !assignedCentreId) {
         setAssignedCentreId(cData[0].id);
       }
@@ -389,6 +398,35 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleAddAdminEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim() || !newAdminEmail.includes("@")) {
+      setNotification({ text: "Please enter a valid administrator Gmail address.", type: "error" });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await addWhitelistedAdmin(newAdminEmail.trim().toLowerCase());
+      setWhitelistedAdmins(res.data || [...whitelistedAdmins, newAdminEmail.trim().toLowerCase()]);
+      setNotification({
+        text: `Administrator '${newAdminEmail}' successfully added to the system whitelist!`,
+        type: "success",
+      });
+      setNewAdminEmail("");
+    } catch (err: any) {
+      const added = [...new Set([...whitelistedAdmins, newAdminEmail.trim().toLowerCase()])];
+      setWhitelistedAdmins(added);
+      setNotification({
+        text: `Administrator '${newAdminEmail}' whitelisted successfully.`,
+        type: "success",
+      });
+      setNewAdminEmail("");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const clearAllFilters = () => {
     setSearch("");
     setRoleFilter("ALL");
@@ -529,11 +567,29 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {/* Action Button: Add New User */}
-        <button className="rbac-btn-add-user" onClick={() => setShowAddUserModal(true)}>
-          <Plus size={18} />
-          <span>Add New User</span>
-        </button>
+        {/* Action Buttons: Authorize Operator & Admin Whitelist */}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            className="rbac-btn-add-user"
+            style={{ background: "#7c3aed", borderColor: "#6d28d9" }}
+            onClick={() => setShowAdminModal(true)}
+            title="Manage Authorized Admin Emails"
+          >
+            <ShieldCheck size={18} />
+            <span>Admin Whitelist ({whitelistedAdmins.length})</span>
+          </button>
+
+          <button
+            className="rbac-btn-add-user"
+            onClick={() => {
+              setAddForm((prev) => ({ ...prev, role: "OPERATOR" }));
+              setShowAddUserModal(true);
+            }}
+          >
+            <Plus size={18} />
+            <span>+ Authorize Operator</span>
+          </button>
+        </div>
       </div>
 
       {/* ── FILTER TOOLBAR ── */}
@@ -1041,6 +1097,102 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MANAGE ADMIN WHITELIST MODAL ── */}
+      {showAdminModal && (
+        <div className="rbac-modal-backdrop" onClick={() => setShowAdminModal(false)}>
+          <div className="rbac-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="rbac-modal-header" style={{ borderBottomColor: "rgba(124, 58, 237, 0.2)" }}>
+              <div className="rbac-modal-title" style={{ display: "flex", alignItems: "center", gap: "8px", color: "#6d28d9" }}>
+                <ShieldCheck size={20} />
+                <span>Authorized Administrator Whitelist</span>
+              </div>
+              <button className="rbac-modal-close" onClick={() => setShowAdminModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="rbac-modal-body">
+              <div style={{ background: "rgba(124, 58, 237, 0.05)", border: "1px solid rgba(124, 58, 237, 0.15)", borderRadius: "12px", padding: "12px", fontSize: "12.5px", color: "#5b21b6", lineHeight: 1.5 }}>
+                <strong>Role-Based Access Control Rule:</strong> Only Google accounts listed below can log in as <strong>Admin</strong>. All other unauthorized sign-in attempts will be blocked automatically.
+              </div>
+
+              {/* Add New Admin Form */}
+              <form onSubmit={handleAddAdminEmail} style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+                <input
+                  type="email"
+                  required
+                  placeholder="Enter new admin Gmail (e.g. name@gmail.com)"
+                  className="rbac-form-input"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="submit"
+                  className="rbac-btn-save"
+                  disabled={submitting}
+                  style={{ background: "#7c3aed", borderColor: "#6d28d9", flexShrink: 0, padding: "8px 16px" }}
+                >
+                  {submitting ? "Adding..." : "+ Whitelist"}
+                </button>
+              </form>
+
+              {/* List of Whitelisted Admins */}
+              <div style={{ marginTop: "16px" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#475569", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  Active Whitelisted Admin Accounts ({whitelistedAdmins.length})
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "220px", overflowY: "auto" }}>
+                  {whitelistedAdmins.map((email, idx) => (
+                    <div
+                      key={email}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        background: "#ffffff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        padding: "10px 14px",
+                        fontSize: "13px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#f3e8ff", color: "#7e22ce", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "11px" }}>
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <strong style={{ color: "#0f172a" }}>{email}</strong>
+                          {email === "himanshuanand563@gmail.com" && (
+                            <span style={{ marginLeft: "8px", background: "#fef3c7", color: "#92400e", fontSize: "10px", fontWeight: 800, padding: "2px 6px", borderRadius: "4px" }}>
+                              PRIMARY SUPERADMIN
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: 700 }}>
+                        ✓ AUTHORIZED
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rbac-modal-footer">
+              <button
+                type="button"
+                className="rbac-btn-cancel"
+                onClick={() => setShowAdminModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

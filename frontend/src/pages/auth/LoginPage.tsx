@@ -124,7 +124,7 @@ export default function LoginPage() {
       });
 
       const result = await signInWithPopup(auth, provider);
-      await login(result.user);
+      await login(result.user, activeRole);
     } catch (err: any) {
       console.error("Google Sign-In Error:", err);
       if (err.code === "auth/popup-closed-by-user") {
@@ -133,6 +133,8 @@ export default function LoginPage() {
         setError("Network connection error. Check your internet connection.");
       } else if (err.code === "auth/unauthorized-domain") {
         setError("Domain not authorized in Firebase Console. Add 'localhost' to authorized domains.");
+      } else if (err.message) {
+        setError(err.message);
       } else {
         // Graceful redirect to register onboarding
         navigate({ to: "/register" });
@@ -420,6 +422,41 @@ export default function LoginPage() {
                 <Settings size={16} />
                 <span>Admin</span>
               </button>
+            </div>
+
+            {/* Role Policy Info Badge */}
+            <div
+              style={{
+                fontSize: "11.5px",
+                padding: "7px 12px",
+                borderRadius: "10px",
+                background:
+                  activeRole === "FARMER"
+                    ? "rgba(34, 197, 94, 0.08)"
+                    : activeRole === "OPERATOR"
+                    ? "rgba(59, 130, 246, 0.08)"
+                    : "rgba(168, 85, 247, 0.08)",
+                color:
+                  activeRole === "FARMER"
+                    ? "#15803d"
+                    : activeRole === "OPERATOR"
+                    ? "#1d4ed8"
+                    : "#7e22ce",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                border:
+                  activeRole === "FARMER"
+                    ? "1px solid rgba(34, 197, 94, 0.2)"
+                    : activeRole === "OPERATOR"
+                    ? "1px solid rgba(59, 130, 246, 0.2)"
+                    : "1px solid rgba(168, 85, 247, 0.2)",
+              }}
+            >
+              {activeRole === "FARMER" && "🌾 Open Access: Any farmer can sign in with personal Gmail"}
+              {activeRole === "OPERATOR" && "🏢 Restricted: Authorized Mandi staff assigned by Admin only"}
+              {activeRole === "ADMIN" && "🛡️ Whitelisted: Restricted to authorized Administrator Gmails"}
             </div>
 
             {/* Error Banner */}
