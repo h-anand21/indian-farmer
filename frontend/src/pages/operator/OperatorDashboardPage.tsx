@@ -522,7 +522,7 @@ export default function OperatorDashboardPage() {
         <div className="kq-table-grid">
           {/* Table Header */}
           <div className="kq-table-head">
-            <span>#</span>
+            <span>Token #</span>
             <span>Farmer Details</span>
             <span>Crop & Quantity</span>
             <span>Status</span>
@@ -564,28 +564,35 @@ export default function OperatorDashboardPage() {
                 }`}
               >
                 {/* 1. Token Pill */}
-                <div>
+                <div style={{ display: "flex", alignItems: "center" }}>
                   <div className="kq-token-pill">{displayToken}</div>
                 </div>
 
                 {/* 2. Farmer Details */}
                 <div className="kq-farmer-col">
-                  <span className="kq-farmer-name">{item.farmerName}</span>
+                  <span className="kq-farmer-name" title={item.farmerName}>{item.farmerName}</span>
                   <span className="kq-farmer-phone">
                     ☎ {item.farmerPhone || "—"}
                   </span>
                   {(selectedCentreId === "ALL" || item.centreName) && (
-                    <span style={{
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      color: "#0284c7",
-                      background: "#e0f2fe",
-                      padding: "2px 7px",
-                      borderRadius: "4px",
-                      display: "inline-block",
-                      marginTop: "3px",
-                      width: "fit-content"
-                    }}>
+                    <span
+                      title={item.centreName}
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        color: "#0284c7",
+                        background: "#e0f2fe",
+                        padding: "2px 8px",
+                        borderRadius: "5px",
+                        display: "inline-block",
+                        marginTop: "4px",
+                        width: "fit-content",
+                        maxWidth: "220px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       🏛️ {item.centreName || item.centreCode || "Mandi"}
                     </span>
                   )}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Papa from "papaparse";
 import api from "../../services/api";
 import { toast } from "sonner";
+import { fetchCentres, type CentreData } from "@/services/bookingService";
 import "@/styles/DailyReport.css";
 
 interface ReportRecord {
@@ -10,88 +11,56 @@ interface ReportRecord {
   farmerName: string;
   phone: string;
   crop: string;
+  centreName?: string;
+  centreCode?: string;
   qualityGrade: string;
   moisturePercent: number;
   actualWeight: number;
   amount: number;
-  dbtStatus: "CREDITED" | "PROCESSING" | "FAILED";
+  dbtStatus: "CREDITED" | "PROCESSING" | "FAILED" | string;
   utrNumber: string;
   date: string;
   time: string;
 }
 
-const DEMO_RECORDS: ReportRecord[] = [
-  {
-    receiptNumber: "PR-KHN-10482",
-    token: "KQ-KHN-1048",
-    farmerName: "Sardar Gurdeep Singh",
-    phone: "+91 98140 12345",
-    crop: "Sharbati Wheat",
-    qualityGrade: "GRADE_A",
-    moisturePercent: 11.2,
-    actualWeight: 45.5,
-    amount: 103513,
-    dbtStatus: "CREDITED",
-    utrNumber: "DBT-2026-948210",
-    date: "07 Sep 2026",
-    time: "10:32 AM",
-  },
-  {
-    receiptNumber: "PR-KHN-10483",
-    token: "KQ-KHN-1049",
-    farmerName: "Harinder Singh Gill",
-    phone: "+91 98722 56789",
-    crop: "Sharbati Wheat",
-    qualityGrade: "GRADE_A",
-    moisturePercent: 11.0,
-    actualWeight: 52.0,
-    amount: 118300,
-    dbtStatus: "CREDITED",
-    utrNumber: "DBT-2026-948211",
-    date: "07 Sep 2026",
-    time: "11:05 AM",
-  },
-  {
-    receiptNumber: "PR-KHN-10484",
-    token: "KQ-KHN-1050",
-    farmerName: "Jasbir Kaur Sandhu",
-    phone: "+91 94178 98765",
-    crop: "Basmati Paddy",
-    qualityGrade: "GRADE_A",
-    moisturePercent: 11.5,
-    actualWeight: 40.0,
-    amount: 92000,
-    dbtStatus: "PROCESSING",
-    utrNumber: "DBT-2026-948212",
-    date: "07 Sep 2026",
-    time: "11:42 AM",
-  },
-];
-
 export const DailyReportPage: React.FC = () => {
-  const [reportDate, setReportDate] = useState<string>("2026-09-07");
-  const [selectedMandi, setSelectedMandi] = useState<string>("ALL");
+  const [centres, setCentres] = useState<CentreData[]>([]);
+  const [reportDate, setReportDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const [selectedMandi, setSelectedMandi] = useState<string>(() => localStorage.getItem("operator_selected_centre_id") || "ALL");
   const [selectedCrop, setSelectedCrop] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [records, setRecords] = useState<ReportRecord[]>(DEMO_RECORDS);
+  const [records, setRecords] = useState<ReportRecord[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<ReportRecord | null>(null);
+
+  // Load centres
+  useEffect(() => {
+    fetchCentres()
+      .then((list) => {
+        setCentres(list);
+      })
+      .catch((e) => console.error("Centres fetch failed:", e));
+  }, []);
 
   const fetchReport = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/api/procurement/daily-report/centre-punjab-01?date=${reportDate}`);
-      if (res.data?.success && res.data.data?.records?.length > 0) {
+      const targetMandi = selectedMandi || "ALL";
+      const res = await api.get(`/procurement/daily-report/${targetMandi}?date=${reportDate}`);
+      if (res.data?.success && Array.isArray(res.data.data?.records)) {
         setRecords(res.data.data.records);
+        if (res.data.data.records.length > 0) {
+          toast.success(`Loaded ${res.data.data.records.length} procurement records!`);
+        }
       } else {
-        setRecords(DEMO_RECORDS);
+        setRecords([]);
       }
-      toast.success("Report data refreshed successfully!");
-    } catch {
-      setRecords(DEMO_RECORDS);
-      toast.success("Report data loaded!");
+    } catch (e) {
+      console.error("Report fetch error:", e);
+      setRecords([]);
+      toast.error("Failed to load daily procurement report");
     } finally {
       setLoading(false);
     }
@@ -99,7 +68,10 @@ export const DailyReportPage: React.FC = () => {
 
   useEffect(() => {
     fetchReport();
-  }, [reportDate]);
+  }, [reportDate, selectedMandi]);
+
+  // Dynamic list of unique crops from records
+  const availableCrops = Array.from(new Set(records.map((r) => r.crop))).filter(Boolean);
 
   // Search & Filter records
   const filteredRecords = records.filter((r) => {
@@ -207,12 +179,18 @@ export const DailyReportPage: React.FC = () => {
             <span>📍</span>
             <select
               value={selectedMandi}
-              onChange={(e) => setSelectedMandi(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedMandi(val);
+                localStorage.setItem("operator_selected_centre_id", val);
+              }}
             >
-              <option value="ALL">All Mandis</option>
-              <option value="AMBALA">Ambala City Grain Market</option>
-              <option value="KHANNA">Khanna Grain Market</option>
-              <option value="KARNAL">Karnal Mandi Yard</option>
+              <option value="ALL">🌐 All Mandis / Yards</option>
+              {centres.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.code || c.district})
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -227,9 +205,11 @@ export const DailyReportPage: React.FC = () => {
               onChange={(e) => setSelectedCrop(e.target.value)}
             >
               <option value="ALL">All Crops</option>
-              <option value="wheat">Sharbati Wheat</option>
-              <option value="paddy">Basmati Paddy</option>
-              <option value="mustard">Mustard (Sarson)</option>
+              {availableCrops.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -280,8 +260,8 @@ export const DailyReportPage: React.FC = () => {
           <div className="report-kpi-icon">👥</div>
           <div className="report-kpi-content">
             <p>Total Farmers Served</p>
-            <div className="report-kpi-number">12</div>
-            <span className="report-kpi-sub">↑ +20% from yesterday</span>
+            <div className="report-kpi-number">{filteredRecords.length}</div>
+            <span className="report-kpi-sub">✓ Completed Today</span>
           </div>
           <div className="report-kpi-decoration">👥</div>
         </div>
@@ -292,7 +272,7 @@ export const DailyReportPage: React.FC = () => {
           <div className="report-kpi-content">
             <p>Total Quantity Weighed</p>
             <div className="report-kpi-number">
-              540.5 <small>Qtl</small>
+              {Math.round(filteredRecords.reduce((sum, r) => sum + (r.actualWeight || 0), 0) * 10) / 10} <small>Qtl</small>
             </div>
             <span className="report-kpi-sub">✓ Weighbridge Verified</span>
           </div>
@@ -304,7 +284,9 @@ export const DailyReportPage: React.FC = () => {
           <div className="report-kpi-icon">₹</div>
           <div className="report-kpi-content">
             <p>Total Mandi Value Disbursed</p>
-            <div className="report-kpi-number">₹12.30 Lakh</div>
+            <div className="report-kpi-number">
+              ₹{Math.round(filteredRecords.reduce((sum, r) => sum + (r.amount || 0), 0)).toLocaleString("en-IN")}
+            </div>
             <span className="report-kpi-sub">✓ 100% Direct DBT Bank Credit</span>
           </div>
           <div className="report-kpi-decoration">📈</div>
@@ -315,7 +297,7 @@ export const DailyReportPage: React.FC = () => {
           <div className="report-kpi-icon">📄</div>
           <div className="report-kpi-content">
             <p>Official Receipts Generated</p>
-            <div className="report-kpi-number">12</div>
+            <div className="report-kpi-number">{filteredRecords.length}</div>
             <span className="report-kpi-sub" style={{ color: "#9333ea" }}>
               ✓ J-Forms Synchronized
             </span>
@@ -365,6 +347,25 @@ export const DailyReportPage: React.FC = () => {
             <span style={{ textAlign: "center" }}>Actions</span>
           </div>
 
+          {/* Empty State */}
+          {filteredRecords.length === 0 && !loading && (
+            <div style={{
+              padding: "48px 24px",
+              textAlign: "center",
+              color: "#64748b",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "8px",
+            }}>
+              <div style={{ fontSize: "40px" }}>📄</div>
+              <strong style={{ fontSize: "16px", color: "#1e293b" }}>No Procurement Records Found</strong>
+              <p style={{ fontSize: "13px", margin: 0, maxWidth: "420px" }}>
+                There are no completed procurement records for the selected date and filters. Records appear automatically as weighments are recorded.
+              </p>
+            </div>
+          )}
+
           {filteredRecords.map((record, index) => (
             <div key={record.receiptNumber || index} className="report-table-row">
               {/* Index */}
@@ -384,6 +385,23 @@ export const DailyReportPage: React.FC = () => {
                 <div>
                   <strong>{record.farmerName}</strong>
                   <small>{record.phone}</small>
+                  {record.centreName && (
+                    <span style={{
+                      fontSize: "10px",
+                      color: "#0369a1",
+                      background: "#e0f2fe",
+                      padding: "1px 6px",
+                      borderRadius: "4px",
+                      display: "inline-block",
+                      marginTop: "3px",
+                      maxWidth: "160px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}>
+                      🏛️ {record.centreName}
+                    </span>
+                  )}
                 </div>
               </div>
 

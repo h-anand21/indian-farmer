@@ -138,10 +138,12 @@ export const ProcessFarmerPage: React.FC = () => {
   }, [selectedCentreId]);
 
   const selectFarmerFromRoster = (item: RosterItem) => {
-    const matchedCentre = centres.find((c) => c.id === selectedCentreId);
-    const msp = item.procurement?.totalAmount && item.quantity
-      ? Math.round(item.procurement.totalAmount / item.quantity)
-      : 2275;
+    const matchedCentre = centres.find((c) => c.id === (item.centreId || selectedCentreId));
+    const msp =
+      item.cropMspPrice ||
+      (item.procurement?.totalAmount && item.quantity
+        ? Math.round(item.procurement.totalAmount / item.quantity)
+        : 2275);
 
     setActiveBooking({
       id: item.bookingId || item.id || "",
@@ -150,9 +152,9 @@ export const ProcessFarmerPage: React.FC = () => {
       farmerPhone: item.farmerPhone || "—",
       cropName: item.cropName,
       expectedQuantity: item.quantity || item.expectedQuantity || 45,
-      location: `${matchedCentre?.name || "Mandi Yard"}, ${matchedCentre?.district || ""}`,
+      location: `${item.centreName || matchedCentre?.name || "Mandi Yard"}, ${matchedCentre?.district || ""}`,
       mspRate: msp,
-      centreId: selectedCentreId,
+      centreId: item.centreId || selectedCentreId,
       status: item.status,
     });
     setActualWeight(item.quantity || item.expectedQuantity || 45);

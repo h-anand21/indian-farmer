@@ -182,23 +182,32 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
     return new Date(a.bookedAt).getTime() - new Date(b.bookedAt).getTime();
   });
 
-  return bookings.map((b) => ({
-    id: b.id,
-    bookingId: b.id,
-    centreId: b.centreId,
-    centreName: b.centre?.name || "Mandi",
-    centreCode: b.centre?.code || "",
-    token: b.token,
-    farmerId: b.farmerId,
-    farmerName: b.farmer.user.name,
-    farmerPhone: b.farmer.user.phone || "—",
-    farmerAadhaar: b.farmer.farmerId || "Verified at Portal",
-    landArea: b.farmer.landArea || 4.5,
-    village: b.farmer.village || "Local Tehsil",
-    cropName: b.crop.name,
-    expectedQuantity: b.quantity,
-    quantity: b.quantity,
-    status: b.status,
+  return bookings.map((b) => {
+    const matchedCrop = MSP_CROPS.find(
+      (c) =>
+        b.crop.name.toLowerCase().includes(c.name.split(" ")[0].toLowerCase()) ||
+        c.name.toLowerCase().includes(b.crop.name.split(" ")[0].toLowerCase())
+    );
+    const cropMspPrice = matchedCrop?.mspPrice || 2275;
+
+    return {
+      id: b.id,
+      bookingId: b.id,
+      centreId: b.centreId,
+      centreName: b.centre?.name || "Mandi",
+      centreCode: b.centre?.code || "",
+      token: b.token,
+      farmerId: b.farmerId,
+      farmerName: b.farmer.user.name,
+      farmerPhone: b.farmer.user.phone || "—",
+      farmerAadhaar: b.farmer.farmerId || "Verified at Portal",
+      landArea: b.farmer.landArea || 4.5,
+      village: b.farmer.village || "Local Tehsil",
+      cropName: b.crop.name,
+      cropMspPrice,
+      expectedQuantity: b.quantity,
+      quantity: b.quantity,
+      status: b.status,
     slotDate: b.slot.date.toISOString().split("T")[0],
     slotWindow: `${b.slot.startTime} - ${b.slot.endTime}`,
     queuePosition: b.queueEntry?.position ?? null,
@@ -230,7 +239,8 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
           utrNumber: b.payment.utrNumber,
         }
       : null,
-  }));
+    };
+  });
 }
 
 /**

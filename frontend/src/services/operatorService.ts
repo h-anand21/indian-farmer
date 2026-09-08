@@ -29,6 +29,7 @@ export interface RosterItem {
   landArea?: number;
   village?: string;
   cropName: string;
+  cropMspPrice?: number;
   expectedQuantity?: number;
   quantity?: number;
   status?: string;
