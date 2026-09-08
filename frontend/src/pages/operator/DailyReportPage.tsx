@@ -172,8 +172,8 @@ export const DailyReportPage: React.FC = () => {
 
         <div className="report-hero-right">
           <div className="report-hero-slogan">
-            Kisan ki Mehnat,<br />
-            Desh ki Pehchaan! 🌿
+            Farmer's Hard Work,<br />
+            Nation's Pride! 🌿
           </div>
           <div className="report-hero-sub">
             Government of India &bull; APMC Portal

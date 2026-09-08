@@ -308,7 +308,8 @@ export async function checkInBooking(bookingId: string) {
 export async function advanceCentreQueue(
   centreId: string,
   counterNumber: number,
-  action: "CALL_NEXT" | "START_PROCUREMENT" | "COMPLETE" | "SKIP"
+  action: "CALL_NEXT" | "START_PROCUREMENT" | "COMPLETE" | "SKIP" | "RESET",
+  bookingId?: string
 ) {
   const centre = await prisma.procurementCentre.findUnique({
     where: { id: centreId },
@@ -348,19 +349,46 @@ export async function advanceCentreQueue(
         where: { id: currentAtCounter.id },
       }),
     ]);
-  } else if (action === "SKIP" && currentAtCounter) {
-    await prisma.$transaction([
-      prisma.booking.update({
-        where: { id: currentAtCounter.bookingId },
-        data: { status: "CANCELLED" },
-      }),
-      prisma.queueEntry.delete({
-        where: { id: currentAtCounter.id },
-      }),
-    ]);
+  } else if (action === "RESET") {
+    // Reset bookings at this centre so user can test arrival check-in from beginning
+    const centreBookings = await prisma.booking.findMany({
+      where: { centreId },
+      take: 10,
+    });
+    for (let i = 0; i < centreBookings.length; i++) {
+      const b = centreBookings[i];
+      const newStatus = i === 0 ? "BOOKED" : "WAITING";
+      await prisma.booking.update({
+        where: { id: b.id },
+        data: {
+          status: newStatus,
+          checkedInAt: newStatus === "WAITING" ? new Date() : null,
+          completedAt: null,
+        },
+      });
+      if (newStatus === "WAITING") {
+        await prisma.queueEntry.upsert({
+          where: { bookingId: b.id },
+          create: {
+            bookingId: b.id,
+            centreId,
+            position: i,
+            estimatedWaitMins: i * 8,
+          },
+          update: {
+            position: i,
+            counterNo: null,
+            calledAt: null,
+            estimatedWaitMins: i * 8,
+          },
+        });
+      } else {
+        await prisma.queueEntry.deleteMany({ where: { bookingId: b.id } });
+      }
+    }
   } else if (action === "CALL_NEXT") {
     // If an existing token was at this counter, complete it first
-    if (currentAtCounter) {
+    if (currentAtCounter && (!bookingId || currentAtCounter.bookingId !== bookingId)) {
       await prisma.$transaction([
         prisma.booking.update({
           where: { id: currentAtCounter.bookingId },
@@ -375,23 +403,64 @@ export async function advanceCentreQueue(
       ]);
     }
 
-    // Find next waiting entry in queue
-    const nextWaiting = await prisma.queueEntry.findFirst({
-      where: {
-        centreId,
-        booking: {
-          status: { in: ["WAITING", "CHECKED_IN"] },
+    // Find target waiting entry in queue (either specific bookingId or next in line)
+    let nextWaiting: any = null;
+    if (bookingId) {
+      nextWaiting = await prisma.queueEntry.findFirst({
+        where: {
+          centreId,
+          bookingId,
         },
-      },
-      orderBy: { position: "asc" },
-      include: {
-        booking: {
-          include: {
-            farmer: true,
+        include: {
+          booking: {
+            include: {
+              farmer: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      if (!nextWaiting) {
+        const b = await prisma.booking.findUnique({
+          where: { id: bookingId },
+          include: { farmer: true },
+        });
+        if (b) {
+          nextWaiting = await prisma.queueEntry.create({
+            data: {
+              bookingId: b.id,
+              centreId,
+              position: 1,
+              counterNo: counterNumber,
+              calledAt: new Date(),
+              estimatedWaitMins: 0,
+            },
+            include: {
+              booking: {
+                include: { farmer: true },
+              },
+            },
+          });
+        }
+      }
+    } else {
+      nextWaiting = await prisma.queueEntry.findFirst({
+        where: {
+          centreId,
+          booking: {
+            status: { in: ["WAITING", "CHECKED_IN"] },
+          },
+        },
+        orderBy: { position: "asc" },
+        include: {
+          booking: {
+            include: {
+              farmer: true,
+            },
+          },
+        },
+      });
+    }
 
     if (nextWaiting) {
       await prisma.$transaction([
@@ -460,71 +529,8 @@ export async function advanceCentreQueue(
 /**
  * Seed realistic sample waiting entries for testing queue advancement
  */
-export async function seedQueueIfEmpty(centreId: string) {
-  const count = await prisma.queueEntry.count({ where: { centreId } });
-  if (count > 0) return;
-
-  const centre = await prisma.procurementCentre.findUnique({
-    where: { id: centreId },
-    include: { slots: true },
-  });
-  if (!centre || centre.slots.length === 0) return;
-
-  const slot = centre.slots[0];
-
-  // Find or create test farmer
-  let farmer = await prisma.farmer.findFirst({
-    include: { user: true, crops: true },
-  });
-
-  if (!farmer) return;
-
-  let crop = farmer.crops[0];
-  if (!crop) {
-    crop = await prisma.crop.create({
-      data: {
-        farmerId: farmer.id,
-        name: "Wheat (Kanak)",
-        quantity: 80,
-      },
-    });
-  }
-
-  const sampleTokens = [
-    `${centre.code.split("-")[1] || "MND"}-1035`,
-    `${centre.code.split("-")[1] || "MND"}-1036`,
-    `${centre.code.split("-")[1] || "MND"}-1037`,
-    `${centre.code.split("-")[1] || "MND"}-1038`,
-    `${centre.code.split("-")[1] || "MND"}-1039`,
-  ];
-
-  for (let i = 0; i < sampleTokens.length; i++) {
-    const token = sampleTokens[i];
-    const isCalled = i === 0;
-    const isServing = i === 1;
-
-    const b = await prisma.booking.create({
-      data: {
-        farmerId: farmer.id,
-        centreId: centre.id,
-        slotId: slot.id,
-        cropId: crop.id,
-        token: `KQ-${token}`,
-        quantity: 45 + i * 10,
-        status: isCalled ? "CALLED" : isServing ? "IN_PROCUREMENT" : "WAITING",
-        checkedInAt: new Date(),
-      },
-    });
-
-    await prisma.queueEntry.create({
-      data: {
-        bookingId: b.id,
-        centreId: centre.id,
-        position: i + 1,
-        counterNo: isCalled ? 1 : isServing ? 2 : null,
-        calledAt: isCalled || isServing ? new Date() : null,
-        estimatedWaitMins: (i + 1) * 10,
-      },
-    });
-  }
+export async function seedQueueIfEmpty(_centreId: string) {
+  // Disabled: Only real farmer bookings should appear in the physical mandi queue
+  return;
 }
+

@@ -440,7 +440,7 @@ export default function AdminDashboardPage() {
   const handleResetView = () => {
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
-    setSelectedMandi(GIS_MANDIS[0]);
+    setSelectedMandi(gisMandis[0] || null);
   };
 
   // Pan / Drag handlers for Google Map feel
@@ -1192,8 +1192,8 @@ export default function AdminDashboardPage() {
             <path d="M24 38 C18 34, 18 26, 24 22 C30 26, 30 34, 24 38 Z" fill="#fef3c7" stroke="#d97706" strokeWidth="1.5" />
           </svg>
           <div className="admin-trust-slogan">
-            Kisan ki Mehnat,<br />
-            Desh ki Pehchaan <span style={{ color: "#16a34a" }}>🌿</span>
+            Farmer's Hard Work,<br />
+            Nation's Pride <span style={{ color: "#16a34a" }}>🌿</span>
           </div>
         </div>
       </div>

@@ -310,8 +310,8 @@ export default function MyBookingsPage() {
         </div>
 
         <div className="hero-text">
-          Kisan ki Mehnat,<br />
-          Desh ki Pehchan! 🌿
+          Farmer's Hard Work,<br />
+          Nation's Pride! 🌿
         </div>
       </section>
 

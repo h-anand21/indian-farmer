@@ -105,6 +105,13 @@ export async function fetchOperatorRoster(
   return res.data.data;
 }
 
+export async function fetchBookingDetails(bookingId: string): Promise<any> {
+  const res = await api.get<{ success: boolean; data: any }>(
+    `/operator/booking-details/${bookingId}`
+  );
+  return res.data.data;
+}
+
 export async function operatorGateCheckIn(payload: {
   centreId: string;
   tokenOrCode: string;

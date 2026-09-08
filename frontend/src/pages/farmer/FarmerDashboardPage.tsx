@@ -225,14 +225,14 @@ export default function FarmerDashboardPage() {
         </div>
 
         <div className="hero-slogan">
-          Kisan ka<br />
-          Sammaan<br />
-          Desh ki Pehchaan 🌿
+          Empowering<br />
+          Farmers,<br />
+          Nation's Pride 🌿
         </div>
 
         <div className="govt-quote">
-          “Annadata ki<br />
-          seva, Desh ki unnati”<br />
+          “Serving Farmers,<br />
+          Advancing the Nation”<br />
           — Govt. of India
         </div>
       </section>

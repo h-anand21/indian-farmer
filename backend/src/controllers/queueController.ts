@@ -16,7 +16,8 @@ const checkInSchema = z.object({
 const advanceQueueSchema = z.object({
   centreId: z.string().min(1, "Centre ID is required"),
   counterNumber: z.number().int().positive().default(1),
-  action: z.enum(["CALL_NEXT", "START_PROCUREMENT", "COMPLETE", "SKIP"]).default("CALL_NEXT"),
+  action: z.enum(["CALL_NEXT", "START_PROCUREMENT", "COMPLETE", "SKIP", "RESET"]).default("CALL_NEXT"),
+  bookingId: z.string().optional(),
 });
 
 /**
@@ -32,9 +33,7 @@ export async function getCentreQueue(req: Request, res: Response, next: NextFunc
       return;
     }
 
-    // Seed realistic sample queue entries if currently empty for demo
-    await seedQueueIfEmpty(centreId);
-
+    // Return real queue state without auto-seeding fake bookings
     const queueState = await getCentreQueueState(centreId);
     res.json({
       success: true,
@@ -111,7 +110,8 @@ export async function postAdvanceQueue(req: Request, res: Response, next: NextFu
     const updatedState = await advanceCentreQueue(
       parsed.centreId,
       parsed.counterNumber,
-      parsed.action
+      parsed.action,
+      parsed.bookingId
     );
 
     res.json({

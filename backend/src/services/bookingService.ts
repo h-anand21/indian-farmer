@@ -391,34 +391,20 @@ export async function getFarmerBookings(firebaseUid: string) {
     include: { farmer: true },
   });
 
-  if (!user) return [];
+  // If user doesn't exist or has no farmer profile → return empty
+  // (new users, admin-only accounts, etc. should NOT see other farmers' bookings)
+  if (!user || !user.farmer) return [];
 
-  let bookings: any[] = [];
-
-  if (user.farmer) {
-    bookings = await prisma.booking.findMany({
-      where: { farmerId: user.farmer.id },
-      include: {
-        centre: true,
-        slot: true,
-        crop: true,
-        queueEntry: true,
-      },
-      orderBy: { bookedAt: "desc" },
-    });
-  } else if (user.role === "ADMIN") {
-    // If admin is testing/viewing, return recent bookings so admin can see real data
-    bookings = await prisma.booking.findMany({
-      take: 20,
-      include: {
-        centre: true,
-        slot: true,
-        crop: true,
-        queueEntry: true,
-      },
-      orderBy: { bookedAt: "desc" },
-    });
-  }
+  const bookings = await prisma.booking.findMany({
+    where: { farmerId: user.farmer.id },
+    include: {
+      centre: true,
+      slot: true,
+      crop: true,
+      queueEntry: true,
+    },
+    orderBy: { bookedAt: "desc" },
+  });
 
   return bookings.map((b) => ({
     ...b,
@@ -429,6 +415,7 @@ export async function getFarmerBookings(firebaseUid: string) {
     queueNumber: b.queueEntry?.position || 1,
   }));
 }
+
 
 /**
  * Get single booking details with token pass

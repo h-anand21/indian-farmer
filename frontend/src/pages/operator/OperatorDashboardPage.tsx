@@ -11,87 +11,51 @@ import { advanceQueueSimulation } from "@/services/queueService";
 import { getSocket, joinCentreRoom, leaveCentreRoom } from "@/lib/socket";
 import "@/styles/OperatorQueue.css";
 
-// Demo Roster Items matching exact reference UI (Image 2)
-const DEMO_ROSTER: RosterItem[] = [
-  {
-    bookingId: "b-114",
-    token: "B-114",
-    farmerId: "f-1",
-    farmerName: "Sardar Gurdeep Singh",
-    farmerPhone: "+91 98140 12345",
-    cropName: "Sharbati Wheat",
-    quantity: 45,
-    status: "CALLED" as any,
-    slotWindow: "09:00 - 11:00",
-    checkInTime: "12:12 AM",
-    vehicleNumber: "PB-10-AB-4821",
-    counterNumber: 1,
-  },
-  {
-    bookingId: "b-115",
-    token: "B-115",
-    farmerId: "f-2",
-    farmerName: "Harinder Singh Gill",
-    farmerPhone: "+91 98722 56789",
-    cropName: "Sharbati Wheat",
-    quantity: 52,
-    status: "WAITING" as any,
-    slotWindow: "09:00 - 11:00",
-    checkInTime: "12:12 AM",
-    vehicleNumber: "HR-01-CD-1122",
-  },
-  {
-    bookingId: "b-116",
-    token: "B-116",
-    farmerId: "f-3",
-    farmerName: "Jasbir Kaur Sandhu",
-    farmerPhone: "+91 94178 98765",
-    cropName: "Basmati Paddy",
-    quantity: 40,
-    status: "WAITING" as any,
-    slotWindow: "09:00 - 11:00",
-    checkInTime: "12:12 AM",
-    vehicleNumber: "PB-11-EF-9988",
-  },
-  {
-    bookingId: "b-117",
-    token: "B-117",
-    farmerId: "f-4",
-    farmerName: "Manjit Singh Brar",
-    farmerPhone: "+91 98150 44321",
-    cropName: "Sharbati Wheat",
-    quantity: 60,
-    status: "WAITING" as any,
-    slotWindow: "09:00 - 11:00",
-    checkInTime: "12:12 AM",
-    vehicleNumber: "HR-02-GH-3344",
-  },
-];
 
-// Helper to normalize tokens cleanly for crisp UI presentation
-function formatDisplayToken(token?: string, fallbackIdx: number = 0): string {
-  if (!token) return `B-${114 + fallbackIdx}`;
-  if (token.startsWith("B-")) return token;
-  const match = token.match(/\d+$/);
-  if (match) {
-    const num = parseInt(match[0], 10);
-    return `B-${num >= 1000 ? 114 + fallbackIdx : num}`;
-  }
-  return token.length > 6 ? token.slice(-5) : token;
-}
+import { toast } from "sonner";
 
 export default function OperatorDashboardPage() {
   const navigate = useNavigate();
 
   const [centres, setCentres] = useState<CentreData[]>([]);
-  const [selectedCentreId, setSelectedCentreId] = useState<string>("");
+  const [selectedCentreId, setSelectedCentreId] = useState<string>(
+    () => localStorage.getItem("operator_selected_centre_id") || "ALL"
+  );
 
   const [metrics, setMetrics] = useState<OperatorMetrics | null>(null);
-  const [roster, setRoster] = useState<RosterItem[]>(DEMO_ROSTER);
+  const [roster, setRoster] = useState<RosterItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [socketConnected, setSocketConnected] = useState(true);
+
+  // Audio Chime & PA Announcement
+  const playChime = (tokenText?: string) => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880.0, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      }
+    } catch {
+      // Audio not permitted
+    }
+    if (tokenText) {
+      toast.info(`📢 Calling Token #${tokenText} to Desk!`, {
+        description: "PA announcement broadcast to Mandi yard.",
+      });
+    }
+  };
 
   // Load centres
   useEffect(() => {
@@ -99,8 +63,15 @@ export default function OperatorDashboardPage() {
       try {
         const data = await fetchCentres();
         setCentres(data);
-        if (data.length > 0) {
+
+        // Check if user had a saved centre in localStorage
+        const saved = localStorage.getItem("operator_selected_centre_id");
+        if (saved && (saved === "ALL" || data.some((c) => c.id === saved))) {
+          setSelectedCentreId(saved);
+        } else if (data.length > 0) {
+          // Default to first centre if no saved choice
           setSelectedCentreId(data[0].id);
+          localStorage.setItem("operator_selected_centre_id", data[0].id);
         }
       } catch (err) {
         console.error("Failed to load centres:", err);
@@ -108,6 +79,11 @@ export default function OperatorDashboardPage() {
     }
     loadCentres();
   }, []);
+
+  const handleCentreChange = (val: string) => {
+    setSelectedCentreId(val);
+    localStorage.setItem("operator_selected_centre_id", val);
+  };
 
   // Fetch metrics & roster
   const refreshDashboard = async () => {
@@ -119,14 +95,10 @@ export default function OperatorDashboardPage() {
         fetchOperatorRoster(selectedCentreId, "ALL").catch(() => []),
       ]);
       if (metricsData) setMetrics(metricsData);
-      if (rosterData && rosterData.length > 0) {
-        setRoster(rosterData);
-      } else {
-        setRoster(DEMO_ROSTER);
-      }
+      setRoster(Array.isArray(rosterData) ? rosterData : []);
     } catch (err) {
       console.error("Dashboard refresh error:", err);
-      setRoster(DEMO_ROSTER);
+      setRoster([]);
     } finally {
       setLoading(false);
     }
@@ -140,7 +112,12 @@ export default function OperatorDashboardPage() {
   useEffect(() => {
     if (!selectedCentreId) return;
     const socket = getSocket();
-    joinCentreRoom(selectedCentreId);
+
+    if (selectedCentreId === "ALL") {
+      centres.forEach((c) => joinCentreRoom(c.id));
+    } else {
+      joinCentreRoom(selectedCentreId);
+    }
 
     const handleConnect = () => setSocketConnected(true);
     const handleDisconnect = () => setSocketConnected(false);
@@ -153,49 +130,84 @@ export default function OperatorDashboardPage() {
     socket.on("queue:called", handleUpdate);
 
     return () => {
-      leaveCentreRoom(selectedCentreId);
+      if (selectedCentreId === "ALL") {
+        centres.forEach((c) => leaveCentreRoom(c.id));
+      } else {
+        leaveCentreRoom(selectedCentreId);
+      }
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("queue:updated", handleUpdate);
       socket.off("queue:called", handleUpdate);
     };
-  }, [selectedCentreId]);
+  }, [selectedCentreId, centres]);
 
   // Call Next Token trigger
   const handleCallNext = async () => {
-    if (!selectedCentreId) return;
+    const targetCentreId =
+      selectedCentreId === "ALL" ? (nextInLine?.centreId || centres[0]?.id) : selectedCentreId;
+    if (!targetCentreId) {
+      toast.info("No waiting farmers in queue to call");
+      return;
+    }
     try {
       setActionLoading(true);
+      playChime(nextInLine?.token);
       await advanceQueueSimulation({
-        centreId: selectedCentreId,
+        centreId: targetCentreId,
         counterNumber: 1,
         action: "CALL_NEXT",
+        bookingId: nextInLine?.bookingId || nextInLine?.id,
       });
       await refreshDashboard();
+      toast.success(`Called token #${nextInLine?.token || "next"} to desk!`);
     } catch (e) {
-      // Local fallback rotation for interactive demo
-      setRoster((prev) => {
-        if (prev.length <= 1) return prev;
-        const [first, second, ...rest] = prev;
-        return [
-          { ...second, status: "CALLED" as any },
-          ...rest,
-          { ...first, status: "COMPLETED" as any },
-        ];
-      });
+      console.error("Call next failed:", e);
+      toast.error("Failed to call next token");
     } finally {
       setActionLoading(false);
     }
   };
 
-  const activeServing =
-    roster.find((item) => item.status === "CALLED" || item.status === "IN_PROCUREMENT") ||
-    roster[0];
+  // Call specific farmer token to desk
+  const handleCallSpecific = async (bookingId: string, token: string, itemCentreId?: string) => {
+    const targetCentreId = itemCentreId || (selectedCentreId === "ALL" ? centres[0]?.id : selectedCentreId);
+    if (!targetCentreId || !bookingId) return;
+    try {
+      setActionLoading(true);
+      playChime(token);
+      await advanceQueueSimulation({
+        centreId: targetCentreId,
+        counterNumber: 1,
+        action: "CALL_NEXT",
+        bookingId,
+      });
+      await refreshDashboard();
+      toast.success(`Called token #${token} to desk!`);
+    } catch (e) {
+      console.error("Call specific failed:", e);
+      toast.error("Failed to call token to desk");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
+  const selectedCentre =
+    selectedCentreId === "ALL"
+      ? { id: "ALL", name: "All Mandis / Yards (Consolidated Queue)", code: "ALL-YARDS", district: "All Mandis" }
+      : centres.find((c) => c.id === selectedCentreId);
+
+  // Active serving is ONLY someone who is actually CALLED or IN_PROCUREMENT
+  const activeServing =
+    roster.find((item) => item.status === "CALLED" || item.status === "IN_PROCUREMENT") || null;
+
+  // Next in line is first farmer waiting in yard
   const nextInLine =
     roster.find(
-      (item) => item.bookingId !== activeServing?.bookingId && item.status !== "COMPLETED"
-    ) || roster[1];
+      (item) =>
+        (item.bookingId || item.id) !== (activeServing?.bookingId || activeServing?.id) &&
+        (item.status === "WAITING" || item.status === "CHECKED_IN")
+    ) || null;
 
   const filteredRoster = roster.filter((item) => {
     if (!searchTerm.trim()) return true;
@@ -208,12 +220,111 @@ export default function OperatorDashboardPage() {
     );
   });
 
-  const waitingCount = metrics?.waitingInYard ?? 3;
-  const inProcessingCount = metrics?.inProcessing ?? 1;
-  const completedTodayCount = metrics?.completedToday ?? 64;
+  const waitingCount =
+    metrics?.waitingInYardCount ??
+    metrics?.waitingInYard ??
+    roster.filter((r) => r.status === "WAITING" || r.status === "CHECKED_IN").length;
+
+  const inProcessingCount =
+    metrics?.calledCount ??
+    metrics?.inProcessing ??
+    roster.filter((r) => r.status === "CALLED" || r.status === "IN_PROCUREMENT").length;
+
+  const completedTodayCount =
+    metrics?.completedTodayCount ??
+    metrics?.completedToday ??
+    roster.filter((r) => r.status === "COMPLETED").length;
 
   return (
     <div className="kq-operator-app">
+
+      {/* ================= MANDI SELECTOR & CONTROLS ================= */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "#ffffff",
+        padding: "14px 20px",
+        borderRadius: "12px",
+        marginBottom: "16px",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+        border: "1px solid #e2e8f0",
+        flexWrap: "wrap",
+        gap: "12px"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "24px" }}>🏛️</span>
+          <div>
+            <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Active Procurement Mandi / Yard
+            </div>
+            <select
+              value={selectedCentreId}
+              onChange={(e) => handleCentreChange(e.target.value)}
+              style={{
+                marginTop: "4px",
+                padding: "8px 14px",
+                borderRadius: "8px",
+                border: "1.5px solid #cbd5e1",
+                fontSize: "14px",
+                fontWeight: 700,
+                color: "#0f172a",
+                backgroundColor: "#f8fafc",
+                cursor: "pointer",
+                outline: "none",
+                minWidth: "280px"
+              }}
+            >
+              <option value="ALL">
+                🌐 All Mandis / Yards (Consolidated Queue)
+              </option>
+              {centres.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({c.code || c.district})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button
+            onClick={() => navigate({ to: "/operator/check-in" as any })}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "#16a34a",
+              color: "#ffffff",
+              border: "none",
+              padding: "9px 18px",
+              borderRadius: "8px",
+              fontWeight: 700,
+              fontSize: "13px",
+              cursor: "pointer",
+              boxShadow: "0 2px 4px rgba(22, 163, 74, 0.2)",
+            }}
+          >
+            <span>📷</span>
+            <span>Gate QR Check-In</span>
+          </button>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontSize: "12px",
+            fontWeight: 600,
+            color: socketConnected ? "#16a34a" : "#dc2626",
+            background: socketConnected ? "#f0fdf4" : "#fef2f2",
+            padding: "8px 14px",
+            borderRadius: "20px",
+            border: `1px solid ${socketConnected ? "#bbf7d0" : "#fecaca"}`
+          }}>
+            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: socketConnected ? "#16a34a" : "#dc2626" }}></span>
+            <span>{socketConnected ? "Live Sync Active" : "Disconnected"}</span>
+          </div>
+        </div>
+      </div>
 
       {/* ================= 4 KPI METRIC CARDS ================= */}
       <section className="kq-stats-grid">
@@ -267,8 +378,12 @@ export default function OperatorDashboardPage() {
           <div className="kq-stat-icon-wrapper">₹</div>
           <div className="kq-stat-info">
             <span className="kq-stat-label">Total Mandi Payout</span>
-            <div className="kq-stat-money">₹14.25L</div>
-            <span className="kq-stat-sub">625 Qtl Weighed</span>
+            <div className="kq-stat-money">
+              {metrics?.totalPayout ? `₹${(metrics.totalPayout / 100000).toFixed(2)}L` : "₹0.00"}
+            </div>
+            <span className="kq-stat-sub">
+              {metrics?.totalWeighed ?? roster.reduce((sum, r) => r.status === "COMPLETED" ? sum + (r.quantity || 0) : sum, 0)} Qtl Weighed
+            </span>
           </div>
           <div className="kq-stat-corner-badge" title="Financials">
             📊
@@ -281,7 +396,7 @@ export default function OperatorDashboardPage() {
         {/* Left: Active Serving Information */}
         <div className="kq-serving-left">
           <div className="kq-mandi-tag">
-            <span>●</span> Live Mandi Yard Gate • Ambala City Mandi
+            <span>●</span> Live Mandi Yard Gate • {selectedCentre ? selectedCentre.name : "Select Mandi"}
           </div>
 
           <div className="kq-serving-title">
@@ -289,18 +404,20 @@ export default function OperatorDashboardPage() {
           </div>
 
           <div className="kq-serving-token">
-            {formatDisplayToken(activeServing?.token, 0)}
+            {activeServing ? activeServing.token : "—"}
           </div>
 
           <div className="kq-serving-farmer">
             <span>👤</span>
-            <strong>{activeServing?.farmerName || "Sardar Gurdeep Singh"}</strong>
+            <strong>{activeServing ? (activeServing.farmerName || "Farmer") : "No Active Token"}</strong>
           </div>
 
           <div className="kq-serving-crop">
             <span>🌾</span>
             <span>
-              {activeServing?.cropName || "Sharbati Wheat"} ({activeServing?.quantity || 45} Qtl)
+              {activeServing
+                ? `${activeServing.cropName || "Produce"} (${activeServing.quantity || 0} Qtl)`
+                : "Awaiting Next Vehicle Check-in"}
             </span>
           </div>
         </div>
@@ -310,13 +427,13 @@ export default function OperatorDashboardPage() {
           <div className="kq-next-box">
             <div className="kq-next-tag">Next In Line</div>
             <div className="kq-next-token">
-              {formatDisplayToken(nextInLine.token, 1)}
+              {nextInLine.token}
             </div>
-            <div className="kq-next-farmer">{nextInLine.farmerName}</div>
+            <div className="kq-next-farmer">{nextInLine.farmerName || "Farmer"}</div>
             <div className="kq-next-crop">
               <span>🌾</span>
               <span>
-                {nextInLine.cropName} ({nextInLine.quantity} Qtl)
+                {nextInLine.cropName || "Produce"} ({nextInLine.quantity || 0} Qtl)
               </span>
             </div>
           </div>
@@ -326,10 +443,10 @@ export default function OperatorDashboardPage() {
         <div className="kq-hero-right">
           <div className="kq-hero-slogan-box">
             <div className="kq-hero-slogan">
-              Kisan ki Mehnat,<br />
-              Desh ki Pehchaan! 🌿
+              Farmer's Hard Work,<br />
+              Nation's Pride! 🌿
             </div>
-            <div className="kq-hero-slogan-sub">NATION KI SHAKTI</div>
+            <div className="kq-hero-slogan-sub">POWER OF THE NATION</div>
           </div>
 
           <button
@@ -358,7 +475,7 @@ export default function OperatorDashboardPage() {
           <input
             type="text"
             className="kq-search-input"
-            placeholder="Search by Token (B-114), Farmer Name, or Crop..."
+            placeholder="Search by token (e.g. KQ-AMB-1006), farmer name, or crop..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -414,11 +531,30 @@ export default function OperatorDashboardPage() {
             <span style={{ textAlign: "right" }}>Actions</span>
           </div>
 
+          {/* Empty State: No farmers checked in yet */}
+          {filteredRoster.length === 0 && !loading && (
+            <div style={{
+              padding: "40px 24px",
+              textAlign: "center",
+              color: "#94a3b8",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "10px",
+            }}>
+              <div style={{ fontSize: "40px" }}>🏛️</div>
+              <strong style={{ fontSize: "15px", color: "#475569" }}>No Live Queue in this Mandi</strong>
+              <p style={{ fontSize: "13px", margin: 0 }}>
+                When farmers check in at the gate with their QR pass, their queue entries will appear here in real time.
+              </p>
+            </div>
+          )}
+
           {/* Table Body Rows */}
           {filteredRoster.map((item, idx) => {
             const isNowServing =
               item.status === "CALLED" || item.status === "IN_PROCUREMENT";
-            const displayToken = formatDisplayToken(item.token, idx);
+            const displayToken = item.token || `—`;
 
             return (
               <div
@@ -436,8 +572,23 @@ export default function OperatorDashboardPage() {
                 <div className="kq-farmer-col">
                   <span className="kq-farmer-name">{item.farmerName}</span>
                   <span className="kq-farmer-phone">
-                    ☎ {item.farmerPhone || "+91 98140 12345"}
+                    ☎ {item.farmerPhone || "—"}
                   </span>
+                  {(selectedCentreId === "ALL" || item.centreName) && (
+                    <span style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: "#0284c7",
+                      background: "#e0f2fe",
+                      padding: "2px 7px",
+                      borderRadius: "4px",
+                      display: "inline-block",
+                      marginTop: "3px",
+                      width: "fit-content"
+                    }}>
+                      🏛️ {item.centreName || item.centreCode || "Mandi"}
+                    </span>
+                  )}
                 </div>
 
                 {/* 3. Crop & Quantity */}
@@ -445,30 +596,62 @@ export default function OperatorDashboardPage() {
                   <span className="kq-crop-icon">🌾</span>
                   <div className="kq-crop-info">
                     <span className="kq-crop-name">{item.cropName}</span>
-                    <span className="kq-crop-qty">{item.quantity} Qtl</span>
+                    <span className="kq-crop-qty">{item.quantity ? `${item.quantity} Qtl` : "—"}</span>
                   </div>
                 </div>
 
-                {/* 4. Status */}
+                {/* 4. Real Status Badge */}
                 <div>
-                  <span
-                    className={`kq-status-pill ${
-                      isNowServing ? "serving" : "waiting"
-                    }`}
-                  >
-                    <span className="kq-status-dot" />
-                    {isNowServing ? "Now Serving" : "Waiting in Yard"}
-                  </span>
+                  {isNowServing ? (
+                    <span className="kq-status-pill serving">
+                      <span className="kq-status-dot" />
+                      {item.status === "IN_PROCUREMENT" ? "At Weighbridge" : "Now Serving"}
+                    </span>
+                  ) : item.status === "WAITING" || item.status === "CHECKED_IN" ? (
+                    <span className="kq-status-pill waiting">
+                      <span className="kq-status-dot" />
+                      Waiting in Yard {item.queuePosition ? `(#${item.queuePosition})` : ""}
+                    </span>
+                  ) : item.status === "BOOKED" ? (
+                    <span
+                      className="kq-status-pill"
+                      style={{
+                        background: "#f1f5f9",
+                        color: "#475569",
+                        border: "1px solid #cbd5e1",
+                      }}
+                    >
+                      <span className="kq-status-dot" style={{ background: "#94a3b8" }} />
+                      Slot Booked (Gate Pending)
+                    </span>
+                  ) : item.status === "COMPLETED" ? (
+                    <span
+                      className="kq-status-pill"
+                      style={{
+                        background: "#ecfdf5",
+                        color: "#047857",
+                        border: "1px solid #a7f3d0",
+                      }}
+                    >
+                      <span className="kq-status-dot" style={{ background: "#10b981" }} />
+                      Completed ✓
+                    </span>
+                  ) : (
+                    <span className="kq-status-pill waiting">
+                      <span className="kq-status-dot" />
+                      {item.status || "In Yard"}
+                    </span>
+                  )}
                 </div>
 
                 {/* 5. Slot Time */}
                 <div className="kq-time-col">
-                  {item.slotWindow || "09:00 - 11:00"}
+                  {item.slotWindow || "—"}
                 </div>
 
                 {/* 6. Check-in */}
                 <div className="kq-checkin-col">
-                  {item.checkInTime || "12:12 AM"}
+                  {item.checkInTime || "—"}
                 </div>
 
                 {/* 7. Actions */}
@@ -479,22 +662,51 @@ export default function OperatorDashboardPage() {
                       onClick={() =>
                         navigate({
                           to: "/operator/intake" as any,
-                          search: { bookingId: item.bookingId } as any,
+                          search: { bookingId: item.bookingId || item.id } as any,
                         })
                       }
                     >
                       <span>⚖</span>
                       <span>Process Weighment</span>
                     </button>
-                  ) : (
-                    <button className="kq-btn-call" onClick={handleCallNext}>
+                  ) : item.status === "WAITING" || item.status === "CHECKED_IN" ? (
+                    <button
+                      className="kq-btn-call"
+                      disabled={actionLoading}
+                      onClick={() => handleCallSpecific(item.bookingId || item.id || "", item.token, item.centreId)}
+                    >
                       Call to Desk
                     </button>
+                  ) : item.status === "BOOKED" ? (
+                    <button
+                      style={{
+                        background: "#f1f5f9",
+                        color: "#16a34a",
+                        border: "1px solid #bbf7d0",
+                        padding: "6px 12px",
+                        borderRadius: "6px",
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                      onClick={() =>
+                        navigate({
+                          to: "/operator/check-in" as any,
+                        })
+                      }
+                    >
+                      📷 Gate Check-In
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: "12px", color: "#059669", fontWeight: 700 }}>
+                      ✓ Finished
+                    </span>
                   )}
 
                   <button
                     className="kq-circle-action-btn"
-                    title="Audio Chime"
+                    title={`Audio PA Announcement for ${item.token}`}
+                    onClick={() => playChime(item.token)}
                   >
                     ▶
                   </button>
@@ -502,6 +714,7 @@ export default function OperatorDashboardPage() {
                   <button
                     className="kq-circle-action-btn danger"
                     title="Alert Yard Manager"
+                    onClick={() => toast.info(`Yard manager alerted for ${item.token}`)}
                   >
                     ♙
                   </button>
@@ -527,13 +740,13 @@ export default function OperatorDashboardPage() {
         </div>
 
         <div className="kq-footer-stat">
-          <strong>🚚 &nbsp; 12</strong>
+          <strong>🚚 &nbsp; {roster.length}</strong>
           <small>Vehicles in Yard</small>
         </div>
 
         <div className="kq-footer-stat">
-          <strong>⏱ &nbsp; ~18 mins</strong>
-          <small>Avg. Waiting Time</small>
+          <strong>⏱ &nbsp; ~{Math.max(10, roster.length * 15)} mins</strong>
+          <small>Est. Queue Duration</small>
         </div>
 
         <div className="kq-footer-stat">

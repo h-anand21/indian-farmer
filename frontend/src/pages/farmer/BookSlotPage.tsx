@@ -519,7 +519,7 @@ export default function BookSlotPage() {
             }}
           >
             <QRCodeSVG
-              value={`KISANQUEUE-GATEPASS:${confirmedBooking.token}|CENTRE:${confirmedBooking.centreId}`}
+              value={`KISANQUEUE|TOKEN:${confirmedBooking.token}|CENTRE:${confirmedBooking.centre?.code || confirmedBooking.centreId}|BID:${confirmedBooking.id}`}
               size={180}
               level="H"
             />
@@ -605,8 +605,8 @@ export default function BookSlotPage() {
         </div>
 
         <div className="hero-quote">
-          Kisan ki Mehnat,<br />
-          Desh ki Pehchaan! 🌿
+          Farmer's Hard Work,<br />
+          Nation's Pride! 🌿
         </div>
       </section>
 

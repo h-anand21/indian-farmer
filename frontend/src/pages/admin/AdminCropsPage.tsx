@@ -538,7 +538,7 @@ export default function AdminCropsPage() {
             </div>
 
             <div className="crops-hero-slogan-strip">
-              <span className="crops-hero-slogan-text">Kisan ki Mehnat, Desh ki Taqat</span>
+              <span className="crops-hero-slogan-text">Farmer's Hard Work, Nation's Strength</span>
               <span className="crops-hero-slogan-leaf">
                 <Leaf size={16} />
               </span>

@@ -214,7 +214,7 @@ export const ProcurementsPage: React.FC = () => {
           </div>
 
           <div className="header-quote">
-            KISAN KI MEHNAT<br />DESH KI TAQAT
+            FARMER'S HARD WORK<br />NATION'S STRENGTH
           </div>
 
           <div className="farmer-first">

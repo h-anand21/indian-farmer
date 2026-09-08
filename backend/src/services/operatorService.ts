@@ -15,19 +15,35 @@ export interface RecordWeighmentPayload {
 }
 
 /**
- * Get comprehensive operational metrics for an APMC Mandi
+ * Get comprehensive operational metrics for an APMC Mandi or All Mandis
  */
 export async function getOperatorDashboardMetrics(centreId: string) {
-  const centre = await prisma.procurementCentre.findUnique({
-    where: { id: centreId },
-  });
+  const isAll = !centreId || centreId === "ALL";
 
-  if (!centre) {
-    throw new Error("Procurement centre not found");
+  let centreName = "All Mandis / Yards";
+  let centreCode = "ALL-MANDIS";
+  let totalCounters = 0;
+
+  if (!isAll) {
+    const centre = await prisma.procurementCentre.findUnique({
+      where: { id: centreId },
+    });
+
+    if (!centre) {
+      throw new Error("Procurement centre not found");
+    }
+    centreName = centre.name;
+    centreCode = centre.code;
+    totalCounters = centre.totalCounters;
+  } else {
+    const centres = await prisma.procurementCentre.findMany({ select: { totalCounters: true } });
+    totalCounters = centres.reduce((sum, c) => sum + c.totalCounters, 0);
   }
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
+
+  const centreFilter = isAll ? {} : { centreId };
 
   const [
     totalBookingsToday,
@@ -39,32 +55,32 @@ export async function getOperatorDashboardMetrics(centreId: string) {
   ] = await Promise.all([
     prisma.booking.count({
       where: {
-        centreId,
+        ...centreFilter,
         bookedAt: { gte: todayStart },
       },
     }),
     prisma.booking.count({
       where: {
-        centreId,
+        ...centreFilter,
         status: { in: ["WAITING", "CHECKED_IN"] },
       },
     }),
     prisma.booking.count({
       where: {
-        centreId,
+        ...centreFilter,
         status: { in: ["CALLED", "IN_PROCUREMENT"] },
       },
     }),
     prisma.booking.count({
       where: {
-        centreId,
+        ...centreFilter,
         status: "COMPLETED",
         completedAt: { gte: todayStart },
       },
     }),
     prisma.procurementRecord.findMany({
       where: {
-        booking: { centreId },
+        ...(isAll ? {} : { booking: { centreId } }),
         completedAt: { gte: todayStart },
       },
       select: {
@@ -74,7 +90,7 @@ export async function getOperatorDashboardMetrics(centreId: string) {
     }),
     prisma.payment.aggregate({
       where: {
-        booking: { centreId },
+        ...(isAll ? {} : { booking: { centreId } }),
         status: "DISBURSED",
         disbursedAt: { gte: todayStart },
       },
@@ -89,26 +105,31 @@ export async function getOperatorDashboardMetrics(centreId: string) {
   const totalDisbursedToday = paymentsToday._sum.amount || 0;
 
   return {
-    centreId: centre.id,
-    centreName: centre.name,
-    code: centre.code,
-    totalCounters: centre.totalCounters,
+    centreId: isAll ? "ALL" : centreId,
+    centreName,
+    code: centreCode,
+    totalCounters,
     totalBookingsToday,
     waitingInYardCount,
+    waitingInYard: waitingInYardCount,
     calledCount,
+    inProcessing: calledCount,
     completedTodayCount,
+    completedToday: completedTodayCount,
     totalQuintalsToday: Math.round(totalQuintalsToday * 10) / 10,
     totalMspValueToday: Math.round(totalMspValueToday),
+    totalPayout: Math.round(totalMspValueToday),
     totalDisbursedToday: Math.round(totalDisbursedToday),
-    avgTurnaroundMins: 8.5,
+    avgTurnaroundMins: 18,
   };
 }
 
 /**
- * Get roster of today's bookings for the Mandi
+ * Get roster of today's bookings for the Mandi or All Mandis
  */
 export async function getTodayRoster(centreId: string, statusFilter?: string) {
-  const where: any = { centreId };
+  const isAll = !centreId || centreId === "ALL";
+  const where: any = isAll ? {} : { centreId };
 
   if (statusFilter && statusFilter !== "ALL") {
     where.status = statusFilter;
@@ -117,6 +138,7 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
   const bookings = await prisma.booking.findMany({
     where,
     include: {
+      centre: true,
       farmer: {
         include: {
           user: true,
@@ -131,8 +153,41 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
     orderBy: { bookedAt: "desc" },
   });
 
+  // Logical Queue Ordering:
+  // 1. Serving now (CALLED, IN_PROCUREMENT)
+  // 2. Waiting in Yard (WAITING, CHECKED_IN) ordered by queue position
+  // 3. Booked / Awaiting Gate Arrival (BOOKED)
+  // 4. Completed / other
+  const statusRank: Record<string, number> = {
+    CALLED: 1,
+    IN_PROCUREMENT: 1,
+    WEIGHED: 2,
+    WAITING: 3,
+    CHECKED_IN: 3,
+    BOOKED: 4,
+    COMPLETED: 5,
+    CANCELLED: 6,
+    REJECTED: 6,
+    NO_SHOW: 6,
+  };
+
+  bookings.sort((a, b) => {
+    const rankA = statusRank[a.status] ?? 99;
+    const rankB = statusRank[b.status] ?? 99;
+    if (rankA !== rankB) return rankA - rankB;
+
+    if (a.queueEntry && b.queueEntry) {
+      return a.queueEntry.position - b.queueEntry.position;
+    }
+    return new Date(a.bookedAt).getTime() - new Date(b.bookedAt).getTime();
+  });
+
   return bookings.map((b) => ({
     id: b.id,
+    bookingId: b.id,
+    centreId: b.centreId,
+    centreName: b.centre?.name || "Mandi",
+    centreCode: b.centre?.code || "",
     token: b.token,
     farmerId: b.farmerId,
     farmerName: b.farmer.user.name,
@@ -142,12 +197,20 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
     village: b.farmer.village || "Local Tehsil",
     cropName: b.crop.name,
     expectedQuantity: b.quantity,
+    quantity: b.quantity,
     status: b.status,
     slotDate: b.slot.date.toISOString().split("T")[0],
     slotWindow: `${b.slot.startTime} - ${b.slot.endTime}`,
     queuePosition: b.queueEntry?.position ?? null,
     counterNo: b.queueEntry?.counterNo ?? null,
+    counterNumber: b.queueEntry?.counterNo ?? null,
     checkedInAt: b.checkedInAt?.toISOString() || null,
+    checkInTime: b.checkedInAt
+      ? new Date(b.checkedInAt).toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—",
     completedAt: b.completedAt?.toISOString() || null,
     procurement: b.procurement
       ? {
@@ -175,26 +238,62 @@ export async function getTodayRoster(centreId: string, statusFilter?: string) {
  */
 export async function verifyAndCheckInToken(
   tokenOrCode: string,
-  centreId: string,
+  _centreId?: string,
   _vehiclePlate?: string
 ) {
-  // Clean token input (e.g. "KQ-KHN-1048" or JSON from QR)
+  // Clean token input — handle multiple QR formats:
+  // 1. Plain: "KQ-AMB-1006"
+  // 2. JSON: {"token":"KQ-AMB-1006"}
+  // 3. Pipe-delimited: "KISANQUEUE|TOKEN:KQ-AMB-1006|CENTRE:HR-AMB-05|STATUS:BOOKED"
+  // 4. Old colon format: "KISANQUEUE-GATEPASS:KQ-AMB-1006|CENTRE:..."
   let searchToken = tokenOrCode.trim();
+
+  // JSON format
   if (searchToken.startsWith("{") && searchToken.includes("token")) {
     try {
       const parsed = JSON.parse(searchToken);
       searchToken = parsed.token || searchToken;
     } catch {
-      // ignore
+      // ignore parse error
     }
   }
 
+  // Pipe-delimited format: KISANQUEUE|TOKEN:KQ-AMB-1006|...
+  if (searchToken.includes("|") || searchToken.includes("TOKEN:")) {
+    const tokenMatch = searchToken.match(/TOKEN:([A-Z0-9-]+)/i);
+    if (tokenMatch && tokenMatch[1]) {
+      searchToken = tokenMatch[1];
+    } else {
+      // Old gatepass format: KISANQUEUE-GATEPASS:KQ-AMB-1006|...
+      const gatepassMatch = searchToken.match(/GATEPASS:([A-Z0-9-]+)/i);
+      if (gatepassMatch && gatepassMatch[1]) {
+        searchToken = gatepassMatch[1];
+      }
+    }
+  }
+
+  // Generic KQ token extractor for any QR format
+  if (!searchToken.startsWith("KQ-")) {
+    const kqMatch = searchToken.match(/KQ-[A-Z0-9-]+/i);
+    if (kqMatch && kqMatch[0]) {
+      searchToken = kqMatch[0].trim();
+    }
+  }
+
+  // Trim any remaining whitespace
+  searchToken = searchToken.trim();
+
+  if (!searchToken || searchToken.length < 3) {
+    throw new Error("⚠️ Invalid QR Code! Please scan a valid QR pass or enter a token number.");
+  }
+
+  // Automatically find booking across all mandis using unique token
   const booking = await prisma.booking.findFirst({
     where: {
-      centreId,
       token: { contains: searchToken, mode: "insensitive" },
     },
     include: {
+      centre: true,
       farmer: {
         include: {
           user: true,
@@ -206,21 +305,25 @@ export async function verifyAndCheckInToken(
   });
 
   if (!booking) {
-    throw new Error(`Token "${searchToken}" not found for this Mandi.`);
+    throw new Error(
+      `⚠️ QR Code Mismatch! Token "${searchToken}" was not found in any booking. Please scan a valid Gate Pass.`
+    );
   }
+
+  const actualCentreId = booking.centreId;
 
   // If already checked in
   if (booking.status !== "BOOKED") {
     return {
       booking,
-      message: `Token ${booking.token} is already checked in (Current Status: ${booking.status})`,
+      message: `Token ${booking.token} (${booking.centre.name}) is already checked in (Current Status: ${booking.status})`,
       alreadyCheckedIn: true,
     };
   }
 
-  // Get max position
+  // Get max position for this Mandi
   const maxPosEntry = await prisma.queueEntry.findFirst({
-    where: { centreId },
+    where: { centreId: actualCentreId },
     orderBy: { position: "desc" },
   });
   const nextPos = (maxPosEntry?.position || 0) + 1;
@@ -237,7 +340,7 @@ export async function verifyAndCheckInToken(
       where: { bookingId: booking.id },
       create: {
         bookingId: booking.id,
-        centreId,
+        centreId: actualCentreId,
         position: nextPos,
         estimatedWaitMins: nextPos * 10,
       },
@@ -248,8 +351,8 @@ export async function verifyAndCheckInToken(
     }),
   ]);
 
-  // Broadcast updated queue
-  broadcastQueueUpdate(io, centreId, {
+  // Broadcast updated queue to the Mandi room
+  broadcastQueueUpdate(io, actualCentreId, {
     nowServing: "Serving",
     nextToken: booking.token,
     totalWaiting: nextPos,
@@ -259,11 +362,12 @@ export async function verifyAndCheckInToken(
   return {
     booking: {
       ...updatedBooking,
+      centre: booking.centre,
       farmer: booking.farmer,
       crop: booking.crop,
       slot: booking.slot,
     },
-    message: `Gate Pass Approved! Token ${booking.token} entered yard queue at Position #${nextPos}`,
+    message: `✅ Gate Pass Approved! Token ${booking.token} (${booking.centre.name}) admitted into yard queue at Position #${nextPos}.`,
     alreadyCheckedIn: false,
   };
 }

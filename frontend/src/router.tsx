@@ -210,6 +210,16 @@ const operatorScanRoute = createRoute({
   ),
 });
 
+const operatorCheckInRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/operator/check-in",
+  component: () => (
+    <ProtectedRoute allowedRoles={["OPERATOR", "ADMIN"]}>
+      <OperatorCheckInPage />
+    </ProtectedRoute>
+  ),
+});
+
 const operatorIntakeRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: "/operator/intake",
@@ -344,6 +354,7 @@ const routeTree = rootRoute.addChildren([
     operatorDashboardRoute,
     operatorQueueRoute,
     operatorScanRoute,
+    operatorCheckInRoute,
     operatorIntakeRoute,
     operatorReportRoute,
     operatorReportsAliasRoute,

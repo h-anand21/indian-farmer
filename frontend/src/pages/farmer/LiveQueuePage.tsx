@@ -4,7 +4,6 @@ import {
   fetchCentreQueue,
   fetchMyQueuePosition,
   checkInAtGate,
-  advanceQueueSimulation,
   type CentreQueueState,
   type FarmerQueuePosition,
 } from "@/services/queueService";
@@ -48,6 +47,7 @@ export default function LiveQueuePage() {
   const [loading, setLoading] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showQrFullscreen, setShowQrFullscreen] = useState(false);
 
   // Available options
   const [myBookings, setMyBookings] = useState<BookingData[]>([]);
@@ -61,8 +61,7 @@ export default function LiveQueuePage() {
   const [centreQueue, setCentreQueue] = useState<CentreQueueState | null>(null);
   const [farmerPosition, setFarmerPosition] = useState<FarmerQueuePosition | null>(null);
 
-  // Simulation loading
-  const [simulating, setSimulating] = useState(false);
+  // Loading states
   const [checkingIn, setCheckingIn] = useState(false);
 
   // Audio trigger tracking
@@ -189,24 +188,6 @@ export default function LiveQueuePage() {
     }
   };
 
-  // Queue simulation trigger
-  const handleSimulate = async (action: "CALL_NEXT" | "START_PROCUREMENT" | "COMPLETE") => {
-    if (!selectedCentreId) return;
-    try {
-      setSimulating(true);
-      await advanceQueueSimulation({
-        centreId: selectedCentreId,
-        counterNumber: 1,
-        action,
-      });
-      await refreshData();
-    } catch (err: any) {
-      console.error("Simulation error:", err);
-    } finally {
-      setSimulating(false);
-    }
-  };
-
   const handleDownloadQR = () => {
     const svg = document.getElementById("queue-token-qr");
     if (!svg) return;
@@ -227,104 +208,143 @@ export default function LiveQueuePage() {
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
-  // Mock / Default Fallbacks for pixel-perfect match
-  const activeToken = farmerPosition?.token || "KQ-AMB-1039";
+  // Selected Booking details
+  const selectedBooking = myBookings.find((b) => b.id === selectedBookingId);
+
+  const activeToken = farmerPosition?.token || selectedBooking?.token || "KQ-AMB-1039";
   const activeCentreName =
     farmerPosition?.centreName ||
+    selectedBooking?.centre?.name ||
     centres.find((c) => c.id === selectedCentreId)?.name ||
     "Ambala City Grain Market Yard (Wheat - Kanak)";
-  const activeDistrict = centres.find((c) => c.id === selectedCentreId)?.district || "Ambala";
-  const activeState = centres.find((c) => c.id === selectedCentreId)?.state || "Haryana";
+  const activeDistrict =
+    selectedBooking?.centre?.district ||
+    centres.find((c) => c.id === selectedCentreId)?.district ||
+    "Ambala";
+  const activeState =
+    selectedBooking?.centre?.state ||
+    centres.find((c) => c.id === selectedCentreId)?.state ||
+    "Haryana";
 
-  const isProximityAlertActive =
-    farmerPosition?.isProximityAlert ||
-    (farmerPosition && farmerPosition.tokensAhead <= 3 && farmerPosition.tokensAhead > 0) ||
-    true; // Active for showcase
+  const isProximityAlertActive = true;
 
-  const tokensAhead = farmerPosition?.tokensAhead ?? 2;
-  const estimatedMinutes = farmerPosition?.estimatedMinutes ?? 5;
-  const nowServingToken = centreQueue?.nowServingToken || "KQ-AMB-1036";
+  const tokensAhead = farmerPosition?.tokensAhead ?? 0;
+  const estimatedMinutes = farmerPosition?.estimatedMinutes ?? 0;
+  const nowServingToken = centreQueue?.nowServingToken || activeToken;
   const nextUpToken = centreQueue?.nextUpToken || "KQ-AMB-1037";
   const completedCount = centreQueue?.completedTodayCount ?? 1;
 
-  const currentStatus = farmerPosition?.status || "WAITING";
-  const slotDate = farmerPosition?.slotDate || "06 Sep 2026";
-  const slotWindow = farmerPosition?.slotWindow || "09:00 - 10:00";
+  const currentStatus = farmerPosition?.status || selectedBooking?.status || "WAITING";
+  const slotDate =
+    farmerPosition?.slotDate ||
+    (selectedBooking?.slot?.date
+      ? new Date(selectedBooking.slot.date).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : new Date().toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }));
+  const slotWindow =
+    farmerPosition?.slotWindow ||
+    (selectedBooking?.slot
+      ? `${selectedBooking.slot.startTime} - ${selectedBooking.slot.endTime}`
+      : "09:00 - 10:00");
+
+  const positionLabel =
+    tokensAhead === 0
+      ? "You're Next! (At Counter)"
+      : tokensAhead === 1
+      ? "1st in Line"
+      : tokensAhead === 2
+      ? "2nd in Line"
+      : tokensAhead === 3
+      ? "3rd in Line"
+      : `${tokensAhead}th in Line`;
+
+  // ── Queue ahead list from live data ──
+  const farmerPos = farmerPosition?.position ?? null;
+  const queueAheadList: Array<{
+    position: number;
+    token: string;
+    status?: string;
+    cropName?: string;
+  }> = (() => {
+    // Use queueEntries if backend returns them, else recentWaitingTokens
+    const entries =
+      centreQueue?.queueEntries ??
+      centreQueue?.recentWaitingTokens ??
+      [];
+    return (entries as any[])
+      .filter((e: any) => {
+        const pos = e.position ?? 0;
+        if (farmerPos !== null && pos >= farmerPos) return false;
+        return true;
+      })
+      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+      .slice(0, 6);
+  })();
+
+  const ORDER = [
+    "BOOKED",
+    "CHECKED_IN",
+    "WAITING",
+    "CALLED",
+    "IN_PROCUREMENT",
+    "COMPLETED",
+  ];
+  const currentIdx = ORDER.indexOf(currentStatus);
+
+  const qrValue = `KISANQUEUE|TOKEN:${activeToken}|CENTRE:${
+    selectedBooking?.centre?.code || selectedCentreId
+  }|STATUS:${currentStatus}`;
+
+  if (loading) {
+    return (
+      <div className="lq-loading">
+        <div className="lq-spinner" />
+        <p>Loading queue data...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="queue-page">
-      {/* ================= TOP RADAR STATUS ================= */}
-      <div className="queue-status-bar">
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          <div className="radar-status">
-            <i></i>
-            {socketConnected ? "Live Radar Connected" : "Live Radar Connected"}
-          </div>
-          <span className="realtime-text">WebSocket Real-Time Engine</span>
-        </div>
+    <div className="lq-page">
 
-        <div className="header-actions">
+      {/* ─── TOP BAR ─── */}
+      <div className="lq-topbar">
+        <div className="lq-topbar-left">
+          <span className={`lq-dot ${socketConnected ? "live" : "off"}`} />
+          <span className="lq-dot-label">
+            {socketConnected ? "Live Connected" : "Reconnecting..."}
+          </span>
+          <span className="lq-centre-chip">
+            {selectedBooking?.centre?.code || activeCentreName.slice(0, 20)}
+          </span>
+        </div>
+        <div className="lq-topbar-right">
           <button
+            className={`lq-sound-btn ${soundEnabled ? "on" : "off"}`}
             onClick={() => {
               if (!soundEnabled) playChimeBell();
               setSoundEnabled(!soundEnabled);
             }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "20px",
-              background: soundEnabled ? "#dcf8e9" : "#f1f5f9",
-              color: soundEnabled ? "#086749" : "#64748b",
-              border: "1px solid #d0ecde",
-              fontSize: "12px",
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
           >
-            {soundEnabled ? "🔔 Chime Active" : "🔕 Muted"}
+            {soundEnabled ? "🔔 Sound On" : "🔕 Muted"}
+          </button>
+          <button className="lq-refresh-btn" onClick={refreshData}>
+            ↻
           </button>
         </div>
       </div>
 
-      {/* ================= HERO BANNER ================= */}
-      <section className="queue-hero">
-        <div className="hero-copy">
-          <span className="hero-label">✦ LIVE MANDI OPERATIONS</span>
-          <h1>Live Queue & Turn Tracker</h1>
-          <p>
-            Get real-time updates of your token, queue position and processing status.
-          </p>
-
-          <div className="hero-features">
-            <span>🟢 &nbsp; Real-time tracking</span>
-            <span>🌾 &nbsp; Accurate estimates</span>
-            <span>➕ &nbsp; Less waiting, more farming</span>
-          </div>
-        </div>
-
-        <div className="mandi-art">
-          <div className="cloud cloud-1"></div>
-          <div className="cloud cloud-2"></div>
-          <div className="mountains"></div>
-          <div className="field"></div>
-
-          <div className="mandi-building">
-            <strong>APMC MANDI</strong>
-          </div>
-
-          <div className="truck truck-one">🚛</div>
-          <div className="truck truck-two">🚜</div>
-        </div>
-
-        <div className="hero-quote">
-          Kisan ki Mehnat,<br />
-          Desh ki Pehchan! 🌿
-        </div>
-      </section>
-
-      {/* ================= FILTERS ================= */}
-      <section className="queue-filters">
-        <div className="filter">
-          <label>Select Your Token ⌄</label>
+      {/* ─── TOKEN SELECTOR (only if multiple bookings) ─── */}
+      {myBookings.length > 1 && (
+        <div className="lq-selector-bar">
+          <label>Select Token:</label>
           <select
             value={selectedBookingId}
             onChange={(e) => {
@@ -335,351 +355,347 @@ export default function LiveQueuePage() {
               }
             }}
           >
-            {myBookings.length > 0 ? (
-              myBookings.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.token} — {b.centre?.name || "Mandi Yard"} ({b.crop?.name || "Crop"})
-                </option>
-              ))
-            ) : (
-              <option value="">
-                {activeToken} — {activeCentreName}
+            {myBookings.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.token} — {b.centre?.name || "Mandi"} ({b.crop?.name || "Crop"})
               </option>
-            )}
+            ))}
           </select>
         </div>
-
-        <div className="filter">
-          <label>Select Mandi / Yard ⌄</label>
-          <select
-            value={selectedCentreId}
-            onChange={(e) => setSelectedCentreId(e.target.value)}
-          >
-            {centres.length > 0 ? (
-              centres.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.code || "PR-AMB-05"})
-                </option>
-              ))
-            ) : (
-              <option value="">
-                Ambala City Grain Market Yard (PR-AMB-05)
-              </option>
-            )}
-          </select>
-        </div>
-
-        <div className="filter">
-          <label>Date</label>
-          <div className="filter-input" style={{ background: "#f8fafc" }}>
-            <span>📅 &nbsp; {slotDate}</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= PROXIMITY ALERT ================= */}
-      {isProximityAlertActive && (
-        <section className="proximity-alert">
-          <div className="alert-icon">⚠️</div>
-
-          <div>
-            <h2>Proximity Alert!</h2>
-            <p>
-              Only {tokensAhead} vehicles ahead of you. Please start your tractor and move towards the Mandi entry lane now.
-            </p>
-          </div>
-
-          <button
-            onClick={() => {
-              if (farmerPosition?.status === "BOOKED") {
-                handleGateCheckIn();
-              } else {
-                alert("Mobile SMS & App push alerts enabled for your token.");
-              }
-            }}
-          >
-            🔔 &nbsp; {farmerPosition?.status === "BOOKED" ? (checkingIn ? "Checking In..." : "Gate Check-In") : "Enable Mobile Alerts"}
-          </button>
-        </section>
       )}
 
-      {/* ================= TOKEN CARD ================= */}
-      <section className="token-card">
-        <div className="token-information">
-          <span className="token-label">OFFICIAL MANDI GATE TOKEN</span>
-          <h2>{activeToken}</h2>
-          <strong>{activeCentreName}</strong>
-          <p>📍 {activeDistrict}, {activeState}</p>
-        </div>
-
-        <div className="token-stat">
-          <span>Your Position in Queue</span>
+      {/* ─── STATUS BANNER ─── */}
+      <div
+        className={`lq-status-banner status-${currentStatus.toLowerCase()}`}
+      >
+        <span className="lq-status-icon">
+          {currentStatus === "BOOKED" && "✅"}
+          {currentStatus === "CHECKED_IN" && "🚪"}
+          {currentStatus === "WAITING" && "🚛"}
+          {currentStatus === "CALLED" && "🔔"}
+          {currentStatus === "IN_PROCUREMENT" && "⚖️"}
+          {currentStatus === "COMPLETED" && "🎉"}
+        </span>
+        <div className="lq-status-text">
           <strong>
-            {tokensAhead === 1 ? "1st" : tokensAhead === 2 ? "2nd" : `${tokensAhead + 1}rd`}
+            {currentStatus === "BOOKED" && "Slot Confirmed — Proceed to Mandi Gate"}
+            {currentStatus === "CHECKED_IN" && "Gate Check-In Verified ✓"}
+            {currentStatus === "WAITING" &&
+              `In Yard Queue — ${tokensAhead} Vehicles Ahead • ~${estimatedMinutes} Min`}
+            {currentStatus === "CALLED" &&
+              "🔔 Your Token Has Been Called! Proceed to Bay #1"}
+            {currentStatus === "IN_PROCUREMENT" &&
+              "⚖️ Weighment in Progress at Weighbridge"}
+            {currentStatus === "COMPLETED" &&
+              "🎉 Procurement Complete! Direct DBT Payment Initiated"}
           </strong>
-          <small>{tokensAhead} vehicles ahead</small>
+        </div>
+        <span className="lq-status-pill">{currentStatus}</span>
+      </div>
+
+      {/* ─── MAIN GRID ─── */}
+      <div className="lq-main-grid">
+
+        {/* ══ LEFT COLUMN: QR CARD ══ */}
+        <div className="lq-qr-card">
+          <div className="lq-qr-card-top">
+            <span className="lq-official-badge">🏛 OFFICIAL MANDI GATE TOKEN</span>
+            {selectedBooking?.centre?.code && (
+              <span className="lq-code-badge">
+                {selectedBooking.centre.code}
+              </span>
+            )}
+          </div>
+
+          <h1 className="lq-token-num">{activeToken}</h1>
+          <p className="lq-centre-nm">{activeCentreName}</p>
+          {activeDistrict && (
+            <p className="lq-location-txt">
+              📍 {activeDistrict}{activeState ? `, ${activeState}` : ""}
+            </p>
+          )}
+
+          {/* BIG TAPPABLE QR */}
+          <button
+            className="lq-qr-wrap"
+            onClick={() => setShowQrFullscreen(true)}
+            title="Click to view QR in fullscreen"
+          >
+            <QRCodeSVG
+              id="queue-token-qr"
+              value={qrValue}
+              size={200}
+              level="H"
+              includeMargin={true}
+            />
+            <div className="lq-qr-tap-hint">🔍 Click for Fullscreen</div>
+          </button>
+
+          <p className="lq-qr-subtext">
+            Present at gate scanner — token will verify automatically
+          </p>
+
+          <div className="lq-slot-chips">
+            <span>📅 {slotDate}</span>
+            <span>⏰ {slotWindow}</span>
+            {selectedBooking?.crop?.name && (
+              <span>🌾 {selectedBooking.crop.name}</span>
+            )}
+            {selectedBooking?.quantity && (
+              <span>⚖ {selectedBooking.quantity} Qtl</span>
+            )}
+          </div>
+
+          <button className="lq-dl-btn" onClick={handleDownloadQR}>
+            📥 Download Gate Pass
+          </button>
         </div>
 
-        <div className="token-stat">
-          <span>Estimated Wait Time</span>
-          <strong>
-            🕒 ~{estimatedMinutes} Mins
-          </strong>
-          <small>Dynamic AI-based estimate</small>
+        {/* ══ RIGHT COLUMN: QUEUE INFO ══ */}
+        <div className="lq-right-col">
+
+          {/* Position */}
+          <div className="lq-pos-card">
+            <p className="lq-pos-heading">Your Position in Queue</p>
+            {tokensAhead === 0 ? (
+              <div className="lq-pos-next">🚀 You are Next in Line!</div>
+            ) : (
+              <div className="lq-pos-num-row">
+                <span className="lq-pos-big">{tokensAhead}</span>
+                <span className="lq-pos-sub">
+                  vehicles<br />ahead
+                </span>
+              </div>
+            )}
+            <div className="lq-wait-chip">
+              🕒 ~{estimatedMinutes} min wait
+            </div>
+          </div>
+
+          {/* Now Serving */}
+          <div className="lq-serving-row">
+            <div className="lq-serving-item">
+              <span>Now Serving</span>
+              <strong>{nowServingToken}</strong>
+            </div>
+            <div className="lq-serving-item">
+              <span>Next in Line</span>
+              <strong className="lq-next-token">{nextUpToken}</strong>
+            </div>
+            <div className="lq-serving-item">
+              <span>Completed Today</span>
+              <strong className="lq-done-count">{completedCount}</strong>
+            </div>
+          </div>
+
+          {/* WHO IS AHEAD IN QUEUE */}
+          {queueAheadList.length > 0 && (
+            <div className="lq-ahead-panel">
+              <h3 className="lq-ahead-heading">
+                🚛 Vehicles Ahead in Queue
+                <span className="lq-ahead-badge">{tokensAhead}</span>
+              </h3>
+              <div className="lq-ahead-list">
+                {queueAheadList.map((entry: any, idx: number) => (
+                  <div key={entry.id || idx} className="lq-ahead-row">
+                    <span className="lq-ahead-pos">#{entry.position}</span>
+                    <span className="lq-ahead-tok">
+                      {entry.token || entry.booking?.token || "—"}
+                    </span>
+                    <span
+                      className={`lq-ahead-st st-${(entry.status || "").toLowerCase()}`}
+                    >
+                      {entry.status === "CALLED"
+                        ? "🔔 Called"
+                        : entry.status === "IN_PROCUREMENT"
+                        ? "⚖️ Weighing"
+                        : entry.status === "WAITING"
+                        ? "⏳ Waiting"
+                        : entry.status === "CHECKED_IN"
+                        ? "🚪 Arrived"
+                        : entry.status || "—"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {tokensAhead > 6 && (
+                <p className="lq-ahead-more">
+                  + {tokensAhead - 6} more vehicles ahead
+                </p>
+              )}
+            </div>
+          )}
+
+          {tokensAhead === 0 && queueAheadList.length === 0 && (
+            <div className="lq-empty-queue">
+              <span>🎉</span>
+              <p>No vehicles ahead of you</p>
+              <small>You are at the front of the queue!</small>
+            </div>
+          )}
+
+          {/* PROCUREMENT STAGE TRACKER */}
+          <div className="lq-stages-panel">
+            <h3 className="lq-stages-heading">Procurement Journey</h3>
+            <div className="lq-stage-track">
+              {[
+                { key: "BOOKED", label: "Slot Book", icon: "📋" },
+                { key: "CHECKED_IN", label: "Gate In", icon: "🚪" },
+                { key: "WAITING", label: "Yard Queue", icon: "🚛" },
+                { key: "CALLED", label: "Bay Called", icon: "🔔" },
+                { key: "IN_PROCUREMENT", label: "Weighment", icon: "⚖️" },
+                { key: "COMPLETED", label: "Done + DBT", icon: "💰" },
+              ].map((stage, idx) => {
+                const stageIdx = ORDER.indexOf(stage.key);
+                const isDone = stageIdx < currentIdx;
+                const isActive = stageIdx === currentIdx;
+                return (
+                  <div key={stage.key} className="lq-stage-item">
+                    <div
+                      className={`lq-stage-dot ${
+                        isDone ? "done" : isActive ? "active" : ""
+                      }`}
+                    >
+                      {isDone ? "✓" : isActive ? stage.icon : idx + 1}
+                    </div>
+                    <span
+                      className={`lq-stage-lbl ${
+                        isActive ? "active" : isDone ? "done" : ""
+                      }`}
+                    >
+                      {stage.label}
+                    </span>
+                    {idx < 5 && (
+                      <div
+                        className={`lq-stage-line ${
+                          isDone ? "done" : ""
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ─── FARMER ACTION / INFO AREA ─── */}
+          {/* Only Gate Check-In is farmer's own action.
+              All other state changes come from Operator at the counter → Socket.IO updates this page */}
+          <div className="lq-action-area">
+
+            {/* BOOKED → Farmer can self check-in at gate */}
+            {currentStatus === "BOOKED" && (
+              <div className="lq-action-block">
+                <button
+                  className="lq-action-btn green"
+                  disabled={checkingIn}
+                  onClick={handleGateCheckIn}
+                >
+                  {checkingIn
+                    ? "⏳ Checking In..."
+                    : "🚜 Arrived at Gate & Check-In"}
+                </button>
+                <p className="lq-action-hint">
+                  📍 Present your QR pass to the operator at the mandi gate — or tap the button to check in
+                </p>
+              </div>
+            )}
+
+            {/* CHECKED_IN / WAITING → Operator will call when turn comes */}
+            {(currentStatus === "CHECKED_IN" || currentStatus === "WAITING") && (
+              <div className="lq-info-card lq-info-blue">
+                <div className="lq-info-icon">🚛</div>
+                <div>
+                  <strong>You are in the Yard Queue</strong>
+                  <p>Keep your vehicle parked in the mandi yard. When your turn arrives, the operator will call you to the designated bay and a <strong>live update</strong> will appear here.</p>
+                  <span className="lq-info-tag">🔄 Auto-updated from operator counter</span>
+                </div>
+              </div>
+            )}
+
+            {/* CALLED → Operator called token, farmer must go to bay */}
+            {currentStatus === "CALLED" && (
+              <div className="lq-info-card lq-info-amber">
+                <div className="lq-info-icon">🔔</div>
+                <div>
+                  <strong>Your Token Has Been Called!</strong>
+                  <p>Please proceed with your tractor / vehicle to <strong>Weighbridge Bay #1</strong> immediately. Operator will begin weighment.</p>
+                  <span className="lq-info-tag">⚡ Proceed promptly to avoid missing your turn!</span>
+                </div>
+              </div>
+            )}
+
+            {/* IN_PROCUREMENT → Weighment happening, farmer watches */}
+            {currentStatus === "IN_PROCUREMENT" && (
+              <div className="lq-info-card lq-info-purple">
+                <div className="lq-info-icon">⚖️</div>
+                <div>
+                  <strong>Weighment in Progress</strong>
+                  <p>Your crop weight and quality are being inspected at the weighbridge. This screen will update once complete.</p>
+                  <span className="lq-info-tag">📊 Operator is processing at weighbridge</span>
+                </div>
+              </div>
+            )}
+
+            {/* COMPLETED → Done, DBT initiated */}
+            {currentStatus === "COMPLETED" && (
+              <div className="lq-info-card lq-info-green">
+                <div className="lq-info-icon">🎉</div>
+                <div>
+                  <strong>Procurement Completed!</strong>
+                  <p>Your crop record is locked in the tamper-proof ledger. <strong>Direct DBT payment</strong> is being transferred to your bank account.</p>
+                  <span className="lq-info-tag">💳 Payment will reflect in your account shortly</span>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
+      </div>
 
-        <div className="qr-box">
-          <span className={`waiting-status ${currentStatus === "CALLED" ? "called" : ""}`}>
-            {currentStatus === "CALLED" ? "STATUS: CALLED" : `STATUS: ${currentStatus}`}
-          </span>
-
-          <div className="qr-preview-area">
-            <div className="qr">
+      {/* ─── QR FULLSCREEN MODAL ─── */}
+      {showQrFullscreen && (
+        <div
+          className="lq-qr-modal-backdrop"
+          onClick={() => setShowQrFullscreen(false)}
+        >
+          <div
+            className="lq-qr-modal-box"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="lq-modal-close-btn"
+              onClick={() => setShowQrFullscreen(false)}
+            >
+              ✕ Close
+            </button>
+            <p className="lq-modal-header">🏛 Gate Entry QR Code</p>
+            <div className="lq-modal-qr-wrap">
               <QRCodeSVG
-                id="queue-token-qr"
-                value={`KISANQUEUE-TOKEN:${activeToken}|CENTRE:${selectedCentreId || "AMB-05"}`}
-                size={74}
-                level="M"
+                value={qrValue}
+                size={280}
+                level="H"
+                includeMargin={true}
               />
             </div>
-            <span className="qr-label">Show at Gate</span>
-          </div>
-
-          <button onClick={handleDownloadQR}>
-            📥 Download
-          </button>
-        </div>
-      </section>
-
-      {/* ================= STATS (4 Cards) ================= */}
-      <section className="queue-stats">
-        <div className="stat-card">
-          <div className="stat-icon green">🚛</div>
-          <div>
-            <span>Vehicles Ahead</span>
-            <strong>
-              {tokensAhead} <small>Vehicles</small>
-            </strong>
-            <p>In physical Mandi queue</p>
+            <h2 className="lq-modal-token-txt">{activeToken}</h2>
+            <p className="lq-modal-centre-txt">{activeCentreName}</p>
+            <p className="lq-modal-hint-txt">
+              Gate operator will scan this QR pass • Token will auto-verify
+            </p>
+            <button className="lq-dl-btn" onClick={handleDownloadQR}>
+              📥 Download Gate Pass
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="stat-card">
-          <div className="stat-icon green">🕒</div>
-          <div>
-            <span>Estimated Wait</span>
-            <strong style={{ color: "#007a55" }}>
-              ~{estimatedMinutes} <small>Mins</small>
-            </strong>
-            <p>Dynamic turnaround algorithm</p>
-          </div>
-        </div>
-
-        <div className="stat-card stat-blue">
-          <div className="stat-icon blue">🏷️</div>
-          <div>
-            <span>Now Serving (Bay #1)</span>
-            <strong>{nowServingToken}</strong>
-            <p>Next in line: <b>{nextUpToken}</b></p>
-          </div>
-        </div>
-
-        <div className="stat-card stat-blue">
-          <div className="stat-icon blue">🌾</div>
-          <div>
-            <span>Procured Today</span>
-            <strong>
-              {completedCount} <small>Loads</small>
-            </strong>
-            <p>Weighed & cleared at gate</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= STAGE TRACKER ================= */}
-      <section className="stage-panel">
-        <div className="section-heading">
-          <div>
-            <h2>Procurement Stage Tracker</h2>
-            <p>Track the real-time progress of your vehicle through the mandi process.</p>
-          </div>
-          <span>Slot Window: {slotWindow} ({slotDate})</span>
-        </div>
-
-        <div className="stage-tracker">
-          <div className="stage">
-            <div className="stage-circle completed">✓</div>
-            <strong>Slot Booked</strong>
-            <small>08:15 AM</small>
-          </div>
-
-          <div className="stage">
-            <div className="stage-circle completed">✓</div>
-            <strong>Gate Checked-in</strong>
-            <small>08:42 AM</small>
-          </div>
-
-          <div className="stage">
-            <div className="stage-circle active">🚚</div>
-            <strong>In Yard Queue</strong>
-            <small className="current">Current Stage</small>
-          </div>
-
-          <div className="stage">
-            <div className="stage-circle">4</div>
-            <strong>Called to Bay</strong>
-            <small>Pending</small>
-          </div>
-
-          <div className="stage">
-            <div className="stage-circle">5</div>
-            <strong>Weighed & Cleared</strong>
-            <small>Pending</small>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= BAYS (Weighbridge Counters) ================= */}
-      <section className="bays-panel">
-        <div className="section-heading">
-          <div>
-            <h2>Weighbridge Counter Bays (Now Serving)</h2>
-            <p>Active electronic weighbridges at {activeCentreName.split("(")[0].trim() || "Ambala City Grain Market Yard"}</p>
-          </div>
-
-          <div className="bay-actions">
-            <span>1 / 4 Bays Active</span>
-            <button onClick={refreshData}>View All Bays →</button>
-          </div>
-        </div>
-
-        <div className="bay-grid">
-          {/* BAY 1 - SERVING */}
-          <div className="bay bay-active">
-            <div className="bay-top">
-              <strong>BAY #1</strong>
-              <span className="bay-status serving">SERVING</span>
-            </div>
-
-            <div>
-              <h3>{nowServingToken}</h3>
-              <span className="farmer-name">Rajesh Kumar</span>
-              <p>🌾 &nbsp; Wheat (Kanak)</p>
-              <p>Net Weight: <b>42.3 Qtl</b></p>
-            </div>
-
-            <div className="weight-progress">
-              <i></i>
-            </div>
-          </div>
-
-          {/* BAY 2 - READY */}
-          <div className="bay">
-            <div className="bay-top">
-              <strong>BAY #2</strong>
-              <span className="bay-status ready">READY</span>
-            </div>
-
-            <div className="bay-empty">
-              <strong>Counter Ready</strong>
-              <p>Next vehicle in queue</p>
-              <button onClick={() => handleSimulate("CALL_NEXT")}>👁 &nbsp; View Queue</button>
-            </div>
-          </div>
-
-          {/* BAY 3 - IDLE */}
-          <div className="bay">
-            <div className="bay-top">
-              <strong>BAY #3</strong>
-              <span className="bay-status idle">IDLE</span>
-            </div>
-
-            <div className="bay-empty">
-              <strong>Counter Ready</strong>
-              <p>Next vehicle in queue</p>
-              <button onClick={() => handleSimulate("CALL_NEXT")}>👁 &nbsp; View Queue</button>
-            </div>
-          </div>
-
-          {/* BAY 4 - MAINTENANCE */}
-          <div className="bay bay-maintenance">
-            <div className="bay-top">
-              <strong>BAY #4</strong>
-              <span className="bay-status maintenance">MAINTENANCE</span>
-            </div>
-
-            <div className="bay-empty">
-              <strong style={{ fontSize: "20px" }}>🔧</strong>
-              <strong>Under Maintenance</strong>
-              <p>Estimated: 30 mins</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= SIMULATOR ================= */}
-      <section className="simulator">
-        <div>
-          <h2>⚡ &nbsp; Live Simulation & Test Controller</h2>
-          <p>Simulation operator controls to trigger live socket, broadcast and audio alerts.</p>
-        </div>
-
-        <div className="simulator-buttons">
-          <button
-            disabled={simulating}
-            className="sim-yellow"
-            onClick={() => handleSimulate("CALL_NEXT")}
-          >
-            ▶ &nbsp; Call Next Token
-          </button>
-
-          <button
-            disabled={simulating}
-            className="sim-blue"
-            onClick={() => handleSimulate("START_PROCUREMENT")}
-          >
-            ⚖ &nbsp; Start Weighing
-          </button>
-
-          <button
-            disabled={simulating}
-            className="sim-green"
-            onClick={() => handleSimulate("COMPLETE")}
-          >
-            ✓ &nbsp; Complete & Clear
-          </button>
-
-          <button className="sim-dark" onClick={playChimeBell}>
-            🔔 &nbsp; Test Chime
-          </button>
-
-          <div
-            className="audio-toggle"
-            onClick={() => {
-              if (!soundEnabled) playChimeBell();
-              setSoundEnabled(!soundEnabled);
-            }}
-          >
-            <span>🔊 &nbsp; Audio Chime ON</span>
-            <div className={`toggle ${soundEnabled ? "" : "off"}`}>
-              <b></b>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= FOOTER ================= */}
-      <footer className="queue-footer">
-        <div>
-          🌿 &nbsp; <strong>KisanQueue</strong> &nbsp;|&nbsp; Department of Agriculture &nbsp;|&nbsp; Government of India
-        </div>
-
-        <div>
-          <span>Digital Mandi</span> &nbsp;|&nbsp;
-          <span>Prosperous Farmers</span> &nbsp;|&nbsp;
-          <span>Stronger India 🌿</span>
-        </div>
+      {/* ─── FOOTER ─── */}
+      <footer className="lq-footer">
+        🌿 &nbsp;<strong>KisanQueue</strong>&nbsp;|&nbsp;Department of
+        Agriculture&nbsp;|&nbsp;Govt. of India
       </footer>
     </div>
   );
 }
+

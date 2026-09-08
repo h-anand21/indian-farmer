@@ -161,7 +161,7 @@ export default function LanguageSelector({
               {/* Header */}
               <div className="modal-header">
                 <div className="modal-header-ribbon">
-                  Apni Bhasha, Apna KisanQueue
+                  Your Language, Your KisanQueue
                 </div>
 
                 <div className="globe-wrapper">

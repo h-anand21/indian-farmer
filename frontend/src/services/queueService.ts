@@ -24,7 +24,9 @@ export interface CentreQueueState {
     token: string;
     position: number;
     cropName: string;
+    status?: string;
   }>;
+  queueEntries?: Array<any>;
 }
 
 export interface FarmerQueuePosition {
@@ -79,7 +81,8 @@ export async function checkInAtGate(bookingId: string) {
 export async function advanceQueueSimulation(payload: {
   centreId: string;
   counterNumber?: number;
-  action: "CALL_NEXT" | "START_PROCUREMENT" | "COMPLETE" | "SKIP";
+  action: "CALL_NEXT" | "START_PROCUREMENT" | "COMPLETE" | "SKIP" | "RESET";
+  bookingId?: string;
 }) {
   const res = await api.post<{ success: boolean; message: string; data: CentreQueueState }>(
     `/queue/advance`,

@@ -145,9 +145,9 @@ export const FormJReceipt: React.FC<FormJReceiptProps> = ({
           </div>
 
           <div className="receipt-slogan">
-            Kisan Ka<br />
-            Samman<br />
-            Desh Ki Pehchaan 🌿
+            Empowering<br />
+            Farmers,<br />
+            Nation's Pride 🌿
           </div>
         </header>
 

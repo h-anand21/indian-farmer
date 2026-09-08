@@ -41,7 +41,7 @@ interface SlideData {
 const SLIDES: SlideData[] = [
   {
     image: "/images/illus_slide_1.jpg",
-    callout: "Saath Mein Digital, Har Kisan Ke Liye 彡",
+    callout: "Together Digitally, For Every Farmer 彡",
     statVal1: "14K+",
     statLabel1: "Farmers Active",
     statVal2: "52",
@@ -264,8 +264,8 @@ export default function LoginPage() {
               {/* Slogan */}
               <div className="auth-handwritten-slogan">
                 <div className="auth-handwritten-text">
-                  Kisan ki Mehnat<br />
-                  Desh ki Taqat
+                  Farmer's Hard Work<br />
+                  Nation's Strength
                 </div>
                 <svg
                   className="auth-handwritten-strokes"

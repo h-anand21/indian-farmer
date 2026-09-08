@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getMetrics,
   getRoster,
+  getBookingDetails,
   postGateCheckIn,
   postWeighment,
   getPayments,
@@ -15,6 +16,9 @@ router.get("/metrics/:centreId", getMetrics);
 
 // Queue Roster
 router.get("/roster/:centreId", getRoster);
+
+// Single Booking Details for Weighment / Intake
+router.get("/booking-details/:bookingId", getBookingDetails);
 
 // Gate Check-in
 router.post("/check-in", postGateCheckIn);

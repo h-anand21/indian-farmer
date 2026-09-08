@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import prisma from "../config/database";
 import {
   getOperatorDashboardMetrics,
   getTodayRoster,
@@ -10,17 +11,26 @@ import {
 } from "../services/operatorService";
 
 const checkInSchema = z.object({
-  centreId: z.string().min(1, "Centre ID is required"),
+  centreId: z.string().optional(),
   tokenOrCode: z.string().min(1, "Token or QR code is required"),
   vehiclePlate: z.string().optional(),
 });
 
 const weighmentSchema = z.object({
   bookingId: z.string().min(1, "Booking ID is required"),
-  actualWeight: z.number().positive("Actual weight must be greater than 0"),
-  qualityGrade: z.enum(["GRADE_A", "GRADE_B", "GRADE_C", "FAQ_STANDARD"]).default("GRADE_A"),
-  moisturePercent: z.number().min(0).max(35).default(11.5),
-  foreignMatter: z.number().min(0).max(10).default(0.5),
+  actualWeight: z.coerce.number().positive("Actual weight must be greater than 0"),
+  qualityGrade: z.preprocess((val) => {
+    if (typeof val === "string") {
+      const upper = val.toUpperCase();
+      if (upper.includes("GRADE A") || upper.includes("PREMIUM")) return "GRADE_A";
+      if (upper.includes("GRADE B")) return "GRADE_B";
+      if (upper.includes("GRADE C")) return "GRADE_C";
+      if (upper.includes("FAQ")) return "FAQ_STANDARD";
+    }
+    return val || "GRADE_A";
+  }, z.enum(["GRADE_A", "GRADE_B", "GRADE_C", "FAQ_STANDARD"]).default("GRADE_A")),
+  moisturePercent: z.coerce.number().min(0).max(35).default(11.2),
+  foreignMatter: z.coerce.number().min(0).max(10).default(0.4),
   remarks: z.string().optional(),
 });
 
@@ -69,9 +79,49 @@ export async function getRoster(req: Request, res: Response, next: NextFunction)
 }
 
 /**
+ * GET /api/operator/booking-details/:bookingId
+ */
+export async function getBookingDetails(req: Request, res: Response, next: NextFunction) {
+  try {
+    const rawId = req.params.bookingId;
+    const bookingId = Array.isArray(rawId) ? rawId[0] : rawId;
+    if (!bookingId) {
+      res.status(400).json({ success: false, message: "Booking ID is required" });
+      return;
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        centre: true,
+        crop: true,
+        slot: true,
+        queueEntry: true,
+        farmer: {
+          include: {
+            user: true,
+          },
+        },
+        procurement: true,
+        payment: true,
+      },
+    });
+
+    if (!booking) {
+      res.status(404).json({ success: false, message: "Booking not found" });
+      return;
+    }
+
+    res.json({ success: true, data: booking });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /api/operator/check-in
  */
-export async function postGateCheckIn(req: Request, res: Response, next: NextFunction) {
+export async function postGateCheckIn(req: Request, res: Response, _next: NextFunction) {
   try {
     const parsed = checkInSchema.parse(req.body);
     const result = await verifyAndCheckInToken(
@@ -86,8 +136,13 @@ export async function postGateCheckIn(req: Request, res: Response, next: NextFun
       data: result.booking,
       alreadyCheckedIn: result.alreadyCheckedIn,
     });
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    const message = error?.message || "⚠️ QR Code Mismatch! Please scan a valid QR code.";
+    res.status(400).json({
+      success: false,
+      message,
+      error: message,
+    });
   }
 }
 

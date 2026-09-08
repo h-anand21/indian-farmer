@@ -756,12 +756,16 @@
 /* Table Layout Grid */
 .kq-table-grid {
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .kq-table-head {
   display: grid;
-  grid-template-columns: 85px 1.4fr 1.2fr 140px 110px 90px 240px;
+  grid-template-columns: 140px minmax(180px, 1.4fr) minmax(150px, 1.1fr) 130px 110px 95px 220px;
+  min-width: 980px;
   align-items: center;
+  gap: 12px;
   padding: 10px 18px;
   margin: 0 12px;
   background: #f8fafc;
@@ -775,8 +779,10 @@
 
 .kq-table-row {
   display: grid;
-  grid-template-columns: 85px 1.4fr 1.2fr 140px 110px 90px 240px;
+  grid-template-columns: 140px minmax(180px, 1.4fr) minmax(150px, 1.1fr) 130px 110px 95px 220px;
+  min-width: 980px;
   align-items: center;
+  gap: 12px;
   padding: 12px 18px;
   margin: 4px 12px;
   border-bottom: 1px solid #f1f5f9;
@@ -797,18 +803,25 @@
 
 /* Cell Elements */
 .kq-token-pill {
-  width: 76px;
-  height: 38px;
-  border-radius: 20px;
+  min-width: 115px;
+  width: fit-content;
+  max-width: 135px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #064e3b, #022c22);
   color: #ffffff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.2);
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .kq-farmer-col {
