@@ -55,75 +55,150 @@ interface DirectoryCentre {
 }
 
 const DEFAULT_CENTRES: DirectoryCentre[] = [
+  // ── 3 West Bengal Mandis ──
   {
-    id: "centre-1",
-    name: "Ambala City Grain Market Yard",
-    code: "HR-AMB-05",
-    district: "Ambala",
-    state: "Haryana",
+    id: "centre-wb-1",
+    name: "Burdwan Central Rice & Grain Mandi",
+    code: "WB-BWN-01",
+    district: "Purba Bardhaman",
+    state: "West Bengal",
+    totalCounters: 5,
+    operatingHours: "08:00 - 18:00",
+    trafficLevel: "Moderate",
+    trafficPct: 45,
+    assignedOperators: 2,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=120&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "centre-wb-2",
+    name: "Siliguri Regulated APMC Market Yard",
+    code: "WB-SLG-02",
+    district: "Darjeeling",
+    state: "West Bengal",
+    totalCounters: 4,
+    operatingHours: "08:30 - 17:30",
+    trafficLevel: "Low",
+    trafficPct: 20,
+    assignedOperators: 1,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=120&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "centre-wb-3",
+    name: "Malda Central Agricultural Market Complex",
+    code: "WB-MLD-03",
+    district: "Malda",
+    state: "West Bengal",
+    totalCounters: 4,
+    operatingHours: "08:00 - 17:00",
+    trafficLevel: "Low",
+    trafficPct: 30,
+    assignedOperators: 1,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=120&auto=format&fit=crop&q=80",
+  },
+
+  // ── 2 Bihar Mandis ──
+  {
+    id: "centre-br-1",
+    name: "Mohania APMC Grain Procurement Yard",
+    code: "BR-KMR-01",
+    district: "Kaimur (Bhabua)",
+    state: "Bihar",
+    totalCounters: 5,
+    operatingHours: "08:00 - 18:00",
+    trafficLevel: "Moderate",
+    trafficPct: 55,
+    assignedOperators: 2,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=120&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "centre-br-2",
+    name: "Sasaram APMC Central Mandi Yard",
+    code: "BR-RHT-02",
+    district: "Rohtas",
+    state: "Bihar",
+    totalCounters: 6,
+    operatingHours: "08:00 - 18:30",
+    trafficLevel: "Low",
+    trafficPct: 35,
+    assignedOperators: 2,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=120&auto=format&fit=crop&q=80",
+  },
+
+  // ── 5 Punjab Mandis ──
+  {
+    id: "centre-pb-1",
+    name: "Khanna Main Asian Grain Market (Yard #1)",
+    code: "PB-KHN-01",
+    district: "Ludhiana",
+    state: "Punjab",
+    totalCounters: 8,
+    operatingHours: "07:30 - 19:00",
+    trafficLevel: "High",
+    trafficPct: 80,
+    assignedOperators: 3,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=120&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "centre-pb-2",
+    name: "Rajpura APMC Grain Procurement Complex",
+    code: "PB-RJP-02",
+    district: "Patiala",
+    state: "Punjab",
+    totalCounters: 6,
+    operatingHours: "08:00 - 18:00",
+    trafficLevel: "Moderate",
+    trafficPct: 50,
+    assignedOperators: 2,
+    status: "Active",
+    photoUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=120&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "centre-pb-3",
+    name: "Sirhind Grain Market Yard",
+    code: "PB-SRH-03",
+    district: "Fatehgarh Sahib",
+    state: "Punjab",
     totalCounters: 4,
     operatingHours: "08:30 - 17:30",
     trafficLevel: "Low",
     trafficPct: 25,
     assignedOperators: 1,
     status: "Active",
-    photoUrl: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=120&auto=format&fit=crop&q=80",
+    photoUrl: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: "centre-2",
-    name: "Karnal Anaj Mandi Complex Gate #2",
-    code: "HR-KRN-04",
-    district: "Karnal",
-    state: "Haryana",
+    id: "centre-pb-4",
+    name: "Jagraon Anaj Mandi Procurement Yard",
+    code: "PB-JGR-04",
+    district: "Ludhiana",
+    state: "Punjab",
     totalCounters: 5,
     operatingHours: "08:00 - 18:00",
     trafficLevel: "Low",
-    trafficPct: 25,
-    assignedOperators: 0,
+    trafficPct: 30,
+    assignedOperators: 1,
     status: "Active",
     photoUrl: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=120&auto=format&fit=crop&q=80",
   },
   {
-    id: "centre-3",
-    name: "Khanna Main Grain Market (Yard #1)",
-    code: "PB-KHN-01",
-    district: "Ludhiana",
+    id: "centre-pb-5",
+    name: "Kapurthala APMC Grain Market Complex",
+    code: "PB-KPT-05",
+    district: "Kapurthala",
     state: "Punjab",
-    totalCounters: 6,
-    operatingHours: "08:00 - 18:00",
+    totalCounters: 5,
+    operatingHours: "08:00 - 17:30",
     trafficLevel: "Low",
     trafficPct: 25,
-    assignedOperators: 0,
+    assignedOperators: 1,
     status: "Active",
     photoUrl: "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=120&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "centre-4",
-    name: "Rajpura APMC Grain Procurement Complex",
-    code: "PB-RJP-02",
-    district: "Patiala",
-    state: "Punjab",
-    totalCounters: 4,
-    operatingHours: "08:30 - 17:30",
-    trafficLevel: "Low",
-    trafficPct: 25,
-    assignedOperators: 0,
-    status: "Active",
-    photoUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=120&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "centre-5",
-    name: "Sirhind Grain Market Yard",
-    code: "PB-SRH-03",
-    district: "Fatehgarh Sahib",
-    state: "Punjab",
-    totalCounters: 3,
-    operatingHours: "09:00 - 17:00",
-    trafficLevel: "Low",
-    trafficPct: 25,
-    assignedOperators: 0,
-    status: "Active",
-    photoUrl: "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=120&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -339,8 +414,10 @@ export default function AdminCentresPage() {
               </div>
               <div>
                 <div className="centres-stat-label">Total Centres</div>
-                <div className="centres-stat-val">52</div>
-                <div className="centres-stat-sub">Across 5 Districts</div>
+                <div className="centres-stat-val">{centresList.length}</div>
+                <div className="centres-stat-sub">
+                  Across {Array.from(new Set(centresList.map((c) => c.district))).length} Districts
+                </div>
               </div>
             </div>
 
@@ -351,8 +428,10 @@ export default function AdminCentresPage() {
               </div>
               <div>
                 <div className="centres-stat-label">Active Centres</div>
-                <div className="centres-stat-val">48</div>
-                <div className="centres-stat-sub green">&uarr; 92% Operational</div>
+                <div className="centres-stat-val">
+                  {centresList.filter((c) => c.status === "Active").length}
+                </div>
+                <div className="centres-stat-sub green">100% Operational</div>
               </div>
             </div>
 
@@ -363,8 +442,10 @@ export default function AdminCentresPage() {
               </div>
               <div>
                 <div className="centres-stat-label">Total Counters</div>
-                <div className="centres-stat-val">245</div>
-                <div className="centres-stat-sub">Weighing Counters</div>
+                <div className="centres-stat-val">
+                  {centresList.reduce((acc, c) => acc + (c.totalCounters || 1), 0)}
+                </div>
+                <div className="centres-stat-sub">Weighbridge Bays</div>
               </div>
             </div>
 
@@ -375,8 +456,8 @@ export default function AdminCentresPage() {
               </div>
               <div>
                 <div className="centres-stat-label">Avg. Operating Hours</div>
-                <div className="centres-stat-val">8.5 hrs</div>
-                <div className="centres-stat-sub">Per Day</div>
+                <div className="centres-stat-val">9.5 hrs</div>
+                <div className="centres-stat-sub">Daily Procurement</div>
               </div>
             </div>
           </div>
@@ -428,7 +509,7 @@ export default function AdminCentresPage() {
             <Search size={16} className="centres-search-icon" />
             <input
               type="text"
-              placeholder="Search by centre name, code, district, or state..."
+              placeholder="Search by centre name, code, district, or state (e.g. Punjab, Bihar, Bengal)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="centres-search-input"
@@ -443,12 +524,12 @@ export default function AdminCentresPage() {
               onChange={(e) => setSelectedDistrict(e.target.value)}
               className="centres-select"
             >
-              <option value="ALL">All Districts</option>
-              <option value="Ambala">Ambala</option>
-              <option value="Karnal">Karnal</option>
-              <option value="Ludhiana">Ludhiana</option>
-              <option value="Patiala">Patiala</option>
-              <option value="Fatehgarh Sahib">Fatehgarh Sahib</option>
+              <option value="ALL">All Districts ({Array.from(new Set(centresList.map((c) => c.district))).length})</option>
+              {Array.from(new Set(centresList.map((c) => c.district))).sort().map((dist) => (
+                <option key={dist} value={dist}>
+                  {dist}
+                </option>
+              ))}
             </select>
             <span className="centres-select-chevron">&#x2304;</span>
           </div>
@@ -491,25 +572,27 @@ export default function AdminCentresPage() {
           </button>
         </div>
 
-        {/* Row 2: District Pills & View Toggles */}
+        {/* Row 2: District / State Pills & View Toggles */}
         <div className="centres-pills-row">
-          <div className="centres-pills-group">
-            {[
-              { label: "All (52)", val: "ALL" },
-              { label: "Ludhiana (8)", val: "Ludhiana" },
-              { label: "Patiala (6)", val: "Patiala" },
-              { label: "Fatehgarh Sahib (5)", val: "Fatehgarh Sahib" },
-              { label: "Karnal (7)", val: "Karnal" },
-              { label: "Ambala (6)", val: "Ambala" },
-            ].map((pill) => (
-              <button
-                key={pill.val}
-                className={`centres-pill-btn ${selectedDistrict === pill.val ? "active" : ""}`}
-                onClick={() => setSelectedDistrict(pill.val)}
-              >
-                {pill.label}
-              </button>
-            ))}
+          <div className="centres-pills-group" style={{ overflowX: "auto", paddingBottom: "4px" }}>
+            <button
+              className={`centres-pill-btn ${selectedDistrict === "ALL" ? "active" : ""}`}
+              onClick={() => setSelectedDistrict("ALL")}
+            >
+              All Mandis ({centresList.length})
+            </button>
+            {Array.from(new Set(centresList.map((c) => c.district))).sort().map((dist) => {
+              const count = centresList.filter((c) => c.district.toLowerCase() === dist.toLowerCase()).length;
+              return (
+                <button
+                  key={dist}
+                  className={`centres-pill-btn ${selectedDistrict.toLowerCase() === dist.toLowerCase() ? "active" : ""}`}
+                  onClick={() => setSelectedDistrict(dist)}
+                >
+                  {dist} ({count})
+                </button>
+              );
+            })}
           </div>
 
           <div className="centres-view-actions">
@@ -864,8 +947,8 @@ export default function AdminCentresPage() {
 
       {/* ── MODAL: REGISTER NEW MANDI CENTRE ── */}
       {showAddModal && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
+        <div className="admin-modal-backdrop" onClick={() => setShowAddModal(false)}>
+          <div className="admin-modal-panel" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                 <Warehouse size={18} color="#16a34a" /> Register New Procurement Centre
@@ -1167,8 +1250,8 @@ export default function AdminCentresPage() {
 
       {/* ── MODAL: BATCH SLOT GENERATOR ── */}
       {showSlotModal && selectedCentreForSlots && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal-panel">
+        <div className="admin-modal-backdrop" onClick={() => setShowSlotModal(false)}>
+          <div className="admin-modal-panel" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                 <CalendarPlus size={18} color="#16a34a" /> Generate Procurement Slots

@@ -22,12 +22,16 @@ function MandiGateVisual({
   code: string;
 }) {
   let bannerTitle = "APMC MANDI";
-  if (code.includes("AMB")) bannerTitle = "APMC AMBALA";
-  else if (code.includes("KRN")) bannerTitle = "KARNAL APMC";
+  if (code.includes("BWN")) bannerTitle = "BURDWAN RICE MANDI";
+  else if (code.includes("SLG")) bannerTitle = "SILIGURI APMC YARD";
+  else if (code.includes("MLD")) bannerTitle = "MALDA APMC COMPLEX";
+  else if (code.includes("KMR")) bannerTitle = "MOHANIA APMC (KAIMUR)";
+  else if (code.includes("RHT")) bannerTitle = "SASARAM APMC MANDI";
   else if (code.includes("KHN")) bannerTitle = "KHANNA GRAIN MARKET";
   else if (code.includes("RJP")) bannerTitle = "RAJPURA APMC";
   else if (code.includes("SRH")) bannerTitle = "SIRHIND GRAIN MARKET";
-  else if (code.includes("PNP")) bannerTitle = "PANIPAT GRAIN MARKET";
+  else if (code.includes("JGR")) bannerTitle = "JAGRAON ANAJ MANDI";
+  else if (code.includes("KPT")) bannerTitle = "KAPURTHALA APMC";
   else bannerTitle = name.split("(")[0].trim().toUpperCase();
 
   const safeCode = code.replace(/[^a-zA-Z0-9]/g, "_");
@@ -117,29 +121,23 @@ function MandiGateVisual({
         </g>
 
         {/* Main APMC Mandi Gate Architecture */}
-        {/* Left Robust Pillar */}
         <rect x="48" y="34" width="22" height="72" fill={`url(#pillarGrad-${safeCode})`} rx="2" stroke="#aba08a" strokeWidth="1" />
         <rect x="45" y="30" width="28" height="6" fill="#ded4be" rx="1" />
         <rect x="45" y="102" width="28" height="6" fill="#ded4be" rx="1" />
 
-        {/* Right Robust Pillar */}
         <rect x="290" y="34" width="22" height="72" fill={`url(#pillarGrad-${safeCode})`} rx="2" stroke="#aba08a" strokeWidth="1" />
         <rect x="287" y="30" width="28" height="6" fill="#ded4be" rx="1" />
         <rect x="287" y="102" width="28" height="6" fill="#ded4be" rx="1" />
 
-        {/* Center Support Arch Structure */}
         <rect x="174" y="42" width="12" height="64" fill={`url(#pillarGrad-${safeCode})`} opacity="0.9" />
 
-        {/* Pitched Roof Canopy */}
         <polygon points="36,32 180,10 324,32" fill={`url(#roofGrad-${safeCode})`} stroke="#3b4d45" strokeWidth="1.5" />
         <line x1="38" y1="31" x2="180" y2="12" stroke="#9ab2a8" strokeWidth="1.5" />
         <line x1="180" y1="12" x2="322" y2="31" stroke="#9ab2a8" strokeWidth="1.5" />
 
-        {/* Main Horizontal Signboard Beam */}
         <rect x="42" y="32" width="276" height="24" fill={`url(#beamGrad-${safeCode})`} rx="3" stroke="#aba08a" strokeWidth="1.2" />
         <rect x="48" y="36" width="264" height="16" fill="#fffdfa" rx="2" stroke="#ded4be" strokeWidth="0.8" />
 
-        {/* Signboard Mandi Name */}
         <text
           x="180"
           y="48"
@@ -153,11 +151,9 @@ function MandiGateVisual({
           {bannerTitle}
         </text>
 
-        {/* Decorative Archway Details */}
         <path d="M 70 56 Q 122 52 174 56" stroke="#9e937d" strokeWidth="2" fill="none" />
         <path d="M 186 56 Q 238 52 290 56" stroke="#9e937d" strokeWidth="2" fill="none" />
 
-        {/* Weighbridge Entry Lane Barrier Arms */}
         <rect x="70" y="96" width="46" height="3" fill="#16a34a" />
         <rect x="76" y="96" width="8" height="3" fill="#ffffff" />
         <rect x="92" y="96" width="8" height="3" fill="#ffffff" />
@@ -170,85 +166,142 @@ function MandiGateVisual({
   );
 }
 
-// Demo mandis fallback matching the exact reference UI
+// ── 10 Real Mandis across West Bengal, Bihar, and Punjab ──
 const DEMO_CENTRES: (CentreData & { flow: "Normal Flow" | "High Rush"; distance: string; counters: number; timing: string })[] = [
+  // ── 3 West Bengal Mandis ──
   {
-    id: "c-ambala",
-    name: "Ambala City Grain Market Yard",
-    code: "HR-AMB-05",
-    district: "Ambala",
-    state: "Haryana",
-    address: "GT Road, Ambala City, Haryana",
+    id: "centre-wb-1",
+    name: "Burdwan Central Rice & Grain Mandi",
+    code: "WB-BWN-01",
+    district: "Purba Bardhaman",
+    state: "West Bengal",
+    address: "GT Road, Shaktigarh Grain Market Complex, Purba Bardhaman",
     capacityPerDay: 500,
     flow: "Normal Flow",
-    distance: "2.5 km",
-    counters: 4,
-    timing: "08:30 - 17:30",
-  },
-  {
-    id: "c-karnal",
-    name: "Karnal Anaj Mandi Complex Gate #2",
-    code: "HR-KRN-04",
-    district: "Karnal",
-    state: "Haryana",
-    address: "Kunjpura Road, Karnal, Haryana",
-    capacityPerDay: 600,
-    flow: "Normal Flow",
-    distance: "62 km",
+    distance: "12 km",
     counters: 5,
     timing: "08:00 - 18:00",
   },
   {
-    id: "c-khanna",
-    name: "Khanna Main Grain Market (Yard #1)",
+    id: "centre-wb-2",
+    name: "Siliguri Regulated APMC Market Yard",
+    code: "WB-SLG-02",
+    district: "Darjeeling",
+    state: "West Bengal",
+    address: "Near Champasari More, Regulated Market Yard, Siliguri",
+    capacityPerDay: 400,
+    flow: "Normal Flow",
+    distance: "18 km",
+    counters: 4,
+    timing: "08:30 - 17:30",
+  },
+  {
+    id: "centre-wb-3",
+    name: "Malda Central Agricultural Market Complex",
+    code: "WB-MLD-03",
+    district: "Malda",
+    state: "West Bengal",
+    address: "English Bazar Grain Procurement Yard, NH-34, Malda",
+    capacityPerDay: 400,
+    flow: "Normal Flow",
+    distance: "25 km",
+    counters: 4,
+    timing: "08:00 - 17:00",
+  },
+
+  // ── 2 Bihar Mandis ──
+  {
+    id: "centre-br-1",
+    name: "Mohania APMC Grain Procurement Yard",
+    code: "BR-KMR-01",
+    district: "Kaimur (Bhabua)",
+    state: "Bihar",
+    address: "Grand Trunk Road, Near Railway Station Yard, Mohania, Kaimur",
+    capacityPerDay: 600,
+    flow: "Normal Flow",
+    distance: "8 km",
+    counters: 5,
+    timing: "08:00 - 18:00",
+  },
+  {
+    id: "centre-br-2",
+    name: "Sasaram APMC Central Mandi Yard",
+    code: "BR-RHT-02",
+    district: "Rohtas",
+    state: "Bihar",
+    address: "Old GT Road, Krishi Upaj Mandi Complex, Sasaram",
+    capacityPerDay: 700,
+    flow: "Normal Flow",
+    distance: "32 km",
+    counters: 6,
+    timing: "08:00 - 18:30",
+  },
+
+  // ── 5 Punjab Mandis ──
+  {
+    id: "centre-pb-1",
+    name: "Khanna Main Asian Grain Market (Yard #1)",
     code: "PB-KHN-01",
     district: "Ludhiana",
     state: "Punjab",
     address: "Asia's Largest Grain Market, Khanna, Punjab",
     capacityPerDay: 1200,
-    flow: "Normal Flow",
-    distance: "142 km",
-    counters: 6,
-    timing: "08:00 - 18:00",
+    flow: "High Rush",
+    distance: "5 km",
+    counters: 8,
+    timing: "07:30 - 19:00",
   },
   {
-    id: "c-rajpura",
+    id: "centre-pb-2",
     name: "Rajpura APMC Grain Procurement Complex",
     code: "PB-RJP-02",
     district: "Patiala",
     state: "Punjab",
     address: "Old Grain Market, Rajpura, Punjab",
-    capacityPerDay: 450,
+    capacityPerDay: 550,
     flow: "Normal Flow",
-    distance: "98 km",
-    counters: 4,
-    timing: "08:30 - 17:30",
+    distance: "14 km",
+    counters: 6,
+    timing: "08:00 - 18:00",
   },
   {
-    id: "c-sirhind",
+    id: "centre-pb-3",
     name: "Sirhind Grain Market Yard",
     code: "PB-SRH-03",
     district: "Fatehgarh Sahib",
     state: "Punjab",
     address: "Mandi Road, Sirhind, Punjab",
     capacityPerDay: 350,
-    flow: "High Rush",
-    distance: "110 km",
-    counters: 3,
-    timing: "09:00 - 17:00",
+    flow: "Normal Flow",
+    distance: "11 km",
+    counters: 4,
+    timing: "08:30 - 17:30",
   },
   {
-    id: "c-panipat",
-    name: "Panipat Mandi (Main Yard)",
-    code: "HR-PNP-06",
-    district: "Panipat",
-    state: "Haryana",
-    address: "Sector 25, Panipat, Haryana",
-    capacityPerDay: 750,
+    id: "centre-pb-4",
+    name: "Jagraon Anaj Mandi Procurement Yard",
+    code: "PB-JGR-04",
+    district: "Ludhiana",
+    state: "Punjab",
+    address: "Main Grain Market, Jagraon, Punjab",
+    capacityPerDay: 500,
     flow: "Normal Flow",
-    distance: "220 km",
-    counters: 6,
+    distance: "22 km",
+    counters: 5,
     timing: "08:00 - 18:00",
+  },
+  {
+    id: "centre-pb-5",
+    name: "Kapurthala APMC Grain Market Complex",
+    code: "PB-KPT-05",
+    district: "Kapurthala",
+    state: "Punjab",
+    address: "Sultanpur Lodhi Road, Kapurthala, Punjab",
+    capacityPerDay: 450,
+    flow: "Normal Flow",
+    distance: "28 km",
+    counters: 5,
+    timing: "08:00 - 17:30",
   },
 ];
 
