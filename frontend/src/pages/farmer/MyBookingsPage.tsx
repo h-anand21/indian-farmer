@@ -165,14 +165,14 @@ export default function MyBookingsPage() {
     try {
       setLoading(true);
       const data = await fetchMyBookings();
-      if (data && data.length > 0) {
+      if (Array.isArray(data)) {
         setBookings(data);
       } else {
-        setBookings(DEMO_BOOKINGS);
+        setBookings([]);
       }
     } catch (err: any) {
-      console.warn("Using demo bookings fallback:", err);
-      setBookings(DEMO_BOOKINGS);
+      console.warn("Could not load bookings from backend:", err);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
@@ -404,15 +404,34 @@ export default function MyBookingsPage() {
                       <span className="status-label">{statusLabel}</span>
                     </div>
 
-                    <h2>{b.centre?.name || "Ambala City Grain Market Yard"}</h2>
+                    <h2>{b.centre?.name || "Mandi Procurement Yard"}</h2>
                     <p className="location">
-                      📍 {b.centre?.district || "Ambala"}, {b.centre?.state || "Haryana"}
+                      📍 {b.centre?.district || "District"}, {b.centre?.state || "State"}
                     </p>
 
                     <div className="booking-meta">
-                      <span>🌾 &nbsp; {b.crop?.name || "Wheat (Kanak)"} {b.quantity} Qtl</span>
-                      <span>📅 &nbsp; {b.slotDate || "06 Sep 2026"}</span>
-                      <span>🕒 &nbsp; {b.slotWindow || "09:00 - 11:00"}</span>
+                      <span>🌾 &nbsp; {b.crop?.name || "Wheat"} {b.quantity} Qtl</span>
+                      <span>
+                        📅 &nbsp;{" "}
+                        {b.slotDate
+                          ? new Date(b.slotDate).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : b.slot?.date
+                          ? new Date(b.slot.date).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "Today"}
+                      </span>
+                      <span>
+                        🕒 &nbsp;{" "}
+                        {b.slotWindow ||
+                          (b.slot ? `${b.slot.startTime} - ${b.slot.endTime}` : "08:00 - 10:00")}
+                      </span>
                     </div>
                   </div>
 
@@ -572,12 +591,31 @@ export default function MyBookingsPage() {
 
                 <div className="pass-item">
                   <label>Slot Date</label>
-                  <strong>{selectedPass.slotDate}</strong>
+                  <strong>
+                    {selectedPass.slotDate
+                      ? new Date(selectedPass.slotDate).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : selectedPass.slot?.date
+                      ? new Date(selectedPass.slot.date).toLocaleDateString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Today"}
+                  </strong>
                 </div>
 
                 <div className="pass-item">
                   <label>Time Window</label>
-                  <strong>{selectedPass.slotWindow}</strong>
+                  <strong>
+                    {selectedPass.slotWindow ||
+                      (selectedPass.slot
+                        ? `${selectedPass.slot.startTime} - ${selectedPass.slot.endTime}`
+                        : "08:00 - 10:00")}
+                  </strong>
                 </div>
 
                 <div className="pass-item">

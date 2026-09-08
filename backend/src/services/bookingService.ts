@@ -119,8 +119,8 @@ export function listMasterCrops() {
  * Get available slots for a centre on a given date (Auto-generates if unseeded)
  */
 export async function getSlotsForCentreAndDate(centreId: string, dateStr: string) {
-  const targetDate = new Date(dateStr);
-  targetDate.setHours(0, 0, 0, 0);
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const targetDate = new Date(Date.UTC(year, (month || 1) - 1, day || 1));
 
   let slots = await prisma.slot.findMany({
     where: {
@@ -134,10 +134,10 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
   // If no slots exist for this centre and date yet, auto-provision standard slots
   if (slots.length === 0) {
     const defaultSlots = [
-      { startTime: "09:00", endTime: "11:00", capacity: 40, booked: 0 },
-      { startTime: "11:30", endTime: "13:30", capacity: 40, booked: 0 },
-      { startTime: "14:00", endTime: "16:00", capacity: 35, booked: 0 },
-      { startTime: "16:30", endTime: "18:00", capacity: 25, booked: 0 },
+      { startTime: "08:00", endTime: "10:00", capacity: 35, booked: 0 },
+      { startTime: "10:00", endTime: "12:00", capacity: 35, booked: 0 },
+      { startTime: "12:30", endTime: "14:30", capacity: 35, booked: 0 },
+      { startTime: "14:30", endTime: "16:30", capacity: 35, booked: 0 },
     ];
 
     await prisma.slot.createMany({
@@ -232,7 +232,7 @@ export async function createBooking(
       include: { centre: true },
     });
 
-    if (!slot) throw new Error("Selected time slot not found");
+    if (!slot) throw new Error("Selected time slot not found in mandi system");
     if (slot.booked >= slot.capacity) {
       throw new Error("This slot is already fully booked. Please select another time window.");
     }
@@ -319,7 +319,12 @@ export async function createBooking(
     console.error("Socket broadcast error:", err);
   }
 
-  return booking;
+  return {
+    ...booking,
+    slotDate: booking.slot?.date ? new Date(booking.slot.date).toISOString().split("T")[0] : undefined,
+    slotWindow: booking.slot ? `${booking.slot.startTime} - ${booking.slot.endTime}` : undefined,
+    queueNumber: 1,
+  };
 }
 
 /**
@@ -331,18 +336,41 @@ export async function getFarmerBookings(firebaseUid: string) {
     include: { farmer: true },
   });
 
-  if (!user || !user.farmer) return [];
+  if (!user) return [];
 
-  return prisma.booking.findMany({
-    where: { farmerId: user.farmer.id },
-    include: {
-      centre: true,
-      slot: true,
-      crop: true,
-      queueEntry: true,
-    },
-    orderBy: { bookedAt: "desc" },
-  });
+  let bookings = [];
+
+  if (user.farmer) {
+    bookings = await prisma.booking.findMany({
+      where: { farmerId: user.farmer.id },
+      include: {
+        centre: true,
+        slot: true,
+        crop: true,
+        queueEntry: true,
+      },
+      orderBy: { bookedAt: "desc" },
+    });
+  } else if (user.role === "ADMIN") {
+    // If admin is testing/viewing, return recent bookings so admin can see real data
+    bookings = await prisma.booking.findMany({
+      take: 20,
+      include: {
+        centre: true,
+        slot: true,
+        crop: true,
+        queueEntry: true,
+      },
+      orderBy: { bookedAt: "desc" },
+    });
+  }
+
+  return bookings.map((b) => ({
+    ...b,
+    slotDate: b.slot?.date ? new Date(b.slot.date).toISOString().split("T")[0] : undefined,
+    slotWindow: b.slot ? `${b.slot.startTime} - ${b.slot.endTime}` : undefined,
+    queueNumber: b.queueEntry?.queueNumber || 1,
+  }));
 }
 
 /**

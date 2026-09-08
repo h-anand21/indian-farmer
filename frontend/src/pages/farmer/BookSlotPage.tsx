@@ -383,14 +383,14 @@ export default function BookSlotPage() {
           setSelectedCrop(fallbackCrops[0]);
         }
 
-        // Generate next 8 dates
+        // Generate Today + next 7 dates
         const dates: Array<{ dateStr: string; dayName: string; dayNum: string; monthStr: string }> = [];
         const now = new Date();
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 0; i <= 7; i++) {
           const d = new Date(now);
           d.setDate(now.getDate() + i);
           const dateStr = d.toISOString().split("T")[0];
-          const dayName = d.toLocaleDateString("en-IN", { weekday: "short" });
+          const dayName = i === 0 ? "Today" : d.toLocaleDateString("en-IN", { weekday: "short" });
           const dayNum = d.getDate().toString().padStart(2, "0");
           const monthStr = d.toLocaleDateString("en-IN", { month: "short" });
           dates.push({ dateStr, dayName, dayNum, monthStr });
@@ -408,9 +408,9 @@ export default function BookSlotPage() {
     init();
   }, []);
 
-  // Fetch slots on date change
+  // Fetch real slots on centre and date change
   useEffect(() => {
-    if (!selectedCentre || !selectedDate) return;
+    if (!selectedCentre?.id || !selectedDate) return;
     async function loadSlots() {
       try {
         const slotsData = await fetchSlots(selectedCentre.id, selectedDate);
@@ -418,30 +418,30 @@ export default function BookSlotPage() {
           setSlots(slotsData);
           setSelectedSlot(slotsData[0]);
         } else {
-          // Fallback slots
-          const fallbackSlots: SlotData[] = [
-            { id: "s1", centreId: selectedCentre.id, date: selectedDate, startTime: "08:30", endTime: "10:30", capacity: 40, bookedCount: 14, isAvailable: true },
-            { id: "s2", centreId: selectedCentre.id, date: selectedDate, startTime: "10:30", endTime: "12:30", capacity: 40, bookedCount: 28, isAvailable: true },
-            { id: "s3", centreId: selectedCentre.id, date: selectedDate, startTime: "13:30", endTime: "15:30", capacity: 40, bookedCount: 8, isAvailable: true },
-            { id: "s4", centreId: selectedCentre.id, date: selectedDate, startTime: "15:30", endTime: "17:30", capacity: 40, bookedCount: 35, isAvailable: true },
-          ];
-          setSlots(fallbackSlots);
-          setSelectedSlot(fallbackSlots[0]);
+          setSlots([]);
+          setSelectedSlot(null);
         }
       } catch (err) {
         console.error("Error loading slots:", err);
+        setSlots([]);
+        setSelectedSlot(null);
       }
     }
     loadSlots();
   }, [selectedCentre, selectedDate]);
 
-  // Handle final submission
+  // Handle final submission to real database
   const handleBookingSubmit = async () => {
+    if (!selectedCentre?.id || !selectedSlot?.id) {
+      alert("Please select a valid Mandi Centre and available time slot.");
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await submitBooking({
-        centreId: selectedCentre?.id || "c-ambala",
-        slotId: selectedSlot?.id || "s1",
+        centreId: selectedCentre.id,
+        slotId: selectedSlot.id,
         cropName: selectedCrop?.name || "Wheat (Kanak)",
         quantity: Number(quantity),
         vehicleType,
@@ -450,23 +450,9 @@ export default function BookSlotPage() {
       });
       setConfirmedBooking(res);
     } catch (err: any) {
-      // Local fallback for demo
-      const demoPass: BookingData = {
-        id: "confirmed-demo",
-        token: `KQ-${selectedCentre?.code?.split("-")[1] || "AMB"}-${Math.floor(1000 + Math.random() * 9000)}`,
-        farmerId: "f1",
-        centreId: selectedCentre?.id || "c-ambala",
-        cropId: selectedCrop?.id || "cr1",
-        slotDate: selectedDate || "2026-09-08",
-        slotWindow: `${selectedSlot?.startTime || "08:30"} - ${selectedSlot?.endTime || "10:30"}`,
-        quantity: Number(quantity),
-        status: "BOOKED" as any,
-        queueNumber: 1,
-        createdAt: new Date().toISOString(),
-        centre: selectedCentre,
-        crop: selectedCrop as any,
-      };
-      setConfirmedBooking(demoPass);
+      console.error("Booking error:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Failed to book slot. Please try again.";
+      alert(`Booking Failed: ${errorMsg}`);
     } finally {
       setSubmitting(false);
     }
@@ -764,34 +750,140 @@ export default function BookSlotPage() {
             <div className="section-title">
               <div className="section-icon">🌾</div>
               <div>
-                <h2>Step 2: Select Crop Produce & Estimated Quantity</h2>
-                <p>Choose your harvested crop to verify official government MSP rate.</p>
+                <h2>Step 2: Select Crop Produce &amp; Estimated Quantity</h2>
+                <p>Choose your harvested crop produce to verify government MSP procurement rate.</p>
+              </div>
+            </div>
+
+            {/* Quick Dropdown Select Option */}
+            <div className="tools" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "white", padding: "6px 12px", borderRadius: "10px", border: "1px solid #bcd2e1" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#15364c" }}>Select Crop:</span>
+                <select
+                  value={selectedCrop?.id || (crops[0]?.id ?? "")}
+                  onChange={(e) => {
+                    const found = crops.find((c) => c.id === e.target.value || c.name === e.target.value);
+                    if (found) setSelectedCrop(found);
+                  }}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    background: "#f8fafc",
+                    cursor: "pointer",
+                  }}
+                >
+                  {crops.map((c) => (
+                    <option key={c.id || c.name} value={c.id || c.name}>
+                      {c.name} (MSP: ₹{c.mspPrice}/Qtl)
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
 
+          {/* Interactive Crop Selection Grid */}
           <div className="crop-grid">
             {crops.map((cr) => {
-              const isSelected = selectedCrop?.id === cr.id;
+              const isSelected = selectedCrop?.id === cr.id || selectedCrop?.name === cr.name;
               return (
                 <div
-                  key={cr.id}
+                  key={cr.id || cr.name}
                   className={`crop-card ${isSelected ? "selected" : ""}`}
                   onClick={() => setSelectedCrop(cr)}
+                  style={{
+                    position: "relative",
+                    border: isSelected ? "2px solid #008653" : "1.5px solid #d7e7e6",
+                    background: isSelected ? "#f4fcf8" : "white",
+                  }}
                 >
+                  {isSelected && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        width: "26px",
+                        height: "26px",
+                        borderRadius: "50%",
+                        background: "#008653",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "14px",
+                        fontWeight: 900,
+                        boxShadow: "0 2px 6px rgba(0,134,83,0.3)",
+                      }}
+                    >
+                      ✓
+                    </div>
+                  )}
+
                   <div className="crop-card-top">
-                    <div className="crop-icon-box">🌾</div>
-                    <span className="crop-msp-tag">MSP: ₹{cr.mspPrice} / Qtl</span>
+                    <div className="crop-icon-box">{cr.icon || "🌾"}</div>
+                    <span className="crop-msp-tag" style={{ marginRight: isSelected ? "28px" : "0" }}>
+                      MSP: ₹{cr.mspPrice} / Qtl
+                    </span>
                   </div>
 
-                  <h3>{cr.name}</h3>
-                  <p>Season: {cr.season} &bull; Code: {cr.code}</p>
+                  <h3 style={{ margin: "10px 0 4px", fontSize: "16px", fontWeight: 800, color: "#081633" }}>
+                    {cr.name}
+                  </h3>
+                  <p style={{ margin: "0 0 12px", fontSize: "12px", color: "#587493" }}>
+                    Season: {cr.season || "Rabi 2026-27"} {cr.variety ? `• ${cr.variety}` : ""}
+                  </p>
 
-                  <div style={{ marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: "12px", color: "#007a55", fontWeight: 700 }}>
-                      {isSelected ? "Selected ✓" : "Click to select"}
-                    </span>
-                    <span style={{ fontSize: "11px", color: "#587493" }}>Govt Guaranteed</span>
+                  <div style={{ marginTop: "auto" }}>
+                    {isSelected ? (
+                      <button
+                        type="button"
+                        className="selected-btn"
+                        style={{
+                          width: "100%",
+                          height: "36px",
+                          borderRadius: "8px",
+                          fontSize: "12.5px",
+                          fontWeight: 700,
+                          background: "#006f4d",
+                          color: "white",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        Selected ✓
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="select-btn"
+                        style={{
+                          width: "100%",
+                          height: "36px",
+                          borderRadius: "8px",
+                          fontSize: "12.5px",
+                          fontWeight: 700,
+                          background: "#f8fafc",
+                          color: "#15364c",
+                          border: "1px solid #bcd2e1",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        Select Crop →
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -802,34 +894,83 @@ export default function BookSlotPage() {
           <div
             style={{
               background: "white",
-              padding: "20px 24px",
+              padding: "22px 26px",
               borderRadius: "16px",
               border: "1px solid #dce7ed",
               marginTop: "16px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
               <div>
-                <strong style={{ fontSize: "15px", color: "#081633" }}>Estimated Crop Quantity (Quintals)</strong>
-                <p style={{ fontSize: "12px", color: "#587493", margin: "2px 0 0" }}>
-                  Verified land quota allowed: <strong>120 Quintals</strong>
+                <strong style={{ fontSize: "16px", color: "#081633" }}>Estimated Crop Quantity (Quintals)</strong>
+                <p style={{ fontSize: "12.5px", color: "#587493", margin: "2px 0 0" }}>
+                  Selected Crop: <strong style={{ color: "#006f4d" }}>{selectedCrop?.name || "Wheat"}</strong> (MSP: ₹{selectedCrop?.mspPrice || 2275}/Qtl)
                 </p>
               </div>
 
-              <div style={{ fontSize: "24px", fontWeight: 900, color: "#006f4d" }}>
-                {quantity} <span style={{ fontSize: "14px", fontWeight: 700, color: "#587493" }}>Qtl</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <input
+                  type="number"
+                  min={5}
+                  max={250}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                  style={{
+                    width: "80px",
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    border: "2px solid #006f4d",
+                    fontSize: "18px",
+                    fontWeight: 800,
+                    color: "#006f4d",
+                    textAlign: "center",
+                  }}
+                />
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#587493" }}>Quintals</span>
               </div>
             </div>
 
+            {/* Slider */}
             <input
               type="range"
               min={10}
-              max={120}
+              max={150}
               step={5}
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              style={{ width: "100%", accentColor: "#007a55", cursor: "pointer" }}
+              style={{ width: "100%", accentColor: "#007a55", cursor: "pointer", marginBottom: "14px" }}
             />
+
+            {/* Quick Quantity Preset Buttons */}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {[20, 40, 60, 80, 100, 120].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setQuantity(preset)}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "8px",
+                      border: quantity === preset ? "2px solid #006f4d" : "1px solid #cbd5e1",
+                      background: quantity === preset ? "#ecfdf5" : "#f8fafc",
+                      color: quantity === preset ? "#006f4d" : "#475569",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {preset} Qtl
+                  </button>
+                ))}
+              </div>
+
+              {/* Total Estimated MSP Payout */}
+              <div style={{ background: "#f0fdf4", padding: "6px 14px", borderRadius: "10px", border: "1px solid #bbf7d0", fontSize: "13px", fontWeight: 700, color: "#166534" }}>
+                💰 Estimated MSP Payout: ₹{((selectedCrop?.mspPrice || 2275) * quantity).toLocaleString("en-IN")}
+              </div>
+            </div>
           </div>
 
           <div className="bottom-bar">

@@ -36,15 +36,39 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 // ── Provider ──
 
+const LOCAL_STORAGE_USER_KEY = "kisanqueue_user_session";
+const LOCAL_STORAGE_ROLE_KEY = "kisanqueue_user_role";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    firebaseUser: null,
-    user: null,
-    isLoading: true,
-    isAuthenticated: false,
-    isRegistered: false,
-    role: null,
-  });
+  const getInitialState = (): AuthState => {
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
+      const cachedRole = localStorage.getItem(LOCAL_STORAGE_ROLE_KEY);
+      if (cached) {
+        const user = JSON.parse(cached);
+        return {
+          firebaseUser: null,
+          user,
+          isLoading: false,
+          isAuthenticated: true,
+          isRegistered: true,
+          role: cachedRole || user.role || "FARMER",
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to parse cached user session:", e);
+    }
+    return {
+      firebaseUser: null,
+      user: null,
+      isLoading: true,
+      isAuthenticated: false,
+      isRegistered: false,
+      role: null,
+    };
+  };
+
+  const [state, setState] = useState<AuthState>(getInitialState);
 
   /**
    * After Firebase auth, verify token with backend
@@ -53,6 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkRegistration = useCallback(async (fbUser: FirebaseUser, requestedRole?: string) => {
     try {
       const result = await verifyToken(requestedRole);
+
+      if (result.data) {
+        localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(result.data));
+        localStorage.setItem(LOCAL_STORAGE_ROLE_KEY, result.data.role || "FARMER");
+      }
 
       setState({
         firebaseUser: fbUser,
@@ -69,6 +98,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const errorMsg = error?.response?.data?.message || error?.message;
       if (error?.response?.status === 403 || error?.response?.data?.error?.startsWith("ACCESS_DENIED")) {
         await signOut(auth);
+        localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_ROLE_KEY);
         setState({
           firebaseUser: null,
           user: null,
@@ -78,6 +109,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: null,
         });
         throw new Error(errorMsg || "Access Denied: You are not authorized for this role.");
+      }
+
+      // Check if we have an active session in localStorage
+      const cached = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
+      if (cached) {
+        try {
+          const user = JSON.parse(cached);
+          const cachedRole = localStorage.getItem(LOCAL_STORAGE_ROLE_KEY);
+          setState({
+            firebaseUser: fbUser,
+            user,
+            isLoading: false,
+            isAuthenticated: true,
+            isRegistered: true,
+            role: cachedRole || user.role || "FARMER",
+          });
+          return;
+        } catch {
+          // ignore
+        }
       }
 
       // For new Google account without backend profile yet (Farmer onboarding)
@@ -102,6 +153,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Handled in checkRegistration
         }
       } else {
+        // If we have a cached demo/local session, do not clear it on Firebase null
+        const cached = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
+        if (cached) {
+          try {
+            const user = JSON.parse(cached);
+            const cachedRole = localStorage.getItem(LOCAL_STORAGE_ROLE_KEY);
+            setState({
+              firebaseUser: null,
+              user,
+              isLoading: false,
+              isAuthenticated: true,
+              isRegistered: true,
+              role: cachedRole || user.role || "FARMER",
+            });
+            return;
+          } catch (e) {
+            // ignore
+          }
+        }
+
         setState({
           firebaseUser: null,
           user: null,
@@ -169,6 +240,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : null,
     };
 
+    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(demoUser));
+    localStorage.setItem(LOCAL_STORAGE_ROLE_KEY, demoRole);
+
     setState({
       firebaseUser: null,
       user: demoUser,
@@ -180,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Logout — sign out of Firebase + clear state
+   * Logout — sign out of Firebase + clear state & storage
    */
   const logout = useCallback(async () => {
     try {
@@ -188,6 +262,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
+    localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_ROLE_KEY);
+
     setState({
       firebaseUser: null,
       user: null,
@@ -202,6 +279,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Update user data in context (after registration / profile update)
    */
   const setUser = useCallback((user: UserData) => {
+    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(user));
+    localStorage.setItem(LOCAL_STORAGE_ROLE_KEY, user.role);
+
     setState((prev) => ({
       ...prev,
       user,
@@ -229,6 +309,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn("Unauthorized role switch attempt blocked.");
         return prev;
       }
+      localStorage.setItem(LOCAL_STORAGE_ROLE_KEY, newRole);
       return {
         ...prev,
         role: newRole,

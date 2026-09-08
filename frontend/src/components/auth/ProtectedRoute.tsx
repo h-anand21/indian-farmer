@@ -63,6 +63,11 @@ export default function ProtectedRoute({
 
   // Role mismatch (e.g. Farmer accessing /admin)
   if (allowedRoles && role && !allowedRoles.includes(role)) {
+    // Administrators have superuser access across all portal views (Farmer, Operator, Admin)
+    if (role === "ADMIN") {
+      return <>{children}</>;
+    }
+
     const fallbackPath =
       role === "OPERATOR"
         ? "/operator/dashboard"
