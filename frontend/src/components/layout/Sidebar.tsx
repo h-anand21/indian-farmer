@@ -71,8 +71,21 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
     { label: "System Audit Logs", href: "/admin/audit-logs", icon: History },
   ];
 
+  // Determine active portal based on current route prefix, falling back to user's assigned role
+  const activePortal: "ADMIN" | "OPERATOR" | "FARMER" = currentPath.startsWith("/admin")
+    ? "ADMIN"
+    : currentPath.startsWith("/operator")
+    ? "OPERATOR"
+    : currentPath.startsWith("/farmer")
+    ? "FARMER"
+    : (role === "ADMIN" || role === "OPERATOR" ? role : "FARMER");
+
   const navItems =
-    role === "ADMIN" ? adminNav : role === "OPERATOR" ? operatorNav : farmerNav;
+    activePortal === "ADMIN"
+      ? adminNav
+      : activePortal === "OPERATOR"
+      ? operatorNav
+      : farmerNav;
 
   const handleLogout = async () => {
     await logout();
@@ -96,7 +109,31 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
             <div className="sidebar-title">
               Kisan<span>Queue</span>
             </div>
-            <span className="sidebar-portal-tag">{role || "FARMER"} PORTAL</span>
+            <span
+              className="sidebar-portal-tag"
+              style={{
+                background:
+                  activePortal === "ADMIN"
+                    ? "rgba(124, 58, 237, 0.25)"
+                    : activePortal === "OPERATOR"
+                    ? "rgba(37, 99, 235, 0.25)"
+                    : "rgba(34, 197, 94, 0.25)",
+                color:
+                  activePortal === "ADMIN"
+                    ? "#e9d5ff"
+                    : activePortal === "OPERATOR"
+                    ? "#bfdbfe"
+                    : "#bbf7d0",
+                border:
+                  activePortal === "ADMIN"
+                    ? "1px solid rgba(168, 85, 247, 0.4)"
+                    : activePortal === "OPERATOR"
+                    ? "1px solid rgba(59, 130, 246, 0.4)"
+                    : "1px solid rgba(34, 197, 94, 0.4)",
+              }}
+            >
+              {activePortal} PORTAL
+            </span>
           </div>
         )}
 

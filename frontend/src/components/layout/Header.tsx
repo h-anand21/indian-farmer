@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { Bell, Menu, ChevronDown } from "lucide-react";
@@ -15,6 +16,16 @@ interface HeaderProps {
 export default function Header({ onMobileMenuToggle, isCollapsed }: HeaderProps) {
   const { user, role } = useAuth();
   const { unreadCount } = useNotifications();
+  const location = useLocation();
+
+  const currentPath = location.pathname;
+  const activePortal: "ADMIN" | "OPERATOR" | "FARMER" = currentPath.startsWith("/admin")
+    ? "ADMIN"
+    : currentPath.startsWith("/operator")
+    ? "OPERATOR"
+    : currentPath.startsWith("/farmer")
+    ? "FARMER"
+    : (role === "ADMIN" || role === "OPERATOR" ? role : "FARMER");
 
   const [isFlyoutOpen, setIsFlyoutOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -91,7 +102,7 @@ export default function Header({ onMobileMenuToggle, isCollapsed }: HeaderProps)
                 {user?.name || "Farmer"}
               </span>
               <span className="header-userrole text-[10px] text-stone-500 font-semibold uppercase block">
-                {role || "Farmer"}
+                {activePortal || role || "Farmer"}
               </span>
             </div>
             <ChevronDown size={14} className="text-stone-500" />
