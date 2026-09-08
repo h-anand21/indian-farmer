@@ -346,7 +346,10 @@ export async function verifyToken(
 
     // ── 🏢 2. MANDI OPERATOR AUTHORIZATION CHECK ──
     if (requestedRole === "OPERATOR") {
-      if (!user || user.role !== "OPERATOR") {
+      // Administrators have automatic Superuser access to Operator desks
+      const isAdmin = (email && isWhitelistedAdminEmail(email)) || user?.role === "ADMIN";
+
+      if (!isAdmin && (!user || user.role !== "OPERATOR")) {
         res.status(403).json({
           success: false,
           error: "ACCESS_DENIED_OPERATOR",
@@ -355,7 +358,7 @@ export async function verifyToken(
         return;
       }
 
-      if (!user.isActive) {
+      if (user && !user.isActive && !isAdmin) {
         res.status(403).json({
           success: false,
           error: "ACCESS_DENIED_DEACTIVATED",

@@ -220,16 +220,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [state.firebaseUser, checkRegistration]);
 
   /**
-   * Switch Active Role for instant demo/testing
+   * Switch Active Role (Only authorized Administrators can toggle views)
    */
   const switchRole = useCallback((newRole: "FARMER" | "OPERATOR" | "ADMIN") => {
-    setState((prev) => ({
-      ...prev,
-      role: newRole,
-      user: prev.user
-        ? { ...prev.user, role: newRole }
-        : null,
-    }));
+    setState((prev) => {
+      // Prevent unauthorized role escalation for non-admin accounts
+      if (newRole === "ADMIN" && prev.user?.role !== "ADMIN" && prev.user?.email !== "himanshuanand563@gmail.com") {
+        console.warn("Unauthorized role switch attempt blocked.");
+        return prev;
+      }
+      return {
+        ...prev,
+        role: newRole,
+        user: prev.user ? { ...prev.user, role: newRole } : null,
+      };
+    });
   }, []);
 
   return (

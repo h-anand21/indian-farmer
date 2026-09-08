@@ -17,7 +17,7 @@ interface UserDropdownProps {
 }
 
 export default function UserDropdown({ isOpen, onClose }: UserDropdownProps) {
-  const { user, role, logout, switchRole } = useAuth();
+  const { user, role, logout } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,14 +40,6 @@ export default function UserDropdown({ isOpen, onClose }: UserDropdownProps) {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
-
-  const handleRoleChange = (newRole: "FARMER" | "OPERATOR" | "ADMIN") => {
-    switchRole(newRole);
-    onClose();
-    if (newRole === "FARMER") navigate({ to: "/farmer/dashboard" });
-    if (newRole === "OPERATOR") navigate({ to: "/operator/dashboard" });
-    if (newRole === "ADMIN") navigate({ to: "/admin/dashboard" });
-  };
 
   const handleLogout = async () => {
     onClose();
@@ -121,74 +113,220 @@ export default function UserDropdown({ isOpen, onClose }: UserDropdownProps) {
             </div>
           </div>
 
-          {/* ================= ROLE SECTION ================= */}
+          {/* ================= VERIFIED ACCOUNT & RBAC DETAILS ================= */}
           <div className="role-section">
             <div className="section-heading">
               <h2>
-                <span>🔁</span> Switch Active Portal Role
+                <span>🛡️</span> Verified Portal Profile
               </h2>
-              <p>Access the features based on your role</p>
+              <p>Government APMC &amp; RBAC Access Profile</p>
             </div>
 
-            {/* Role Cards Grid */}
-            <div className="roles">
-              {/* Farmer Role */}
-              <div
-                className={`role-card ${currentRole === "FARMER" ? "selected" : ""}`}
-                onClick={() => handleRoleChange("FARMER")}
-              >
-                <div className="role-icon">
-                  👨‍🌾
-                </div>
-                <div className="role-content">
-                  <h3>Farmer</h3>
-                  <p>Manage your bookings, payments and more</p>
-                </div>
-                {currentRole === "FARMER" ? (
-                  <div className="role-check">✓</div>
-                ) : (
-                  <div className="role-radio" />
-                )}
+            {/* Verified Account Summary Card */}
+            <div
+              style={{
+                background:
+                  currentRole === "ADMIN"
+                    ? "linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%)"
+                    : currentRole === "OPERATOR"
+                    ? "linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(14, 165, 233, 0.08) 100%)"
+                    : "linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)",
+                border:
+                  currentRole === "ADMIN"
+                    ? "1px solid rgba(124, 58, 237, 0.25)"
+                    : currentRole === "OPERATOR"
+                    ? "1px solid rgba(59, 130, 246, 0.25)"
+                    : "1px solid rgba(34, 197, 94, 0.25)",
+                borderRadius: "14px",
+                padding: "14px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    color: currentRole === "ADMIN" ? "#7c3aed" : currentRole === "OPERATOR" ? "#2563eb" : "#16a34a",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {currentRole === "ADMIN"
+                    ? "👑 Superadmin"
+                    : currentRole === "OPERATOR"
+                    ? "🏢 Mandi Operator"
+                    : "🌾 Registered Kisan"}
+                </span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    padding: "2px 8px",
+                    borderRadius: "6px",
+                    background: currentRole === "ADMIN" ? "#f3e8ff" : currentRole === "OPERATOR" ? "#eff6ff" : "#f0fdf4",
+                    color: currentRole === "ADMIN" ? "#6d28d9" : currentRole === "OPERATOR" ? "#1d4ed8" : "#15803d",
+                    border: "1px solid currentColor",
+                  }}
+                >
+                  ✓ VERIFIED
+                </span>
               </div>
 
-              {/* Operator Role */}
-              <div
-                className={`role-card ${currentRole === "OPERATOR" ? "selected" : ""}`}
-                onClick={() => handleRoleChange("OPERATOR")}
-              >
-                <div className="role-icon">
-                  🎧
-                </div>
-                <div className="role-content">
-                  <h3>Operator</h3>
-                  <p>Handle queue & procurement</p>
-                </div>
-                {currentRole === "OPERATOR" ? (
-                  <div className="role-check">✓</div>
-                ) : (
-                  <div className="role-radio" />
-                )}
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>
+                {user?.email || "Farmer Account"}
               </div>
 
-              {/* Admin Role */}
-              <div
-                className={`role-card ${currentRole === "ADMIN" ? "selected" : ""}`}
-                onClick={() => handleRoleChange("ADMIN")}
-              >
-                <div className="role-icon">
-                  🛡️
+              {user?.farmer && (
+                <div style={{ fontSize: "11.5px", color: "#64748b" }}>
+                  📍 {user.farmer.district || "District"}, {user.farmer.state || "State"} • Land: {user.farmer.landArea || "3.5"} Acres
                 </div>
-                <div className="role-content">
-                  <h3>Admin</h3>
-                  <p>Manage system and analytics</p>
+              )}
+
+              {user?.operator && (
+                <div style={{ fontSize: "11.5px", color: "#64748b" }}>
+                  🏢 Assigned Mandi: {user.operator.centre?.name || "Mandi Yard"} (ID: {user.operator.employeeId || "EMP-01"})
                 </div>
-                {currentRole === "ADMIN" ? (
-                  <div className="role-check">✓</div>
-                ) : (
-                  <div className="role-radio" />
-                )}
-              </div>
+              )}
             </div>
+
+            {/* Quick Portal Switch Links for Authorized Superadmin */}
+            {user?.role === "ADMIN" && (() => {
+              const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+              const activePortal: "ADMIN" | "OPERATOR" | "FARMER" = currentPath.startsWith("/admin")
+                ? "ADMIN"
+                : currentPath.startsWith("/operator")
+                ? "OPERATOR"
+                : "FARMER";
+
+              return (
+                <div style={{ marginTop: "14px", background: "rgba(0,0,0,0.02)", padding: "10px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                      👑 Superadmin Portal Switch:
+                    </div>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: "#16a34a", background: "#f0fdf4", padding: "1px 6px", borderRadius: "4px", border: "1px solid #bbf7d0" }}>
+                      ● {activePortal} ACTIVE
+                    </span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
+                    {/* Admin Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        navigate({ to: "/admin/dashboard" });
+                      }}
+                      style={{
+                        padding: "8px 4px",
+                        background: activePortal === "ADMIN" ? "#7c3aed" : "#f8fafc",
+                        color: activePortal === "ADMIN" ? "#ffffff" : "#64748b",
+                        border: activePortal === "ADMIN" ? "2px solid #6d28d9" : "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        fontSize: "11.5px",
+                        fontWeight: activePortal === "ADMIN" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "2px",
+                        boxShadow:
+                          activePortal === "ADMIN"
+                            ? "0 0 0 2px #ffffff, 0 0 0 4px #7c3aed, 0 4px 10px rgba(124, 58, 237, 0.35)"
+                            : "none",
+                        transform: activePortal === "ADMIN" ? "scale(1.02)" : "scale(1)",
+                        transition: "all 0.15s ease-in-out",
+                      }}
+                    >
+                      <span style={{ fontSize: "13px" }}>🛡️ Admin</span>
+                      {activePortal === "ADMIN" && (
+                        <span style={{ fontSize: "9px", background: "rgba(255,255,255,0.25)", padding: "1px 5px", borderRadius: "4px" }}>
+                          Selected ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Operator Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        navigate({ to: "/operator/dashboard" });
+                      }}
+                      style={{
+                        padding: "8px 4px",
+                        background: activePortal === "OPERATOR" ? "#2563eb" : "#f8fafc",
+                        color: activePortal === "OPERATOR" ? "#ffffff" : "#64748b",
+                        border: activePortal === "OPERATOR" ? "2px solid #1d4ed8" : "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        fontSize: "11.5px",
+                        fontWeight: activePortal === "OPERATOR" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "2px",
+                        boxShadow:
+                          activePortal === "OPERATOR"
+                            ? "0 0 0 2px #ffffff, 0 0 0 4px #2563eb, 0 4px 10px rgba(37, 99, 235, 0.35)"
+                            : "none",
+                        transform: activePortal === "OPERATOR" ? "scale(1.02)" : "scale(1)",
+                        transition: "all 0.15s ease-in-out",
+                      }}
+                    >
+                      <span style={{ fontSize: "13px" }}>🎧 Operator</span>
+                      {activePortal === "OPERATOR" && (
+                        <span style={{ fontSize: "9px", background: "rgba(255,255,255,0.25)", padding: "1px 5px", borderRadius: "4px" }}>
+                          Selected ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* Farmer Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        navigate({ to: "/farmer/dashboard" });
+                      }}
+                      style={{
+                        padding: "8px 4px",
+                        background: activePortal === "FARMER" ? "#16a34a" : "#f8fafc",
+                        color: activePortal === "FARMER" ? "#ffffff" : "#64748b",
+                        border: activePortal === "FARMER" ? "2px solid #15803d" : "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        fontSize: "11.5px",
+                        fontWeight: activePortal === "FARMER" ? 800 : 600,
+                        cursor: "pointer",
+                        textAlign: "center",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "2px",
+                        boxShadow:
+                          activePortal === "FARMER"
+                            ? "0 0 0 2px #ffffff, 0 0 0 4px #16a34a, 0 4px 10px rgba(22, 163, 74, 0.35)"
+                            : "none",
+                        transform: activePortal === "FARMER" ? "scale(1.02)" : "scale(1)",
+                        transition: "all 0.15s ease-in-out",
+                      }}
+                    >
+                      <span style={{ fontSize: "13px" }}>🌾 Farmer</span>
+                      {activePortal === "FARMER" && (
+                        <span style={{ fontSize: "9px", background: "rgba(255,255,255,0.25)", padding: "1px 5px", borderRadius: "4px" }}>
+                          Selected ✓
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Separator */}
             <div className="separator" />
