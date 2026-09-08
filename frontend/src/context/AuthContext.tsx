@@ -78,14 +78,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const result = await verifyToken(requestedRole);
 
-      if (result.data) {
+      if (result.isRegistered && result.data) {
         localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(result.data));
         localStorage.setItem(LOCAL_STORAGE_ROLE_KEY, result.data.role || "FARMER");
+      } else {
+        localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+        localStorage.removeItem(LOCAL_STORAGE_ROLE_KEY);
       }
 
       setState({
         firebaseUser: fbUser,
-        user: result.data,
+        user: (result.isRegistered && result.data) ? result.data : null,
         isLoading: false,
         isAuthenticated: true,
         isRegistered: Boolean(result.isRegistered && result.data),
@@ -111,27 +114,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(errorMsg || "Access Denied: You are not authorized for this role.");
       }
 
-      // Check if we have an active session in localStorage
+      // Check if we have an active session in localStorage matching this user
       const cached = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
       if (cached) {
         try {
           const user = JSON.parse(cached);
-          const cachedRole = localStorage.getItem(LOCAL_STORAGE_ROLE_KEY);
-          setState({
-            firebaseUser: fbUser,
-            user,
-            isLoading: false,
-            isAuthenticated: true,
-            isRegistered: true,
-            role: cachedRole || user.role || "FARMER",
-          });
-          return;
+          if (user && (user.firebaseUid === fbUser.uid || (fbUser.email && user.email === fbUser.email))) {
+            const cachedRole = localStorage.getItem(LOCAL_STORAGE_ROLE_KEY);
+            setState({
+              firebaseUser: fbUser,
+              user,
+              isLoading: false,
+              isAuthenticated: true,
+              isRegistered: true,
+              role: cachedRole || user.role || "FARMER",
+            });
+            return;
+          }
         } catch {
           // ignore
         }
       }
 
       // For new Google account without backend profile yet (Farmer onboarding)
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_ROLE_KEY);
       setState({
         firebaseUser: fbUser,
         user: null,

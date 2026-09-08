@@ -53,6 +53,19 @@ export default function RegisterPage() {
     }
   }, [isRegistered, role, navigate]);
 
+  // Prepopulate details from Google / Firebase User
+  useEffect(() => {
+    if (firebaseUser) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split("@")[0] : ""),
+        email: prev.email || firebaseUser.email || "",
+        phone: prev.phone || (firebaseUser.phoneNumber ? firebaseUser.phoneNumber.replace("+91", "") : ""),
+        avatarUrl: prev.avatarUrl || firebaseUser.photoURL || "",
+      }));
+    }
+  }, [firebaseUser]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
