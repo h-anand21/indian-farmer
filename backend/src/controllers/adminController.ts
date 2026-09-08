@@ -28,6 +28,8 @@ const createCentreSchema = z.object({
   totalCounters: z.number().int().min(1).max(20).default(4),
   operatingHoursStart: z.string().default("08:00"),
   operatingHoursEnd: z.string().default("18:00"),
+  staffName: z.string().optional(),
+  staffPhone: z.string().optional(),
 });
 
 const updateCentreSchema = z.object({

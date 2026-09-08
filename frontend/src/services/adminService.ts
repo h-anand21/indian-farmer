@@ -141,6 +141,8 @@ export async function createAdminCentre(data: {
   totalCounters?: number;
   operatingHoursStart?: string;
   operatingHoursEnd?: string;
+  staffName?: string;
+  staffPhone?: string;
 }) {
   const res = await api.post("/admin/centres", data);
   return res.data;

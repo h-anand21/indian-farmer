@@ -213,7 +213,11 @@ export async function createCentre(data: {
   totalCounters?: number;
   operatingHoursStart?: string;
   operatingHoursEnd?: string;
+  staffName?: string;
+  staffPhone?: string;
 }) {
+  const totalCounters = Number(data.totalCounters) || 4;
+
   const centre = await prisma.procurementCentre.create({
     data: {
       name: data.name,
@@ -223,12 +227,47 @@ export async function createCentre(data: {
       state: data.state,
       latitude: data.latitude || 30.5,
       longitude: data.longitude || 76.5,
-      totalCounters: data.totalCounters || 4,
+      totalCounters,
       operatingHoursStart: data.operatingHoursStart || "08:00",
       operatingHoursEnd: data.operatingHoursEnd || "18:00",
       isActive: true,
     },
   });
+
+  // Automatically register & assign Mandi Operator Incharge if staff details provided or by default
+  const staffName = data.staffName?.trim() || `${data.name} Operator Incharge`;
+  const staffPhone = data.staffPhone?.trim() || `+91 ${Math.floor(7000000000 + Math.random() * 2999999999)}`;
+  const cleanCode = data.code.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  try {
+    const staffUser = await prisma.user.create({
+      data: {
+        firebaseUid: `staff_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        name: staffName,
+        email: `${cleanCode}.desk@mandi.gov.in`,
+        phone: staffPhone,
+        role: "OPERATOR",
+        isActive: true,
+      },
+    });
+
+    await prisma.operator.create({
+      data: {
+        userId: staffUser.id,
+        centreId: centre.id,
+        employeeId: `EMP-${data.code.split("-")[1] || "MND"}-${Math.floor(100 + Math.random() * 900)}`,
+      },
+    });
+  } catch (err) {
+    console.warn("Could not create default operator for centre:", err);
+  }
+
+  // Auto-generate next 7 days operational slots based on counters capacity
+  try {
+    await generateSlotsForCentre(centre.id, new Date().toISOString().split("T")[0], 7, totalCounters * 8);
+  } catch (err) {
+    console.warn("Could not auto-generate slots for centre:", err);
+  }
 
   // Broadcast to Admin socket
   const io = getIO();

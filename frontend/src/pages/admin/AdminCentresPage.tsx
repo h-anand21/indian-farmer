@@ -232,6 +232,8 @@ export default function AdminCentresPage() {
     totalCounters: 4,
     operatingHoursStart: "08:00",
     operatingHoursEnd: "18:00",
+    staffName: "",
+    staffPhone: "",
   });
 
   const allStatesAndUTs = getAllStatesAndUTs();
@@ -255,12 +257,12 @@ export default function AdminCentresPage() {
           code: c.code,
           district: c.district,
           state: c.state,
-          totalCounters: c.totalCounters,
-          operatingHours: `${c.operatingHoursStart} - ${c.operatingHoursEnd}`,
+          totalCounters: c.totalCounters || 4,
+          operatingHours: `${c.operatingHoursStart || "08:00"} - ${c.operatingHoursEnd || "18:00"}`,
           trafficLevel: c.congestion === "HIGH" ? "High" : c.congestion === "MODERATE" ? "Moderate" : "Low",
           trafficPct: c.congestionRatio || 25,
-          assignedOperators: c.operatorsCount || (idx === 0 ? 1 : 0),
-          status: "Active",
+          assignedOperators: c.operatorsCount ?? (c.operators?.length || 1),
+          status: c.isActive !== false ? "Active" : "Inactive",
           photoUrl: DEFAULT_CENTRES[idx % DEFAULT_CENTRES.length]?.photoUrl || DEFAULT_CENTRES[0].photoUrl,
         }));
         setCentresList(mapped);
@@ -275,6 +277,39 @@ export default function AdminCentresPage() {
   useEffect(() => {
     loadCentresData();
   }, []);
+
+  // ── Real Dynamic Metrics Calculated from Live DB Centres List ──
+  const totalCentresCount = centresList.length;
+  const uniqueDistrictsCount = Array.from(new Set(centresList.map((c) => c.district))).length;
+  const uniqueStatesCount = Array.from(new Set(centresList.map((c) => c.state))).length;
+  const activeCentresCount = centresList.filter((c) => c.status === "Active").length;
+  const operationalPercent = totalCentresCount > 0 ? Math.round((activeCentresCount / totalCentresCount) * 100) : 100;
+  const totalCountersCount = centresList.reduce((acc, c) => acc + (c.totalCounters || 1), 0);
+  const totalAssignedStaff = centresList.reduce((acc, c) => acc + (c.assignedOperators || 0), 0);
+
+  // Real Average Operating Hours calculated dynamically from Mandi opening/closing timings
+  const avgOperatingHours = React.useMemo(() => {
+    if (centresList.length === 0) return "10.0 hrs";
+    let totalMinutes = 0;
+    let validCount = 0;
+    centresList.forEach((c) => {
+      const parts = c.operatingHours.split("-").map((p) => p.trim());
+      if (parts.length === 2) {
+        const [startH, startM] = parts[0].split(":").map((v) => parseInt(v) || 0);
+        const [endH, endM] = parts[1].split(":").map((v) => parseInt(v) || 0);
+        const startTotal = startH * 60 + startM;
+        const endTotal = endH * 60 + endM;
+        const diff = endTotal >= startTotal ? endTotal - startTotal : endTotal + 1440 - startTotal;
+        if (diff > 0) {
+          totalMinutes += diff;
+          validCount++;
+        }
+      }
+    });
+    if (validCount === 0) return "10.0 hrs";
+    const avgHrs = (totalMinutes / validCount / 60).toFixed(1);
+    return `${avgHrs} hrs`;
+  }, [centresList]);
 
   const handleResetFilters = () => {
     setSearchTerm("");
@@ -343,6 +378,8 @@ export default function AdminCentresPage() {
         totalCounters: 4,
         operatingHoursStart: "08:00",
         operatingHoursEnd: "18:00",
+        staffName: "",
+        staffPhone: "",
       });
       await loadCentresData();
     } catch (err: any) {
@@ -405,59 +442,55 @@ export default function AdminCentresPage() {
         </div>
 
         <div className="centres-hero-body">
-          {/* 4 Stats Mini-Cards */}
+          {/* 4 Stats Mini-Cards (Live Real DB Data) */}
           <div className="centres-stats-grid">
-            {/* Stat 1 */}
+            {/* Stat 1: Total Centres */}
             <div className="centres-stat-card">
               <div className="centres-stat-icon-box green">
                 <Store size={20} />
               </div>
               <div>
                 <div className="centres-stat-label">Total Centres</div>
-                <div className="centres-stat-val">{centresList.length}</div>
+                <div className="centres-stat-val">{totalCentresCount}</div>
                 <div className="centres-stat-sub">
-                  Across {Array.from(new Set(centresList.map((c) => c.district))).length} Districts
+                  Across {uniqueDistrictsCount} Districts ({uniqueStatesCount} States)
                 </div>
               </div>
             </div>
 
-            {/* Stat 2 */}
+            {/* Stat 2: Active Centres */}
             <div className="centres-stat-card">
               <div className="centres-stat-icon-box blue">
                 <Layers size={20} />
               </div>
               <div>
                 <div className="centres-stat-label">Active Centres</div>
-                <div className="centres-stat-val">
-                  {centresList.filter((c) => c.status === "Active").length}
-                </div>
-                <div className="centres-stat-sub green">100% Operational</div>
+                <div className="centres-stat-val">{activeCentresCount}</div>
+                <div className="centres-stat-sub green">↑ {operationalPercent}% Operational</div>
               </div>
             </div>
 
-            {/* Stat 3 */}
+            {/* Stat 3: Total Counters / Bays */}
             <div className="centres-stat-card">
               <div className="centres-stat-icon-box darkblue">
                 <Users size={20} />
               </div>
               <div>
                 <div className="centres-stat-label">Total Counters</div>
-                <div className="centres-stat-val">
-                  {centresList.reduce((acc, c) => acc + (c.totalCounters || 1), 0)}
-                </div>
-                <div className="centres-stat-sub">Weighbridge Bays</div>
+                <div className="centres-stat-val">{totalCountersCount}</div>
+                <div className="centres-stat-sub">Weighing Bays ({totalAssignedStaff} Staff)</div>
               </div>
             </div>
 
-            {/* Stat 4 */}
+            {/* Stat 4: Avg Operating Hours */}
             <div className="centres-stat-card">
               <div className="centres-stat-icon-box lightgreen">
                 <Clock size={20} />
               </div>
               <div>
                 <div className="centres-stat-label">Avg. Operating Hours</div>
-                <div className="centres-stat-val">9.5 hrs</div>
-                <div className="centres-stat-sub">Daily Procurement</div>
+                <div className="centres-stat-val">{avgOperatingHours}</div>
+                <div className="centres-stat-sub">Per Day Schedule</div>
               </div>
             </div>
           </div>
@@ -1003,11 +1036,15 @@ export default function AdminCentresPage() {
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Weighment Counters</label>
+                  <label style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span>⚖️</span> Weighment Counters / Bays
+                  </label>
                   <input
                     type="number"
                     min={1}
                     max={20}
+                    required
+                    placeholder="e.g. 5 Bays"
                     value={formData.totalCounters}
                     onChange={(e) => setFormData({ ...formData, totalCounters: parseInt(e.target.value) || 1 })}
                     style={{
@@ -1017,9 +1054,13 @@ export default function AdminCentresPage() {
                       border: "1px solid #cbd5e1",
                       marginTop: "4px",
                       fontSize: "13px",
+                      fontWeight: 600,
                       boxSizing: "border-box",
                     }}
                   />
+                  <div style={{ fontSize: "10.5px", color: "#64748b", marginTop: "2px" }}>
+                    Total active weighing bridges/bays in yard
+                  </div>
                 </div>
               </div>
 
@@ -1099,6 +1140,56 @@ export default function AdminCentresPage() {
                     boxSizing: "border-box",
                   }}
                 />
+              </div>
+
+              {/* Assigned Staff / Yard Incharge (Operator Authorization) */}
+              <div style={{ background: "#f0fdf4", padding: "12px", borderRadius: "10px", border: "1px solid #bbf7d0" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#166534", display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
+                  <Users size={14} color="#16a34a" /> Assigned Staff / Mandi Operator Incharge
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "#374151" }}>Staff Incharge Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Gurpreet Singh (Incharge)"
+                      value={formData.staffName}
+                      onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        border: "1px solid #cbd5e1",
+                        marginTop: "2px",
+                        fontSize: "12px",
+                        background: "white",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: 600, color: "#374151" }}>Staff Mobile No.</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 9876543210"
+                      value={formData.staffPhone}
+                      onChange={(e) => setFormData({ ...formData, staffPhone: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "8px",
+                        borderRadius: "6px",
+                        border: "1px solid #cbd5e1",
+                        marginTop: "2px",
+                        fontSize: "12px",
+                        background: "white",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ fontSize: "11px", color: "#15803d", marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <ShieldCheck size={12} /> Automatically creates authorized Mandi Operator profile in database &amp; links slots
+                </div>
               </div>
 
               {/* GPS Coordinates with Quick-Detect Button */}
