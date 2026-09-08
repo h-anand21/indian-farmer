@@ -17,6 +17,8 @@ export interface CentreData {
 }
 
 export interface CropData {
+  id?: string;
+  code?: string;
   name: string;
   variety: string;
   mspPrice: number;
@@ -25,6 +27,7 @@ export interface CropData {
   maxMoisture: number;
   quotaPerAcre: number;
   icon: string;
+  [key: string]: any;
 }
 
 export interface SlotData {
@@ -35,8 +38,10 @@ export interface SlotData {
   endTime: string;
   capacity: number;
   booked: number;
+  bookedCount?: number;
   availableCapacity: number;
   isFull: boolean;
+  [key: string]: any;
 }
 
 export interface BookingData {
@@ -51,13 +56,18 @@ export interface BookingData {
   bookedAt: string;
   checkedInAt: string | null;
   completedAt: string | null;
+  slotDate?: string;
+  slotWindow?: string;
+  queueNumber?: number;
   centre: CentreData;
   slot: SlotData;
   crop: {
     id: string;
     name: string;
     quantity: number;
+    [key: string]: any;
   };
+  [key: string]: any;
   farmer?: {
     id: string;
     landArea: number | null;

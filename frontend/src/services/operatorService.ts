@@ -13,6 +13,10 @@ export interface OperatorMetrics {
   totalMspValueToday: number;
   totalDisbursedToday: number;
   avgTurnaroundMins: number;
+  waitingInYard?: number;
+  inProcessing?: number;
+  completedToday?: number;
+  [key: string]: any;
 }
 
 export interface RosterItem {
@@ -33,6 +37,9 @@ export interface RosterItem {
   counterNo: number | null;
   checkedInAt: string | null;
   completedAt: string | null;
+  bookingId?: string;
+  quantity?: number;
+  checkInTime?: string;
   procurement: {
     receiptNumber: string;
     actualWeight: number;
@@ -47,6 +54,7 @@ export interface RosterItem {
     bankAccount: string | null;
     utrNumber: string | null;
   } | null;
+  [key: string]: any;
 }
 
 export interface WeighmentPayload {
