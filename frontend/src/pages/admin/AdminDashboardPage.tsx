@@ -27,7 +27,9 @@ import {
   Minus,
   Sun,
   Moon,
+  Megaphone,
 } from "lucide-react";
+import { BroadcastModal } from "@/components/admin/BroadcastModal";
 import {
   fetchAdminMetrics,
   fetchAdminCentres,
@@ -318,6 +320,7 @@ export default function AdminDashboardPage() {
   const [liveFeed, setLiveFeed] = useState<LiveFeedItem[]>([]);
   const [analytics, setAnalytics] = useState<StrategicAnalytics | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("ALL");
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState<boolean>(false);
   const [selectedMandi, setSelectedMandi] = useState<GISLocation | null>(FALLBACK_GIS_MANDIS[0]);
   const [loading, setLoading] = useState(false);
 
@@ -496,6 +499,26 @@ export default function AdminDashboardPage() {
                 onClick={() => navigate({ to: "/admin/centres" as any })}
               >
                 <PlusCircle size={15} /> Add Mandi Centre
+              </button>
+              <button
+                className="admin-btn-broadcast"
+                style={{
+                  background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  color: "#ffffff",
+                  border: "none",
+                  padding: "9px 16px",
+                  borderRadius: "10px",
+                  fontSize: "13px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  boxShadow: "0 4px 14px rgba(16, 185, 129, 0.4)",
+                }}
+                onClick={() => setIsBroadcastModalOpen(true)}
+              >
+                <Megaphone size={15} /> Broadcast to Farmers
               </button>
               <button className="admin-btn-refresh" onClick={loadData}>
                 <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
@@ -1197,6 +1220,12 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Broadcast Announcement Modal */}
+      <BroadcastModal
+        isOpen={isBroadcastModalOpen}
+        onClose={() => setIsBroadcastModalOpen(false)}
+      />
     </div>
   );
 }

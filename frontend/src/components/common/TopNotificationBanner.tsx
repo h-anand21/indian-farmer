@@ -16,12 +16,12 @@ export default function TopNotificationBanner() {
   const { activePushBanner, dismissPushBanner, markAsRead, soundEnabled, toggleSound } =
     useNotifications();
 
-  // Auto dismiss after 8 seconds
+  // Auto dismiss after 5 seconds
   useEffect(() => {
     if (activePushBanner) {
       const timer = setTimeout(() => {
         dismissPushBanner();
-      }, 8000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [activePushBanner, dismissPushBanner]);
@@ -156,7 +156,7 @@ export default function TopNotificationBanner() {
           <motion.div
             initial={{ scaleX: 1 }}
             animate={{ scaleX: 0 }}
-            transition={{ duration: 8, ease: "linear" }}
+            transition={{ duration: 5, ease: "linear" }}
             className={`absolute bottom-0 left-0 right-0 h-1 origin-left ${theme.progressBg}`}
           />
         </motion.div>

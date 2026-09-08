@@ -147,8 +147,32 @@ export function sendProximityAlert(
   });
 }
 
+export function broadcastMandiAnnouncement(
+  io: Server,
+  data: {
+    id: string;
+    title: string;
+    message: string;
+    priority: string;
+    centreId?: string;
+    centreName: string;
+    timestamp: string;
+    metadata?: any;
+  }
+): void {
+  // Broadcast to all connected clients
+  io.emit("notification:broadcast", data);
+  io.emit("notification:new", data);
+
+  // If specific centre is targeted, also push to that centre room
+  if (data.centreId && data.centreId !== "ALL") {
+    io.to(`centre:${data.centreId}`).emit("notification:new", data);
+  }
+}
+
 export function getIO(): Server | null {
   return ioInstance;
 }
+
 
 

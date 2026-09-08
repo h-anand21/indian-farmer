@@ -179,11 +179,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
     };
 
+    const handleBroadcast = (data: Partial<AppNotification>) => {
+      pushNotification({
+        title: data.title || "📢 Mandi Advisory & Alert",
+        message: data.message || "Important announcement from Mandi administration.",
+        type: "SYSTEM",
+        metadata: data.metadata,
+      });
+    };
+
+    socket.on("notification:broadcast", handleBroadcast);
     socket.on("notification:new", handleNewNotif);
     socket.on("queue:called", handleTurnCalled);
     socket.on("queue:proximity_alert", handleProximityAlert);
 
     return () => {
+      socket.off("notification:broadcast", handleBroadcast);
       socket.off("notification:new", handleNewNotif);
       socket.off("queue:called", handleTurnCalled);
       socket.off("queue:proximity_alert", handleProximityAlert);

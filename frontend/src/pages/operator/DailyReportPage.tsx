@@ -161,14 +161,83 @@ export const DailyReportPage: React.FC = () => {
       <section className="report-filters">
         {/* Date Filter */}
         <div className="report-filter-item">
-          <label className="report-filter-label">Select Date</label>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+            <label className="report-filter-label" style={{ margin: 0 }}>Select Date</label>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <button
+                type="button"
+                onClick={() => setReportDate(new Date().toISOString().split("T")[0])}
+                style={{
+                  background: reportDate !== "ALL" ? "#dcfce7" : "#f1f5f9",
+                  color: reportDate !== "ALL" ? "#166534" : "#64748b",
+                  border: "none",
+                  padding: "2px 7px",
+                  borderRadius: "4px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+                title="Filter by Today (Live Date)"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => setReportDate("ALL")}
+                style={{
+                  background: reportDate === "ALL" ? "#dcfce7" : "#f1f5f9",
+                  color: reportDate === "ALL" ? "#166534" : "#64748b",
+                  border: "none",
+                  padding: "2px 7px",
+                  borderRadius: "4px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+                title="View All Dates (Complete Ledger)"
+              >
+                All Dates
+              </button>
+            </div>
+          </div>
           <div className="report-filter-box">
             <span>📅</span>
-            <input
-              type="date"
-              value={reportDate}
-              onChange={(e) => setReportDate(e.target.value)}
-            />
+            {reportDate === "ALL" ? (
+              <div
+                style={{
+                  flex: 1,
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#166534",
+                  padding: "4px 0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span>🌐 All Dates (Consolidated)</span>
+                <button
+                  type="button"
+                  onClick={() => setReportDate(new Date().toISOString().split("T")[0])}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#0369a1",
+                    fontSize: "11px",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Pick Date
+                </button>
+              </div>
+            ) : (
+              <input
+                type="date"
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+              />
+            )}
           </div>
         </div>
 
@@ -356,13 +425,48 @@ export const DailyReportPage: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "8px",
+              gap: "10px",
             }}>
               <div style={{ fontSize: "40px" }}>📄</div>
               <strong style={{ fontSize: "16px", color: "#1e293b" }}>No Procurement Records Found</strong>
-              <p style={{ fontSize: "13px", margin: 0, maxWidth: "420px" }}>
-                There are no completed procurement records for the selected date and filters. Records appear automatically as weighments are recorded.
+              <p style={{ fontSize: "13px", margin: 0, maxWidth: "460px", lineHeight: 1.5 }}>
+                No completed records matched the selected date ({reportDate}) or current filters.
+                Click below to switch to Today (Live) or view the full ledger across All Dates.
               </p>
+              <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+                <button
+                  type="button"
+                  onClick={() => setReportDate(new Date().toISOString().split("T")[0])}
+                  style={{
+                    background: "#16a34a",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  📅 Show Today's Records
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportDate("ALL")}
+                  style={{
+                    background: "#f1f5f9",
+                    color: "#334155",
+                    border: "1px solid #cbd5e1",
+                    padding: "8px 16px",
+                    borderRadius: "8px",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  🌐 Show All Dates
+                </button>
+              </div>
             </div>
           )}
 
