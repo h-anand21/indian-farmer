@@ -1,0 +1,688 @@
+/* ════════════════════════════════════════════════════════════════
+   KISANQUEUE — PREMIUM FARMER ONBOARDING & REGISTRATION WIZARD
+   Modern, Ultra-HD, Farmer-Friendly Interface
+   ════════════════════════════════════════════════════════════════ */
+
+.register-page-container {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbf7 35%, #e6f6ee 100%);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #071739;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── Top Navigation Bar ── */
+.reg-top-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 48px 12px;
+  background: transparent;
+  max-width: 1560px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 30;
+}
+
+.reg-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+.reg-brand-group:hover {
+  transform: scale(1.02);
+}
+
+.reg-brand-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #186341;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(24, 99, 65, 0.28);
+}
+
+.reg-brand-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #071739;
+  line-height: 1.1;
+}
+
+.reg-brand-title .brand-queue {
+  color: #16a34a;
+}
+
+.reg-brand-tag {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.reg-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reg-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.reg-nav-btn:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+/* ── Main Layout Grid ── */
+.reg-main-wrapper {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 0.95fr 1.25fr;
+  align-items: start;
+  max-width: 1560px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 8px 48px 40px;
+  box-sizing: border-box;
+  gap: 36px;
+  position: relative;
+  z-index: 10;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   LEFT PANEL: TRUST, BENEFITS & DIGITAL PASS PREVIEW
+   ════════════════════════════════════════════════════════════════ */
+.reg-left-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+.reg-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 800;
+  width: fit-content;
+}
+
+.reg-left-heading {
+  font-size: clamp(28px, 2.8vw, 38px);
+  font-weight: 900;
+  color: #071739;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.reg-left-heading span {
+  color: #16a34a;
+}
+
+.reg-left-desc {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Benefits Card List */
+.reg-benefits-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0, 40, 20, 0.04);
+}
+
+.reg-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.reg-benefit-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.reg-benefit-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.reg-benefit-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* Live Government Trust Strip */
+.reg-gov-trust-strip {
+  background: #092c1e;
+  border-radius: 18px;
+  padding: 16px 20px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(9, 44, 30, 0.25);
+}
+
+.reg-gov-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reg-gov-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #4ade80;
+}
+
+.reg-gov-sub {
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   RIGHT PANEL: MULTI-STEP ONBOARDING WIZARD CARD
+   ════════════════════════════════════════════════════════════════ */
+.reg-wizard-card {
+  background: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.95);
+  border-radius: 28px;
+  padding: 34px 38px;
+  box-shadow: 0 20px 60px rgba(0, 50, 30, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-sizing: border-box;
+}
+
+/* Stepper Bar */
+.reg-stepper-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  position: relative;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.reg-step-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 700;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.reg-step-pill.active {
+  background: #ffffff;
+  color: #166534;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  border: 1px solid #bbf7d0;
+}
+
+.reg-step-pill.completed {
+  color: #16a34a;
+}
+
+.reg-step-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.reg-step-pill.active .reg-step-circle {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.reg-step-pill.completed .reg-step-circle {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+/* Form Section Header */
+.reg-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.reg-section-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reg-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reg-section-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.reg-section-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+}
+
+/* Error Banner */
+.reg-error-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Form Inputs & Layout ── */
+.reg-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.reg-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reg-form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.reg-form-group label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reg-form-group label .required {
+  color: #ef4444;
+}
+
+.reg-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.reg-input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.reg-input-field {
+  width: 100%;
+  height: 48px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 0 14px 0 42px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  box-sizing: border-box;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reg-input-field.no-icon {
+  padding-left: 14px;
+}
+
+.reg-input-field:focus {
+  outline: none;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+}
+
+.reg-input-field::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+select.reg-input-field {
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* Quick Land Area Pills */
+.reg-land-quick-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.reg-quick-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reg-quick-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.reg-quick-pill.active {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
+}
+
+/* GPS Detection Button */
+.reg-gps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1.5px solid #86efac;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 12.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.1);
+}
+
+.reg-gps-btn:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #22c55e;
+  transform: translateY(-1px);
+}
+
+.reg-gps-banner {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #166534;
+  grid-column: 1 / -1;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   STEP 3: DIGITAL KISAN ID CARD PREVIEW
+   ════════════════════════════════════════════════════════════════ */
+.reg-id-card-preview {
+  background: linear-gradient(135deg, #092c1e 0%, #134e38 50%, #061e14 100%);
+  border: 2px solid #34d399;
+  border-radius: 20px;
+  padding: 22px 24px;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(9, 44, 30, 0.35);
+}
+
+.reg-id-card-watermark {
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.reg-id-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.reg-id-badge-chip {
+  background: rgba(74, 222, 128, 0.2);
+  border: 1px solid #4ade80;
+  color: #4ade80;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.reg-id-card-body {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.reg-id-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 16px;
+  border: 2px solid #4ade80;
+  object-fit: cover;
+  background: #061e14;
+}
+
+.reg-id-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.reg-id-item-label {
+  font-size: 10.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.reg-id-item-val {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.reg-id-card-footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #cbd5e1;
+}
+
+/* ── Wizard Actions Bottom Bar ── */
+.reg-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  gap: 14px;
+}
+
+.reg-btn-prev {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reg-btn-prev:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.reg-btn-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: none;
+  border-radius: 14px;
+  padding: 13px 26px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.28);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: auto;
+}
+
+.reg-btn-next:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(22, 163, 74, 0.38);
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+.reg-btn-next:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .reg-main-wrapper {
+    grid-template-columns: 1fr;
+    padding: 0 24px 32px;
+  }
+  .reg-left-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .reg-top-navbar {
+    padding: 12px 18px;
+  }
+  .reg-wizard-card {
+    padding: 22px 18px;
+  }
+  .reg-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .reg-stepper-container {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .reg-id-card-body {
+    grid-template-columns: 1fr;
+  }
+}

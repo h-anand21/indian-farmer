@@ -59,43 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: result.data,
         isLoading: false,
         isAuthenticated: true,
-        isRegistered: result.isRegistered,
+        isRegistered: Boolean(result.isRegistered && result.data),
         role: result.data?.role || "FARMER",
       });
     } catch (error) {
-      console.error("❌ Token verification fallback:", error);
-      // Auto fallback to direct login so user is never blocked
-      const fallbackUser: UserData = {
-        id: fbUser.uid,
-        firebaseUid: fbUser.uid,
-        email: fbUser.email || null,
-        phone: fbUser.phoneNumber || null,
-        name: fbUser.displayName || "Kisan Farmer",
-        role: "FARMER",
-        avatarUrl: fbUser.photoURL || null,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        farmer: {
-          id: `f-${fbUser.uid.slice(0, 6)}`,
-          farmerId: "PMK-984210",
-          state: "Punjab",
-          district: "Ludhiana",
-          tehsil: "Khanna",
-          village: "Khanna Rural",
-          pincode: "141412",
-          landArea: 4.5,
-          ownershipType: "Owner",
-        },
-        operator: null,
-      };
-
+      console.warn("Token verification note:", error);
+      // For new Google account without backend profile yet
       setState({
         firebaseUser: fbUser,
-        user: fallbackUser,
+        user: null,
         isLoading: false,
         isAuthenticated: true,
-        isRegistered: true,
+        isRegistered: false,
         role: "FARMER",
       });
     }

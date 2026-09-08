@@ -67,12 +67,13 @@ export default function OperatorIntakePage() {
     try {
       const roster = await fetchOperatorRoster(selectedCentreId);
       // Pick vehicles waiting or called
-      const active = roster.filter((r) => ["WAITING", "CALLED", "IN_PROCUREMENT"].includes(r.status));
+      const active = roster.filter((r) => r.status ? ["WAITING", "CALLED", "IN_PROCUREMENT"].includes(r.status) : false);
       setYardRoster(active);
       if (active.length > 0 && !selectedBooking) {
         setSelectedBooking(active[0]);
-        setActualNetWeight(active[0].expectedQuantity);
-        setGrossWeight(active[0].expectedQuantity + 35);
+        const q = active[0].expectedQuantity || 45;
+        setActualNetWeight(q);
+        setGrossWeight(q + 35);
         setTareWeight(35);
       }
     } catch (e) {
@@ -97,8 +98,9 @@ export default function OperatorIntakePage() {
 
   const handleSelectVehicle = (item: RosterItem) => {
     setSelectedBooking(item);
-    setActualNetWeight(item.expectedQuantity);
-    setGrossWeight(item.expectedQuantity + 35);
+    const q = item.expectedQuantity || 45;
+    setActualNetWeight(q);
+    setGrossWeight(q + 35);
     setTareWeight(35);
     setCompletedRecord(null);
   };
@@ -114,7 +116,7 @@ export default function OperatorIntakePage() {
       setError(null);
 
       const result = await operatorRecordWeighment({
-        bookingId: selectedBooking.id,
+        bookingId: selectedBooking.id || selectedBooking.bookingId || "",
         actualWeight: actualNetWeight,
         qualityGrade,
         moisturePercent,
@@ -312,7 +314,7 @@ export default function OperatorIntakePage() {
                 {actualNetWeight} <span style={{ fontSize: "20px" }}>Quintals</span>
               </div>
               <span style={{ fontSize: "12px", color: "#64748B" }}>
-                Booked estimate: {selectedBooking.expectedQuantity} Qtl (Difference: {Math.round((actualNetWeight - selectedBooking.expectedQuantity) * 10) / 10} Qtl)
+                Booked estimate: {selectedBooking.expectedQuantity || 0} Qtl (Difference: {Math.round((actualNetWeight - (selectedBooking.expectedQuantity || 0)) * 10) / 10} Qtl)
               </span>
             </div>
 

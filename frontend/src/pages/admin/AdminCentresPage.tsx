@@ -816,8 +816,8 @@ export default function AdminCentresPage() {
                     }}
                   >
                     {allStatesAndUTs.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
+                      <option key={st.name} value={st.name}>
+                        {st.name} ({st.type})
                       </option>
                     ))}
                   </select>

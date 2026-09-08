@@ -3,44 +3,45 @@ import api from "./api";
 export interface CentreData {
   id: string;
   name: string;
-  code: string;
-  address: string;
-  district: string;
-  state: string;
-  latitude: number | null;
-  longitude: number | null;
-  totalCounters: number;
-  operatingHoursStart: string;
-  operatingHoursEnd: string;
-  congestion: "LOW" | "MODERATE" | "HIGH";
-  todayBookedRatio: number;
+  code?: string;
+  address?: string;
+  district?: string;
+  state?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  totalCounters?: number;
+  operatingHoursStart?: string;
+  operatingHoursEnd?: string;
+  congestion?: "LOW" | "MODERATE" | "HIGH" | string;
+  todayBookedRatio?: number;
+  [key: string]: any;
 }
 
 export interface CropData {
   id?: string;
   code?: string;
   name: string;
-  variety: string;
+  variety?: string;
   mspPrice: number;
-  unit: string;
-  season: string;
-  maxMoisture: number;
-  quotaPerAcre: number;
-  icon: string;
+  unit?: string;
+  season?: string;
+  maxMoisture?: number;
+  quotaPerAcre?: number;
+  icon?: string;
   [key: string]: any;
 }
 
 export interface SlotData {
   id: string;
-  centreId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  booked: number;
+  centreId?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  capacity?: number;
+  booked?: number;
   bookedCount?: number;
-  availableCapacity: number;
-  isFull: boolean;
+  availableCapacity?: number;
+  isFull?: boolean;
   [key: string]: any;
 }
 
@@ -48,37 +49,38 @@ export interface BookingData {
   id: string;
   farmerId: string;
   centreId: string;
-  slotId: string;
+  slotId?: string;
   cropId: string;
   token: string;
   quantity: number;
-  status: "BOOKED" | "CHECKED_IN" | "WAITING" | "CALLED" | "COMPLETED" | "CANCELLED";
-  bookedAt: string;
-  checkedInAt: string | null;
-  completedAt: string | null;
+  status: "BOOKED" | "CHECKED_IN" | "WAITING" | "CALLED" | "COMPLETED" | "CANCELLED" | string;
+  bookedAt?: string;
+  checkedInAt?: string | null;
+  completedAt?: string | null;
   slotDate?: string;
   slotWindow?: string;
   queueNumber?: number;
   centre: CentreData;
-  slot: SlotData;
+  slot?: SlotData;
   crop: {
-    id: string;
+    id?: string;
     name: string;
-    quantity: number;
+    quantity?: number;
+    [key: string]: any;
+  };
+  farmer?: {
+    id?: string;
+    landArea?: number | null;
+    village?: string | null;
+    district?: string | null;
+    user?: {
+      name: string;
+      phone?: string | null;
+      email?: string | null;
+    };
     [key: string]: any;
   };
   [key: string]: any;
-  farmer?: {
-    id: string;
-    landArea: number | null;
-    village: string | null;
-    district: string | null;
-    user: {
-      name: string;
-      phone: string | null;
-      email: string | null;
-    };
-  };
 }
 
 export interface CreateBookingPayload {

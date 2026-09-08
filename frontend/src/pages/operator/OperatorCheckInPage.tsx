@@ -193,7 +193,7 @@ export default function OperatorCheckInPage() {
                       color: "#0F172A",
                     }}
                   >
-                    {b.token} ({b.cropName.split(" ")[0]})
+                    {b.token} ({b.cropName ? b.cropName.split(" ")[0] : "Crop"})
                   </button>
                 ))}
               </div>

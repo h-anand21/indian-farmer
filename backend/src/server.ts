@@ -49,6 +49,7 @@ import adminRoutes from "./routes/adminRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import govtContentRoutes from "./routes/govtContentRoutes";
 import govtSyncRoutes from "./routes/govtSyncRoutes";
+import geoRoutes from "./routes/geoRoutes";
 import { startSyncWorker } from "./workers/syncWorker";
 
 app.use("/api/auth", authRoutes);
@@ -62,6 +63,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/govt-content", govtContentRoutes);
 app.use("/api/govt-sync", govtSyncRoutes);
+app.use("/api/geo", geoRoutes);
 
 // ── Error Handler (must be last middleware) ──
 app.use(errorHandler);

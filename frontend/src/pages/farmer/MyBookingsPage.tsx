@@ -203,7 +203,7 @@ export default function MyBookingsPage() {
   // Tab counts
   const allCount = bookings.length;
   const activeCount = bookings.filter((b) =>
-    ["BOOKED", "CHECKED_IN", "WAITING", "CALLED", "IN_PROCUREMENT"].includes(b.status)
+    b.status ? ["BOOKED", "CHECKED_IN", "WAITING", "CALLED", "IN_PROCUREMENT"].includes(b.status) : false
   ).length;
   const completedCount = bookings.filter((b) => b.status === "COMPLETED").length;
   const cancelledCount = bookings.filter((b) => b.status === "CANCELLED").length;
@@ -211,7 +211,7 @@ export default function MyBookingsPage() {
   const filteredBookings = bookings.filter((b) => {
     // Tab filter
     if (activeTab === "ACTIVE") {
-      if (!["BOOKED", "CHECKED_IN", "WAITING", "CALLED", "IN_PROCUREMENT"].includes(b.status)) {
+      if (!b.status || !["BOOKED", "CHECKED_IN", "WAITING", "CALLED", "IN_PROCUREMENT"].includes(b.status)) {
         return false;
       }
     } else if (activeTab === "COMPLETED") {

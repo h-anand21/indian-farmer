@@ -78,7 +78,7 @@ const SLIDES: SlideData[] = [
 ];
 
 export default function LoginPage() {
-  const { login, loginAsDemo, isAuthenticated, role } = useAuth();
+  const { login, loginAsDemo, isAuthenticated, isRegistered, role } = useAuth();
   const navigate = useNavigate();
 
   // State
@@ -96,17 +96,21 @@ export default function LoginPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Redirect if authenticated
+  // Redirect after authentication
   useEffect(() => {
-    if (isAuthenticated && role) {
-      const redirectMap: Record<string, string> = {
-        FARMER: "/farmer/dashboard",
-        OPERATOR: "/operator/dashboard",
-        ADMIN: "/admin/dashboard",
-      };
-      navigate({ to: redirectMap[role] || "/farmer/dashboard" });
+    if (isAuthenticated) {
+      if (!isRegistered) {
+        navigate({ to: "/register" });
+      } else if (role) {
+        const redirectMap: Record<string, string> = {
+          FARMER: "/farmer/dashboard",
+          OPERATOR: "/operator/dashboard",
+          ADMIN: "/admin/dashboard",
+        };
+        navigate({ to: redirectMap[role] || "/farmer/dashboard" });
+      }
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [isAuthenticated, isRegistered, role, navigate]);
 
   // Google Sign In Handler
   const handleGoogleLogin = async () => {
@@ -130,8 +134,8 @@ export default function LoginPage() {
       } else if (err.code === "auth/unauthorized-domain") {
         setError("Domain not authorized in Firebase Console. Add 'localhost' to authorized domains.");
       } else {
-        // Instant graceful demo fallback if Firebase domain isn't registered locally
-        handleInstantDemoLogin(activeRole);
+        // Graceful redirect to register onboarding
+        navigate({ to: "/register" });
       }
     } finally {
       setIsLoading(false);

@@ -20,39 +20,43 @@ export interface OperatorMetrics {
 }
 
 export interface RosterItem {
-  id: string;
+  id?: string;
   token: string;
-  farmerId: string;
+  farmerId?: string;
   farmerName: string;
-  farmerPhone: string;
-  farmerAadhaar: string;
-  landArea: number;
-  village: string;
+  farmerPhone?: string;
+  farmerAadhaar?: string;
+  landArea?: number;
+  village?: string;
   cropName: string;
-  expectedQuantity: number;
-  status: string;
-  slotDate: string;
-  slotWindow: string;
-  queuePosition: number | null;
-  counterNo: number | null;
-  checkedInAt: string | null;
-  completedAt: string | null;
-  bookingId?: string;
+  expectedQuantity?: number;
   quantity?: number;
+  status?: string;
+  slotDate?: string;
+  slotWindow?: string;
+  queuePosition?: number | null;
+  counterNo?: number | null;
+  checkedInAt?: string | null;
+  completedAt?: string | null;
+  bookingId?: string;
   checkInTime?: string;
-  procurement: {
-    receiptNumber: string;
-    actualWeight: number;
-    qualityGrade: string;
-    moisturePercent: number | null;
-    totalAmount: number | null;
+  vehicleNumber?: string;
+  counterNumber?: number;
+  procurement?: {
+    receiptNumber?: string;
+    actualWeight?: number;
+    qualityGrade?: string;
+    moisturePercent?: number | null;
+    totalAmount?: number | null;
+    [key: string]: any;
   } | null;
-  payment: {
-    id: string;
-    amount: number;
-    status: string;
-    bankAccount: string | null;
-    utrNumber: string | null;
+  payment?: {
+    id?: string;
+    amount?: number;
+    status?: string;
+    bankAccount?: string | null;
+    utrNumber?: string | null;
+    [key: string]: any;
   } | null;
   [key: string]: any;
 }

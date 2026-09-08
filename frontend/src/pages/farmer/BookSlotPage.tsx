@@ -922,7 +922,7 @@ export default function BookSlotPage() {
           <div className="slot-grid">
             {slots.map((s) => {
               const isSelected = selectedSlot?.id === s.id;
-              const remaining = s.capacity - s.bookedCount;
+              const remaining = (s.capacity || 0) - (s.bookedCount ?? s.booked ?? 0);
               return (
                 <div
                   key={s.id}

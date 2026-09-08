@@ -265,36 +265,17 @@ export async function verifyToken(
       }
     }
 
-    // If still not found, auto-provision user account so they can directly login with 1-click
+    // If user is not found in database, return isRegistered: false so they can complete farmer onboarding
     if (!user) {
-      const prisma = (await import("../config/database")).default;
-      const defaultName = email
-        ? email.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-        : "Kisan Farmer";
-
-      user = await prisma.user.create({
-        data: {
-          firebaseUid,
-          email: email || undefined,
-          phone: phone || undefined,
-          name: defaultName,
-          role: "FARMER",
-          farmer: {
-            create: {
-              farmerId: `PMK-${Math.floor(100000 + Math.random() * 900000)}`,
-              state: "Punjab",
-              district: "Ludhiana",
-              village: "Khanna Rural",
-              landArea: 4.5,
-              ownershipType: "Owner",
-            },
-          },
-        },
-        include: {
-          farmer: true,
-          operator: { include: { centre: true } },
-        },
+      res.json({
+        success: true,
+        isRegistered: false,
+        data: null,
+        firebaseUid,
+        email: email || null,
+        phone: phone || null,
       });
+      return;
     }
 
     res.json({

@@ -8,6 +8,7 @@
 /* ── Design Tokens ── */
 @import "./styles/design-tokens.css";
 @import "./styles/auth.css";
+@import "./styles/register.css";
 @import "./styles/layout.css";
 @import "./styles/booking.css";
 @import "./styles/queue.css";

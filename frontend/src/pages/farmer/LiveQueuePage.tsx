@@ -83,13 +83,15 @@ export default function LiveQueuePage() {
 
         if (bookingsData.length > 0) {
           const active = bookingsData.find((b) =>
-            ["BOOKED", "CHECKED_IN", "WAITING", "CALLED"].includes(b.status)
+            b.status ? ["BOOKED", "CHECKED_IN", "WAITING", "CALLED"].includes(b.status) : false
           );
           const defaultBooking = active || bookingsData[0];
-          setSelectedBookingId(defaultBooking.id);
-          setSelectedCentreId(defaultBooking.centreId);
+          if (defaultBooking) {
+            setSelectedBookingId(defaultBooking.id || "");
+            setSelectedCentreId(defaultBooking.centreId || "");
+          }
         } else if (centresData.length > 0) {
-          setSelectedCentreId(centresData[0].id);
+          setSelectedCentreId(centresData[0].id || "");
         }
       } catch (err) {
         console.error("Failed to load initial queue data:", err);
@@ -328,15 +330,15 @@ export default function LiveQueuePage() {
             onChange={(e) => {
               const b = myBookings.find((item) => item.id === e.target.value);
               if (b) {
-                setSelectedBookingId(b.id);
-                setSelectedCentreId(b.centreId);
+                setSelectedBookingId(b.id || "");
+                setSelectedCentreId(b.centreId || "");
               }
             }}
           >
             {myBookings.length > 0 ? (
               myBookings.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.token} — {b.centre.name} ({b.crop.name})
+                  {b.token} — {b.centre?.name || "Mandi Yard"} ({b.crop?.name || "Crop"})
                 </option>
               ))
             ) : (

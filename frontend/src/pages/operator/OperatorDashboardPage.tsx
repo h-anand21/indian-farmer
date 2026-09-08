@@ -201,9 +201,9 @@ export default function OperatorDashboardPage() {
     if (!searchTerm.trim()) return true;
     const q = searchTerm.toLowerCase();
     return (
-      item.token.toLowerCase().includes(q) ||
-      item.farmerName.toLowerCase().includes(q) ||
-      item.cropName.toLowerCase().includes(q) ||
+      (item.token && item.token.toLowerCase().includes(q)) ||
+      (item.farmerName && item.farmerName.toLowerCase().includes(q)) ||
+      (item.cropName && item.cropName.toLowerCase().includes(q)) ||
       (item.farmerPhone && item.farmerPhone.toLowerCase().includes(q))
     );
   });
