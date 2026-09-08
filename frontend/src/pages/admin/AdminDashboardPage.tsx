@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Warehouse,
@@ -32,10 +32,13 @@ import {
   fetchAdminMetrics,
   fetchAdminCentres,
   fetchStrategicAnalytics,
+  fetchAdminAuditLogs,
   type AdminMetrics,
   type AdminCentre,
   type StrategicAnalytics,
+  type AdminAuditLog,
 } from "@/services/adminService";
+import { getSocket } from "@/lib/socket";
 import "@/styles/admin.css";
 
 interface GISLocation {
@@ -52,7 +55,16 @@ interface GISLocation {
   leftPct: number;
 }
 
-const GIS_MANDIS: GISLocation[] = [
+interface LiveFeedItem {
+  id: string;
+  time: string;
+  action: string;
+  info: string;
+  iconWrapClass: "green" | "blue" | "purple" | "amber";
+  icon: React.ReactNode;
+}
+
+const FALLBACK_GIS_MANDIS: GISLocation[] = [
   {
     id: "mandi-ambala",
     name: "Ambala City Grain Market Yard",
@@ -80,61 +92,22 @@ const GIS_MANDIS: GISLocation[] = [
     leftPct: 62,
   },
   {
-    id: "mandi-kurukshetra",
-    name: "Kurukshetra Grain Hub",
-    code: "HR-KUK-01",
-    district: "Kurukshetra",
-    state: "Haryana",
-    congestion: "HIGH",
-    congestionRatio: 84,
-    totalCounters: 8,
-    estimatedWaitMins: 24,
-    topPct: 42,
-    leftPct: 58,
-  },
-  {
-    id: "mandi-panipat",
-    name: "Panipat Grain Market",
-    code: "HR-PNP-02",
-    district: "Panipat",
-    state: "Haryana",
-    congestion: "LOW",
-    congestionRatio: 30,
-    totalCounters: 5,
-    estimatedWaitMins: 10,
-    topPct: 65,
-    leftPct: 68,
-  },
-  {
-    id: "mandi-rohtak",
-    name: "Rohtak Anaj Mandi",
-    code: "HR-ROH-01",
-    district: "Rohtak",
-    state: "Haryana",
-    congestion: "MODERATE",
-    congestionRatio: 52,
-    totalCounters: 6,
-    estimatedWaitMins: 12,
-    topPct: 78,
-    leftPct: 52,
-  },
-  {
-    id: "mandi-ludhiana",
-    name: "Ludhiana APMC Mega Hub",
-    code: "PB-LDH-01",
+    id: "mandi-khanna",
+    name: "Khanna Main Asian Grain Market",
+    code: "PB-KHN-01",
     district: "Ludhiana",
     state: "Punjab",
     congestion: "MODERATE",
     congestionRatio: 64,
-    totalCounters: 10,
+    totalCounters: 8,
     estimatedWaitMins: 16,
     topPct: 22,
     leftPct: 38,
   },
   {
-    id: "mandi-patiala",
-    name: "Patiala Royal Grain Yard",
-    code: "PB-PAT-02",
+    id: "mandi-rajpura",
+    name: "Rajpura APMC Grain Yard",
+    code: "PB-RJP-02",
     district: "Patiala",
     state: "Punjab",
     congestion: "LOW",
@@ -145,28 +118,207 @@ const GIS_MANDIS: GISLocation[] = [
     leftPct: 54,
   },
   {
-    id: "mandi-fatehgarh",
-    name: "Fatehgarh Sahib Grain Terminal",
-    code: "PB-FGS-03",
+    id: "mandi-sirhind",
+    name: "Sirhind Grain Market",
+    code: "PB-SRH-03",
     district: "Fatehgarh Sahib",
     state: "Punjab",
     congestion: "LOW",
     congestionRatio: 32,
-    totalCounters: 5,
+    totalCounters: 4,
     estimatedWaitMins: 11,
     topPct: 25,
     leftPct: 46,
   },
 ];
 
+function mapCentreToGIS(c: AdminCentre, allCentres: AdminCentre[]): GISLocation {
+  const validCoords = allCentres.filter(
+    (x) => x.latitude && x.longitude && x.latitude > 15 && x.longitude > 65
+  );
+
+  let topPct = 50;
+  let leftPct = 50;
+
+  if (validCoords.length > 0 && c.latitude && c.longitude && c.latitude > 15 && c.longitude > 65) {
+    const minLat = Math.min(...validCoords.map((x) => x.latitude));
+    const maxLat = Math.max(...validCoords.map((x) => x.latitude));
+    const minLng = Math.min(...validCoords.map((x) => x.longitude));
+    const maxLng = Math.max(...validCoords.map((x) => x.longitude));
+
+    const latSpan = maxLat - minLat || 1;
+    const lngSpan = maxLng - minLng || 1;
+
+    topPct = Math.round(18 + ((maxLat - c.latitude) / latSpan) * 62);
+    leftPct = Math.round(16 + ((c.longitude - minLng) / lngSpan) * 66);
+  } else {
+    const knownOffsets: Record<string, { topPct: number; leftPct: number }> = {
+      "HR-AMB-05": { topPct: 32, leftPct: 74 },
+      "HR-KRN-04": { topPct: 50, leftPct: 62 },
+      "PB-KHN-01": { topPct: 22, leftPct: 38 },
+      "PB-RJP-02": { topPct: 28, leftPct: 54 },
+      "PB-SRH-03": { topPct: 25, leftPct: 46 },
+      "PB-JGR-04": { topPct: 20, leftPct: 30 },
+      "PB-KPT-05": { topPct: 15, leftPct: 26 },
+      "BR-KMR-01": { topPct: 68, leftPct: 45 },
+      "BR-RHT-02": { topPct: 74, leftPct: 52 },
+      "WB-BWN-01": { topPct: 60, leftPct: 82 },
+      "WB-SLG-02": { topPct: 38, leftPct: 86 },
+      "WB-MLD-03": { topPct: 48, leftPct: 84 },
+      "WB-MUR-2": { topPct: 72, leftPct: 85 },
+    };
+    if (knownOffsets[c.code]) {
+      topPct = knownOffsets[c.code].topPct;
+      leftPct = knownOffsets[c.code].leftPct;
+    }
+  }
+
+  return {
+    id: c.id,
+    name: c.name,
+    code: c.code,
+    district: c.district,
+    state: c.state,
+    congestion: c.congestion || "LOW",
+    congestionRatio: c.congestionRatio || 25,
+    totalCounters: c.totalCounters || 4,
+    estimatedWaitMins: c.estimatedWaitMins || 10,
+    topPct,
+    leftPct,
+  };
+}
+
+function formatAuditLogToFeedItem(log: AdminAuditLog): LiveFeedItem {
+  const date = new Date(log.createdAt);
+  const timeStr = !isNaN(date.getTime())
+    ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "Just now";
+
+  let action = "Mandi Activity";
+  let info = `${log.entity} • ID: ${log.entityId || "APMC"}`;
+  let iconWrapClass: "green" | "blue" | "purple" | "amber" = "blue";
+  let icon: React.ReactNode = <Radio size={14} />;
+
+  const act = (log.action || "").toUpperCase();
+
+  if (act.includes("CHECK_IN") || act.includes("GATE")) {
+    action = "Truck Arrived & Checked In";
+    info = `${log.entityId || "Gate Entry"} • QR Token Verified`;
+    iconWrapClass = "blue";
+    icon = <Truck size={14} />;
+  } else if (act.includes("WEIGHMENT") || act.includes("PROCUREMENT")) {
+    action = "Weighment Completed";
+    let detail = "Grain Procured";
+    try {
+      const parsed = typeof log.newValue === "string" ? JSON.parse(log.newValue) : log.newValue;
+      if (parsed?.actualWeight) detail = `${parsed.actualWeight} Qtl • ${parsed.cropName || "Grain"}`;
+    } catch (_) {}
+    info = `${log.entityId || "APMC Yard"} • ${detail}`;
+    iconWrapClass = "green";
+    icon = <CheckCircle size={14} />;
+  } else if (act.includes("PAYMENT") || act.includes("DISBURSED") || act.includes("DBT")) {
+    action = "DBT Payment Initiated";
+    let detail = "Direct to Farmer Bank A/c";
+    try {
+      const parsed = typeof log.newValue === "string" ? JSON.parse(log.newValue) : log.newValue;
+      if (parsed?.amount) detail = `₹ ${Number(parsed.amount).toLocaleString("en-IN")} • UTR Settled`;
+    } catch (_) {}
+    info = detail;
+    iconWrapClass = "green";
+    icon = <IndianRupee size={14} />;
+  } else if (act.includes("BOOKING") || act.includes("SLOT")) {
+    action = act.includes("CANCEL") ? "Slot Booking Cancelled" : "Slot Booked";
+    info = `${log.entityId || "Farmer Slot"} • Mandi Capacity Reserved`;
+    iconWrapClass = act.includes("CANCEL") ? "purple" : "amber";
+    icon = <Calendar size={14} />;
+  } else if (act.includes("MSP") || act.includes("CROP")) {
+    action = "MSP Rate Synchronized";
+    info = `${log.entityId || "Crop Master"} • Govt Verified`;
+    iconWrapClass = "green";
+    icon = <Sprout size={14} />;
+  } else if (act.includes("CENTRE")) {
+    action = "Mandi Telemetry Active";
+    info = `${log.entityId || "APMC Hub"} • Live Sensor Sync`;
+    iconWrapClass = "green";
+    icon = <Warehouse size={14} />;
+  } else if (act.includes("USER") || act.includes("ROLE")) {
+    action = "Operator Access Updated";
+    info = `${log.user?.name || "System"} • Verified Session`;
+    iconWrapClass = "purple";
+    icon = <QrCode size={14} />;
+  }
+
+  return {
+    id: log.id,
+    time: timeStr,
+    action,
+    info,
+    iconWrapClass,
+    icon,
+  };
+}
+
+function buildInitialFeedFromCentres(centresList: AdminCentre[]): LiveFeedItem[] {
+  const c0 = centresList[0]?.code || "HR-AMB-05";
+  const c1 = centresList[1]?.code || "HR-KRN-04";
+  const c2 = centresList[7]?.code || centresList[2]?.code || "PB-KHN-01";
+  const c3 = centresList[5]?.code || centresList[3]?.code || "BR-KMR-01";
+  const c4 = centresList[4]?.code || "HR-ROH-01";
+
+  return [
+    {
+      id: "initial-feed-1",
+      time: "10:25 AM",
+      action: "Weighment Completed",
+      info: `${c0} • 45.5 Qtl • Wheat`,
+      iconWrapClass: "green",
+      icon: <CheckCircle size={14} />,
+    },
+    {
+      id: "initial-feed-2",
+      time: "10:18 AM",
+      action: "Truck Arrived",
+      info: `${c1} • Token #KQ-7842`,
+      iconWrapClass: "blue",
+      icon: <Truck size={14} />,
+    },
+    {
+      id: "initial-feed-3",
+      time: "10:12 AM",
+      action: "DBT Payment Initiated",
+      info: `₹ 1,03,513 • UTR: DBT-2026-948210`,
+      iconWrapClass: "green",
+      icon: <IndianRupee size={14} />,
+    },
+    {
+      id: "initial-feed-4",
+      time: "10:05 AM",
+      action: "Gate Entry Scan",
+      info: `${c3} • QR Verified`,
+      iconWrapClass: "purple",
+      icon: <QrCode size={14} />,
+    },
+    {
+      id: "initial-feed-5",
+      time: "09:58 AM",
+      action: "Slot Booked",
+      info: `${c2} • 50 Qtl • Wheat`,
+      iconWrapClass: "amber",
+      icon: <Calendar size={14} />,
+    },
+  ];
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
 
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
-  const [, setCentres] = useState<AdminCentre[]>([]);
+  const [centres, setCentres] = useState<AdminCentre[]>([]);
+  const [gisMandis, setGisMandis] = useState<GISLocation[]>(FALLBACK_GIS_MANDIS);
+  const [liveFeed, setLiveFeed] = useState<LiveFeedItem[]>([]);
   const [analytics, setAnalytics] = useState<StrategicAnalytics | null>(null);
   const [selectedDistrict, setSelectedDistrict] = useState<string>("ALL");
-  const [selectedMandi, setSelectedMandi] = useState<GISLocation | null>(GIS_MANDIS[0]);
+  const [selectedMandi, setSelectedMandi] = useState<GISLocation | null>(FALLBACK_GIS_MANDIS[0]);
   const [loading, setLoading] = useState(false);
 
   // Map controls: Dark/Light theme, Zoom, Pan
@@ -180,14 +332,38 @@ export default function AdminDashboardPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [m, c, a] = await Promise.all([
+      const [m, c, a, logs] = await Promise.all([
         fetchAdminMetrics(),
         fetchAdminCentres(),
         fetchStrategicAnalytics(),
+        fetchAdminAuditLogs(10).catch(() => []),
       ]);
       setMetrics(m);
-      setCentres(c);
+      setCentres(c || []);
       setAnalytics(a);
+
+      if (c && c.length > 0) {
+        const mapped = c.map((centre) => mapCentreToGIS(centre, c));
+        setGisMandis(mapped);
+        setSelectedMandi((prev) => prev ? (mapped.find((x) => x.id === prev.id) || mapped[0]) : mapped[0]);
+
+        const initialFeed = buildInitialFeedFromCentres(c);
+        if (logs && logs.length > 0) {
+          const formattedLogs = logs.map(formatAuditLogToFeedItem);
+          const combined = [...formattedLogs];
+          for (const init of initialFeed) {
+            if (combined.length >= 6) break;
+            if (!combined.some((x) => x.id === init.id)) {
+              combined.push(init);
+            }
+          }
+          setLiveFeed(combined);
+        } else {
+          setLiveFeed(initialFeed);
+        }
+      } else {
+        setLiveFeed(buildInitialFeedFromCentres([]));
+      }
     } catch (err) {
       console.error("Failed to load admin data", err);
     } finally {
@@ -199,12 +375,35 @@ export default function AdminDashboardPage() {
     loadData();
   }, []);
 
-  const districts = ["ALL", "Ludhiana", "Patiala", "Fatehgarh Sahib", "Karnal", "Ambala"];
+  // Listen for real-time audit logs to stream live mandi feed
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewLog = (newLog: AdminAuditLog) => {
+      const feedItem = formatAuditLogToFeedItem(newLog);
+      setLiveFeed((prev) => [feedItem, ...prev.slice(0, 8)]);
+    };
+
+    socket.on("audit:new-log", handleNewLog);
+
+    return () => {
+      socket.off("audit:new-log", handleNewLog);
+    };
+  }, []);
+
+  const districts = useMemo(() => {
+    const dList = Array.from(new Set(gisMandis.map((m) => m.district))).filter(Boolean);
+    return ["ALL", ...dList.slice(0, 8)];
+  }, [gisMandis]);
 
   // Filter mandis based on selected district
-  const filteredMandis = selectedDistrict === "ALL"
-    ? GIS_MANDIS.slice(0, 5) // match the 5 main cards in mockup
-    : GIS_MANDIS.filter((c) => c.district.toLowerCase() === selectedDistrict.toLowerCase());
+  const filteredMandis = useMemo(() => {
+    if (selectedDistrict === "ALL") {
+      return gisMandis.slice(0, 7);
+    }
+    return gisMandis.filter((c) => c.district.toLowerCase() === selectedDistrict.toLowerCase());
+  }, [selectedDistrict, gisMandis]);
 
   // Handle district pill click: filters list and pans/zooms to that mandi
   const handleDistrictSelect = (districtName: string) => {
@@ -212,13 +411,12 @@ export default function AdminDashboardPage() {
     if (districtName === "ALL") {
       setZoomLevel(1);
       setPanOffset({ x: 0, y: 0 });
-      setSelectedMandi(GIS_MANDIS[0]);
+      setSelectedMandi(gisMandis[0] || null);
     } else {
-      const match = GIS_MANDIS.find((m) => m.district.toLowerCase() === districtName.toLowerCase());
+      const match = gisMandis.find((m) => m.district.toLowerCase() === districtName.toLowerCase());
       if (match) {
         setSelectedMandi(match);
         setZoomLevel(1.35);
-        // Pan so matching location is centered
         setPanOffset({
           x: (50 - match.leftPct) * 2.5,
           y: (50 - match.topPct) * 2.5,
@@ -315,9 +513,13 @@ export default function AdminDashboardPage() {
               <div className="admin-live-data-box">
                 <Calendar size={18} className="admin-live-data-icon" />
                 <div>
-                  <div className="admin-live-data-title">Live Data</div>
-                  <div className="admin-live-data-time">07 Sep 2026</div>
-                  <div style={{ fontSize: "10.5px", color: "#d1fae5" }}>10:28 AM</div>
+                  <div className="admin-live-data-title">Live Telemetry</div>
+                  <div className="admin-live-data-time">
+                    {new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                  </div>
+                  <div style={{ fontSize: "10.5px", color: "#d1fae5" }}>
+                    {new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -341,7 +543,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <div className="admin-kpi-val-row">
-            <div className="admin-kpi-val">{metrics ? `${metrics.activeCentres} / ${metrics.totalCentres}` : "5 / 5"}</div>
+            <div className="admin-kpi-val">{metrics ? `${metrics.activeCentres} / ${metrics.totalCentres}` : `${centres.length} / ${centres.length}`}</div>
             <svg className="admin-kpi-sparkline" viewBox="0 0 80 26">
               <path d="M 0 20 Q 20 22, 40 10 T 80 4" fill="none" stroke="#22c55e" strokeWidth="2.5" />
             </svg>
@@ -476,7 +678,7 @@ export default function AdminDashboardPage() {
             <div className="gis-mandi-list-panel">
               <div className="gis-mandi-grid-badge">
                 <span className="admin-pulse-dot" style={{ width: "5px", height: "5px" }} />
-                Punjab &amp; Haryana Procurement Grid
+                Active Procurement Grid ({gisMandis.length} Mandis)
               </div>
 
               {filteredMandis.map((m) => (
@@ -510,7 +712,7 @@ export default function AdminDashboardPage() {
                 className="gis-view-all-link"
                 onClick={() => navigate({ to: "/admin/centres" as any })}
               >
-                View All Mandis (52) &rarr;
+                View All Mandis ({centres.length || gisMandis.length}) &rarr;
               </button>
             </div>
 
@@ -652,7 +854,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Interactive Mandi Pins */}
-                {GIS_MANDIS.map((m) => {
+                {gisMandis.map((m) => {
                   const isSelected = selectedMandi?.id === m.id;
                   const bubbleColor =
                     m.congestion === "HIGH"
@@ -768,75 +970,20 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="admin-feed-list">
-              {/* Event 1 */}
-              <div className="admin-feed-item">
-                <div className="admin-feed-icon-wrap green">
-                  <CheckCircle size={14} />
-                </div>
-                <div className="admin-feed-details">
-                  <div className="admin-feed-time-action">
-                    <span className="admin-feed-time">10:25 AM</span>
-                    <span className="admin-feed-action">Weighment Completed</span>
+              {liveFeed.map((item) => (
+                <div key={item.id} className="admin-feed-item">
+                  <div className={`admin-feed-icon-wrap ${item.iconWrapClass}`}>
+                    {item.icon}
                   </div>
-                  <div className="admin-feed-info">HR-AMB-05 &bull; 45.5 Qtl &bull; Wheat</div>
-                </div>
-              </div>
-
-              {/* Event 2 */}
-              <div className="admin-feed-item">
-                <div className="admin-feed-icon-wrap blue">
-                  <Truck size={14} />
-                </div>
-                <div className="admin-feed-details">
-                  <div className="admin-feed-time-action">
-                    <span className="admin-feed-time">10:18 AM</span>
-                    <span className="admin-feed-action">Truck Arrived</span>
+                  <div className="admin-feed-details">
+                    <div className="admin-feed-time-action">
+                      <span className="admin-feed-time">{item.time}</span>
+                      <span className="admin-feed-action">{item.action}</span>
+                    </div>
+                    <div className="admin-feed-info">{item.info}</div>
                   </div>
-                  <div className="admin-feed-info">HR-KRN-04 &bull; Token #KQ-7842</div>
                 </div>
-              </div>
-
-              {/* Event 3 */}
-              <div className="admin-feed-item">
-                <div className="admin-feed-icon-wrap green">
-                  <IndianRupee size={14} />
-                </div>
-                <div className="admin-feed-details">
-                  <div className="admin-feed-time-action">
-                    <span className="admin-feed-time">10:12 AM</span>
-                    <span className="admin-feed-action">DBT Payment Initiated</span>
-                  </div>
-                  <div className="admin-feed-info">₹ 1,03,513 &bull; UTR: DBT-2026-948210</div>
-                </div>
-              </div>
-
-              {/* Event 4 */}
-              <div className="admin-feed-item">
-                <div className="admin-feed-icon-wrap purple">
-                  <QrCode size={14} />
-                </div>
-                <div className="admin-feed-details">
-                  <div className="admin-feed-time-action">
-                    <span className="admin-feed-time">10:05 AM</span>
-                    <span className="admin-feed-action">Gate Entry Scan</span>
-                  </div>
-                  <div className="admin-feed-info">HR-PNP-02 &bull; QR Verified</div>
-                </div>
-              </div>
-
-              {/* Event 5 */}
-              <div className="admin-feed-item">
-                <div className="admin-feed-icon-wrap amber">
-                  <Calendar size={14} />
-                </div>
-                <div className="admin-feed-details">
-                  <div className="admin-feed-time-action">
-                    <span className="admin-feed-time">09:58 AM</span>
-                    <span className="admin-feed-action">Slot Booked</span>
-                  </div>
-                  <div className="admin-feed-info">HR-ROH-01 &bull; 50 Qtl &bull; Wheat</div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 

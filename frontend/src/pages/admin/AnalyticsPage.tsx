@@ -135,7 +135,19 @@ export const AnalyticsPage: React.FC = () => {
       <section className="kpi-grid">
         {/* Card 1: Avg Mandi Turnaround */}
         <div className="kpi-card kpi-green">
-          <div className="kpi-icon">⏱</div>
+          <div className="kpi-card-header">
+            <div className="kpi-icon">⏱</div>
+            <div className="kpi-sparkline-wrap">
+              <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
+                <path
+                  d="M2 20 Q 15 5, 30 18 T 58 8"
+                  stroke="#059669"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </div>
           <div className="kpi-info">
             <div className="title">Avg Mandi Turnaround</div>
             <div className="kpi-value green">{analyticsData?.averageTurnaroundMinutes || 35} min</div>
@@ -143,72 +155,76 @@ export const AnalyticsPage: React.FC = () => {
               <strong>↓ {analyticsData?.turnaroundDropPct || "76%"}</strong> from 2.5 hrs baseline
             </div>
           </div>
-          <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
-            <path
-              d="M2 20 Q 15 5, 30 18 T 58 8"
-              stroke="#059669"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
         </div>
 
-        {/* Card 2: Total Season Inflow */}
+        {/* Card 2: Total Inflow */}
         <div className="kpi-card kpi-blue">
-          <div className="kpi-icon">📦</div>
+          <div className="kpi-card-header">
+            <div className="kpi-icon">📦</div>
+            <div className="kpi-sparkline-wrap">
+              <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
+                <rect x="10" y="16" width="6" height="10" rx="2" fill="#93c5fd" />
+                <rect x="22" y="10" width="6" height="16" rx="2" fill="#60a5fa" />
+                <rect x="34" y="6" width="6" height="20" rx="2" fill="#3b82f6" />
+                <rect x="46" y="2" width="6" height="24" rx="2" fill="#2563eb" />
+              </svg>
+            </div>
+          </div>
           <div className="kpi-info">
             <div className="title">{inflowCardTitle}</div>
             <div className="kpi-value">{totalInflowDisplay} Qtl</div>
             <div className="kpi-sub">
-              👤 Across {activeMandisCount} Active / {totalCentresCount} Total Mandis
+              <span>👤</span> Across {activeMandisCount} Active / {totalCentresCount} Total Mandis
             </div>
           </div>
-          <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
-            <rect x="10" y="16" width="6" height="10" rx="2" fill="#93c5fd" />
-            <rect x="22" y="10" width="6" height="16" rx="2" fill="#60a5fa" />
-            <rect x="34" y="6" width="6" height="20" rx="2" fill="#3b82f6" />
-            <rect x="46" y="2" width="6" height="24" rx="2" fill="#2563eb" />
-          </svg>
         </div>
 
         {/* Card 3: DBT Payout Speed */}
         <div className="kpi-card kpi-orange">
-          <div className="kpi-icon">₹</div>
+          <div className="kpi-card-header">
+            <div className="kpi-icon">₹</div>
+            <div className="kpi-sparkline-wrap">
+              <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
+                <path
+                  d="M2 24 C 18 20, 24 8, 38 14 C 48 18, 52 4, 58 6"
+                  stroke="#f59e0b"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </div>
           <div className="kpi-info">
             <div className="title">DBT Payout Speed</div>
             <div className="kpi-value">{analyticsData?.dbtSpeedText || "< 4 hrs"}</div>
             <div className="kpi-sub">
-              ⚡ Direct to Farmer Bank A/c
+              <span>⚡</span> Direct to Farmer Bank A/c
             </div>
           </div>
-          <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
-            <path
-              d="M2 24 C 18 20, 24 8, 38 14 C 48 18, 52 4, 58 6"
-              stroke="#f59e0b"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
         </div>
 
         {/* Card 4: Slot Adherence Rate */}
         <div className="kpi-card kpi-purple">
-          <div className="kpi-icon">%</div>
+          <div className="kpi-card-header">
+            <div className="kpi-icon">%</div>
+            <div className="kpi-sparkline-wrap">
+              <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
+                <path
+                  d="M2 22 C 20 22, 28 8, 42 16 C 50 20, 54 6, 58 4"
+                  stroke="#8b5cf6"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
+          </div>
           <div className="kpi-info">
             <div className="title">Slot Adherence Rate</div>
             <div className="kpi-value purple">{analyticsData?.slotAdherenceRate || "94.8%"}</div>
             <div className="kpi-sub">
-              ↗ Zero yard congestion
+              <span>↗</span> Zero yard congestion
             </div>
           </div>
-          <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
-            <path
-              d="M2 22 C 20 22, 28 8, 42 16 C 50 20, 54 6, 58 4"
-              stroke="#8b5cf6"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
         </div>
       </section>
 
