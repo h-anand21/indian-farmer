@@ -7,6 +7,7 @@ import {
   advanceCentreQueue,
   seedQueueIfEmpty,
 } from "../services/queueService";
+import { recordAuditLog } from "../services/adminService";
 
 const checkInSchema = z.object({
   bookingId: z.string().min(1, "Booking ID is required"),
@@ -75,6 +76,20 @@ export async function postCheckIn(req: Request, res: Response, next: NextFunctio
   try {
     const parsed = checkInSchema.parse(req.body);
     const updated = await checkInBooking(parsed.bookingId);
+
+    try {
+      await recordAuditLog(
+        (req as any).user?.uid || "GATE_OPERATOR_DESK",
+        "GATE_CHECK_IN",
+        "QueueEntry",
+        parsed.bookingId,
+        undefined,
+        { stage: "GATE", checkInTime: new Date() },
+        req.ip || "127.0.0.1"
+      );
+    } catch (auditErr) {
+      console.warn("Audit log for check-in failed:", auditErr);
+    }
 
     res.json({
       success: true,

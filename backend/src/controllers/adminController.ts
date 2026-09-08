@@ -296,9 +296,10 @@ export async function getAuditLogs(req: Request, res: Response, next: NextFuncti
 /**
  * GET /api/admin/analytics
  */
-export async function getAnalytics(_req: Request, res: Response, next: NextFunction) {
+export async function getAnalytics(req: Request, res: Response, next: NextFunction) {
   try {
-    const analytics = await getStrategicAnalytics();
+    const range = (req.query.range as string) || "7d";
+    const analytics = await getStrategicAnalytics(range);
     res.json({ success: true, data: analytics });
   } catch (error) {
     next(error);

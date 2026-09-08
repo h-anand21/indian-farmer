@@ -13,7 +13,6 @@ import {
 import "@/styles/Analytics.css";
 
 export const AnalyticsPage: React.FC = () => {
-  const [timeHorizon, setTimeHorizon] = useState<string>("7d");
   const [selectedRange, setSelectedRange] = useState<string>("7d");
   const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [metricsData, setMetricsData] = useState<AdminMetrics | null>(null);
@@ -24,7 +23,7 @@ export const AnalyticsPage: React.FC = () => {
       try {
         setLoading(true);
         const [strat, metrics] = await Promise.allSettled([
-          fetchStrategicAnalytics(),
+          fetchStrategicAnalytics(selectedRange),
           fetchAdminMetrics(),
         ]);
         if (strat.status === "fulfilled") {
@@ -40,20 +39,44 @@ export const AnalyticsPage: React.FC = () => {
       }
     }
     loadData();
-  }, [timeHorizon, selectedRange]);
-
-  const totalInflowQtl =
-    metricsData?.totalQuintalsProcured && metricsData.totalQuintalsProcured > 0
-      ? metricsData.totalQuintalsProcured.toLocaleString("en-IN")
-      : analyticsData?.summary?.totalQuintalsProcured
-      ? Number(analyticsData.summary.totalQuintalsProcured).toLocaleString("en-IN")
-      : "4,650";
+  }, [selectedRange]);
 
   const activeMandisCount =
     metricsData?.activeCentres ?? analyticsData?.summary?.activeCentres ?? 5;
 
   const totalCentresCount =
     metricsData?.totalCentres ?? analyticsData?.summary?.totalCentres ?? 5;
+
+  const totalInflowDisplay = analyticsData?.summary?.totalQuintalsProcured
+    ? Number(analyticsData.summary.totalQuintalsProcured).toLocaleString("en-IN")
+    : metricsData?.totalQuintalsProcured && metricsData.totalQuintalsProcured > 0
+    ? metricsData.totalQuintalsProcured.toLocaleString("en-IN")
+    : "4,650";
+
+  const inflowCardTitle =
+    selectedRange === "24h"
+      ? "Today's Total Inflow"
+      : selectedRange === "30d"
+      ? "Last 30 Days Inflow"
+      : selectedRange === "season"
+      ? "Full Season Inflow"
+      : "Last 7 Days Inflow";
+
+  const inflowTrendSubtitle =
+    selectedRange === "24h"
+      ? "Hourly grain arrivals today (Quintals)"
+      : selectedRange === "30d"
+      ? "Weekly aggregated arrivals (Quintals)"
+      : selectedRange === "season"
+      ? "Monthly season procurement arrivals (Quintals)"
+      : "Daily grain arrivals (Quintals)";
+
+  const rangeButtons = [
+    { id: "24h", label: "24h" },
+    { id: "7d", label: "7d" },
+    { id: "30d", label: "30d" },
+    { id: "season", label: "Season" },
+  ];
 
   return (
     <div className="analytics-page">
@@ -62,7 +85,7 @@ export const AnalyticsPage: React.FC = () => {
         <div className="analytics-header-left">
           <div className="eyebrow">DATA DRIVEN PROCUREMENT</div>
           <h1>
-            Procurement <span>Analytics & Intelligence</span>
+            Procurement <span>Analytics &amp; Intelligence</span>
           </h1>
           <p>
             Real-time APMC mandi trends, arrival forecast, queue efficiency, and DBT disbursement insights directly synced with live database.
@@ -77,22 +100,22 @@ export const AnalyticsPage: React.FC = () => {
                 value={selectedRange}
                 onChange={(e) => setSelectedRange(e.target.value)}
               >
+                <option value="24h">Last 24 Hours</option>
                 <option value="7d">Last 7 Days</option>
                 <option value="30d">Last 30 Days</option>
-                <option value="90d">Last 3 Months</option>
-                <option value="season">Full Season</option>
+                <option value="season">Full Season (Last 3 Months)</option>
               </select>
               <span>⌄</span>
             </div>
 
             <div className="range-buttons">
-              {["24h", "7d", "30d", "Season"].map((range) => (
+              {rangeButtons.map((range) => (
                 <button
-                  key={range}
-                  onClick={() => setTimeHorizon(range)}
-                  className={timeHorizon === range ? "active" : ""}
+                  key={range.id}
+                  onClick={() => setSelectedRange(range.id)}
+                  className={selectedRange === range.id ? "active" : ""}
                 >
-                  {range}
+                  {range.label}
                 </button>
               ))}
             </div>
@@ -117,7 +140,7 @@ export const AnalyticsPage: React.FC = () => {
             <div className="title">Avg Mandi Turnaround</div>
             <div className="kpi-value green">{analyticsData?.averageTurnaroundMinutes || 35} min</div>
             <div className="kpi-sub">
-              <strong>↓ 76%</strong> from 2.5 hrs baseline
+              <strong>↓ {analyticsData?.turnaroundDropPct || "76%"}</strong> from 2.5 hrs baseline
             </div>
           </div>
           <svg className="kpi-sparkline" viewBox="0 0 60 28" fill="none">
@@ -134,8 +157,8 @@ export const AnalyticsPage: React.FC = () => {
         <div className="kpi-card kpi-blue">
           <div className="kpi-icon">📦</div>
           <div className="kpi-info">
-            <div className="title">Total Season Inflow</div>
-            <div className="kpi-value">{totalInflowQtl} Qtl</div>
+            <div className="title">{inflowCardTitle}</div>
+            <div className="kpi-value">{totalInflowDisplay} Qtl</div>
             <div className="kpi-sub">
               👤 Across {activeMandisCount} Active / {totalCentresCount} Total Mandis
             </div>
@@ -153,7 +176,7 @@ export const AnalyticsPage: React.FC = () => {
           <div className="kpi-icon">₹</div>
           <div className="kpi-info">
             <div className="title">DBT Payout Speed</div>
-            <div className="kpi-value">&lt; 4 hrs</div>
+            <div className="kpi-value">{analyticsData?.dbtSpeedText || "< 4 hrs"}</div>
             <div className="kpi-sub">
               ⚡ Direct to Farmer Bank A/c
             </div>
@@ -173,7 +196,7 @@ export const AnalyticsPage: React.FC = () => {
           <div className="kpi-icon">%</div>
           <div className="kpi-info">
             <div className="title">Slot Adherence Rate</div>
-            <div className="kpi-value purple">94.8%</div>
+            <div className="kpi-value purple">{analyticsData?.slotAdherenceRate || "94.8%"}</div>
             <div className="kpi-sub">
               ↗ Zero yard congestion
             </div>
@@ -198,7 +221,7 @@ export const AnalyticsPage: React.FC = () => {
               <div className="chart-icon">⏱</div>
               <div>
                 <h2>Procurement Inflow Trend</h2>
-                <p>Daily grain arrivals (Quintals)</p>
+                <p>{inflowTrendSubtitle}</p>
               </div>
             </div>
 

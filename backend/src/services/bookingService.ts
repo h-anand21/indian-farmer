@@ -1,6 +1,7 @@
 import prisma from "../config/database";
 import { BookingStatus, CongestionLevel } from "../types/enums";
 import { getIO } from "../socket/socketServer";
+import { recordAuditLog } from "./adminService";
 
 // ── Master Crop Data with Government MSP Rates (2026-27) ──
 export const MSP_CROPS = [
@@ -360,6 +361,19 @@ export async function createBooking(
     console.error("Socket broadcast error:", err);
   }
 
+  try {
+    await recordAuditLog(
+      booking.farmerId,
+      "SLOT_BOOKED",
+      "Booking",
+      booking.token || booking.id,
+      undefined,
+      { crop: input.cropName, quantity: input.quantity, centreName: booking.centre.name }
+    );
+  } catch (auditErr) {
+    console.warn("Audit log for booking failed:", auditErr);
+  }
+
   return {
     ...booking,
     slotDate: booking.slot?.date ? new Date(booking.slot.date).toISOString().split("T")[0] : undefined,
@@ -487,6 +501,19 @@ export async function cancelBooking(bookingId: string, firebaseUid: string) {
       where: { id: booking.slotId },
       data: { booked: { decrement: 1 } },
     });
+
+    try {
+      await recordAuditLog(
+        user.id,
+        "BOOKING_CANCELLED",
+        "Booking",
+        booking.token || booking.id,
+        { status: booking.status },
+        { status: BookingStatus.CANCELLED }
+      );
+    } catch (auditErr) {
+      console.warn("Audit log for booking cancellation failed:", auditErr);
+    }
 
     return updated;
   });

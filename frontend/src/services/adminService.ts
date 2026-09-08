@@ -267,8 +267,8 @@ export async function fetchAdminAuditLogs(take: number = 50): Promise<AdminAudit
 /**
  * Strategic analytics
  */
-export async function fetchStrategicAnalytics(): Promise<StrategicAnalytics> {
-  const res = await api.get("/admin/analytics");
+export async function fetchStrategicAnalytics(range: string = "7d"): Promise<StrategicAnalytics> {
+  const res = await api.get("/admin/analytics", { params: { range } });
   return res.data.data;
 }
 

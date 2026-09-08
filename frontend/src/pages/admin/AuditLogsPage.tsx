@@ -45,107 +45,9 @@ interface AuditLog {
   category: "Procurement" | "Payment" | "Gate Entry" | "Booking" | "System Update";
 }
 
-const INITIAL_LOGS: AuditLog[] = [
-  {
-    id: "log-1",
-    nodeNumber: 1,
-    nodeColor: "green",
-    date: "7 Sep 2026",
-    time: "10:42:15 AM",
-    relativeTime: "2 mins ago",
-    action: "PROCUREMENT_RECORDED",
-    entityType: "Booking",
-    entityId: "KQ-KHN-1048",
-    iconType: "procurement",
-    userName: "Khanna Operator Desk (Desk-1)",
-    userRole: "OPERATOR",
-    details: "Weighed 45.5 Qtl Sharbati Wheat, Grade A, ₹1,03,513",
-    ipAddress: "192.168.1.42",
-    sourceType: "Web Portal",
-    sourceDevice: "web",
-    category: "Procurement",
-  },
-  {
-    id: "log-2",
-    nodeNumber: 2,
-    nodeColor: "blue",
-    date: "7 Sep 2026",
-    time: "10:41:02 AM",
-    relativeTime: "2 mins ago",
-    action: "DBT_PAYMENT_DISBURSED",
-    entityType: "Payment",
-    entityId: "PAY-10482",
-    iconType: "payment",
-    userName: "Direct Benefit Transfer Gateway",
-    userRole: "SYSTEM",
-    details: "Disbursed ₹1,03,513 to SBI A/c ••••4821 (UTR: DBT-2026-948210)",
-    ipAddress: "10.0.4.12",
-    sourceType: "DBT Server",
-    sourceDevice: "server",
-    category: "Payment",
-  },
-  {
-    id: "log-3",
-    nodeNumber: 3,
-    nodeColor: "purple",
-    date: "7 Sep 2026",
-    time: "10:10:33 AM",
-    relativeTime: "32 mins ago",
-    action: "GATE_CHECK_IN",
-    entityType: "QueueEntry",
-    entityId: "KQ-KHN-1048",
-    iconType: "gate",
-    userName: "Gate Scanner #01",
-    userRole: "OPERATOR",
-    details: "QR Pass verified, Assigned Queue Position #1",
-    ipAddress: "192.168.1.10",
-    sourceType: "Gate Scanner",
-    sourceDevice: "scanner",
-    category: "Gate Entry",
-  },
-  {
-    id: "log-4",
-    nodeNumber: 4,
-    nodeColor: "orange",
-    date: "7 Sep 2026",
-    time: "09:28:11 AM",
-    relativeTime: "1 hour ago",
-    action: "SLOT_BOOKED",
-    entityType: "Booking",
-    entityId: "KQ-KHN-1052",
-    iconType: "booking",
-    userName: "Jaswinder Singh",
-    userRole: "FARMER",
-    details: "Booked 50 Qtl Wheat for Tomorrow (09:00 - 10:00)",
-    ipAddress: "49.36.120.8",
-    sourceType: "Mobile App",
-    sourceDevice: "mobile",
-    category: "Booking",
-  },
-  {
-    id: "log-5",
-    nodeNumber: 5,
-    nodeColor: "gray",
-    date: "6 Sep 2026",
-    time: "06:15:45 PM",
-    relativeTime: "Yesterday",
-    action: "MSP_RATE_UPDATED",
-    entityType: "CropMaster",
-    entityId: "CROP-WHEAT",
-    iconType: "system",
-    userName: "Admin Ministry Desk",
-    userRole: "ADMIN",
-    details: "Updated MSP Rate for Wheat from ₹2125 to ₹2275 / Qtl",
-    ipAddress: "14.139.60.2",
-    sourceType: "Admin Panel",
-    sourceDevice: "admin",
-    category: "System Update",
-  },
-];
-
 export const AuditLogsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [logsList, setLogsList] = useState<AuditLog[]>(INITIAL_LOGS);
+  const [logsList, setLogsList] = useState<AuditLog[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>("ALL");
   const [selectedActionFilter, setSelectedActionFilter] = useState<string>("ALL");
@@ -155,8 +57,8 @@ export const AuditLogsPage: React.FC = () => {
   const loadRealLogs = async () => {
     try {
       setIsRefreshing(true);
-      const data = await import("@/services/adminService").then(m => m.fetchAdminAuditLogs());
-      if (data && data.length > 0) {
+      const data = await import("@/services/adminService").then((m) => m.fetchAdminAuditLogs());
+      if (data && Array.isArray(data)) {
         const colors: Array<"green" | "blue" | "purple" | "orange" | "gray"> = [
           "green",
           "blue",
@@ -176,23 +78,54 @@ export const AuditLogsPage: React.FC = () => {
             ? "system"
             : "procurement";
 
+          let detailsText = "";
+          if (item.newValue) {
+            try {
+              const parsed = typeof item.newValue === "string" ? JSON.parse(item.newValue) : item.newValue;
+              if (item.action === "SLOT_BOOKED") {
+                detailsText = `Booked ${parsed.quantity || ""} Qtl ${parsed.crop || ""} at ${parsed.centreName || "Mandi"}`;
+              } else if (item.action === "MSP_RATE_UPDATED") {
+                detailsText = `Updated MSP Rate to ₹${parsed.mspRate}/Qtl (Per-acre quota: ${parsed.perAcreLimit || 25} Qtl)`;
+              } else if (item.action === "CROP_CREATED") {
+                detailsText = `Created new master crop ${parsed.name} (${parsed.code}) with MSP ₹${parsed.mspRate}`;
+              } else if (item.action === "GATE_CHECK_IN") {
+                detailsText = `Farmer token verified at Mandi Gate Scanner`;
+              } else if (item.action === "PROCUREMENT_RECORDED") {
+                detailsText = `Weighed ${parsed.actualWeight || ""} Qtl (${parsed.qualityGrade || "Grade A"}) at weighbridge`;
+              } else if (item.action === "USER_ACTIVATED") {
+                detailsText = `User account marked Active by Administration`;
+              } else if (item.action === "USER_DEACTIVATED") {
+                detailsText = `User account Deactivated by Administration`;
+              } else if (item.action === "USER_ROLE_UPDATED") {
+                detailsText = `User role changed to ${parsed.role || ""}`;
+              } else {
+                detailsText = typeof item.newValue === "string" ? item.newValue : JSON.stringify(item.newValue);
+              }
+            } catch {
+              detailsText = String(item.newValue);
+            }
+          } else {
+            detailsText = `Logged ${item.action} on ${item.entity} (Target: ${item.entityId})`;
+          }
+
           return {
             id: item.id,
             nodeNumber: idx + 1,
             nodeColor: colors[idx % colors.length],
             date: d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
             time: d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-            relativeTime: "Just now",
+            relativeTime: "Live Event",
             action: item.action,
             entityType: item.entity,
             entityId: item.entityId,
             iconType: icon,
             userName: item.user?.name || "System Automated Trigger",
             userRole: (item.user?.role as any) || "SYSTEM",
-            details: `Executed ${item.action} on ${item.entity} (Target: ${item.entityId})`,
-            ipAddress: item.ipAddress || "192.168.1.1",
+            details: detailsText,
+            ipAddress: item.ipAddress || "127.0.0.1",
             sourceType: "PostgreSQL Event Trail",
-            sourceDevice: item.user?.role === "ADMIN" ? "admin" : item.user?.role === "OPERATOR" ? "web" : "server",
+            sourceDevice:
+              item.user?.role === "ADMIN" ? "admin" : item.user?.role === "OPERATOR" ? "web" : "server",
             category: item.action.includes("PAYMENT")
               ? "Payment"
               : item.action.includes("GATE")
@@ -205,13 +138,7 @@ export const AuditLogsPage: React.FC = () => {
           };
         });
 
-        const merged = [...mapped];
-        INITIAL_LOGS.forEach((init) => {
-          if (!merged.some((m) => m.id === init.id)) {
-            merged.push(init);
-          }
-        });
-        setLogsList(merged);
+        setLogsList(mapped);
       }
     } catch (err) {
       console.warn("Using simulated audit trail stream:", err);
@@ -222,6 +149,30 @@ export const AuditLogsPage: React.FC = () => {
 
   useEffect(() => {
     loadRealLogs();
+
+    // Socket listener for real-time live events
+    let socketCleanup: (() => void) | undefined;
+    import("@/lib/socket").then(({ getSocket }) => {
+      try {
+        const socket = getSocket();
+        if (socket) {
+          socket.emit("join:admin");
+          const onNewAuditLog = () => {
+            loadRealLogs();
+          };
+          socket.on("audit:new-log", onNewAuditLog);
+          socketCleanup = () => {
+            socket.off("audit:new-log", onNewAuditLog);
+          };
+        }
+      } catch (e) {
+        // ignore
+      }
+    });
+
+    return () => {
+      if (socketCleanup) socketCleanup();
+    };
   }, []);
 
   const handleRefresh = () => {
@@ -279,10 +230,16 @@ export const AuditLogsPage: React.FC = () => {
       l.details.toLowerCase().includes(searchTerm.toLowerCase()) ||
       l.ipAddress.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const now = new Date();
+    const todayFormatted = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayFormatted = yesterday.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
     const matchesDate =
       selectedDateFilter === "ALL" ||
-      (selectedDateFilter === "TODAY" && l.date.includes("7 Sep 2026")) ||
-      (selectedDateFilter === "YESTERDAY" && l.date.includes("6 Sep 2026"));
+      (selectedDateFilter === "TODAY" && l.date === todayFormatted) ||
+      (selectedDateFilter === "YESTERDAY" && l.date === yesterdayFormatted);
 
     const matchesAction =
       selectedActionFilter === "ALL" || l.action === selectedActionFilter;

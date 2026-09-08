@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as operatorService from "../services/operatorService";
 import prisma from "../config/database";
+import { recordAuditLog } from "../services/adminService";
 
 export async function recordProcurement(req: Request, res: Response): Promise<void> {
   try {
@@ -19,6 +20,20 @@ export async function recordProcurement(req: Request, res: Response): Promise<vo
       foreignMatter: foreignMatter ? Number(foreignMatter) : 0.5,
       remarks,
     });
+
+    try {
+      await recordAuditLog(
+        (req as any).user?.uid || "WEIGHBRIDGE_OPERATOR",
+        "PROCUREMENT_RECORDED",
+        "ProcurementRecord",
+        bookingId,
+        undefined,
+        { actualWeight: Number(actualWeight), qualityGrade: qualityGrade || "GRADE_A" },
+        req.ip || "127.0.0.1"
+      );
+    } catch (auditErr) {
+      console.warn("Audit log for procurement failed:", auditErr);
+    }
 
     res.status(201).json({
       success: true,
