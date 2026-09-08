@@ -406,16 +406,16 @@ export async function updateCropMspRate(code: string, newRate: number, newPerAcr
 /**
  * Users directory with RBAC
  */
-export async function listAllUsers(search?: string, roleFilter?: UserRole) {
+export async function listAllUsers(search?: string, roleFilter?: UserRole | string) {
   const where: any = {};
-  if (roleFilter) {
-    where.role = roleFilter;
+  if (roleFilter && roleFilter !== "ALL" && (roleFilter === "FARMER" || roleFilter === "OPERATOR" || roleFilter === "ADMIN")) {
+    where.role = roleFilter as UserRole;
   }
-  if (search) {
+  if (search && search.trim()) {
     where.OR = [
-      { name: { contains: search, mode: "insensitive" } },
-      { email: { contains: search, mode: "insensitive" } },
-      { phone: { contains: search, mode: "insensitive" } },
+      { name: { contains: search.trim(), mode: "insensitive" } },
+      { email: { contains: search.trim(), mode: "insensitive" } },
+      { phone: { contains: search.trim(), mode: "insensitive" } },
     ];
   }
 

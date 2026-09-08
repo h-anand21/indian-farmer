@@ -541,141 +541,292 @@ export default function AdminCentresPage() {
         </div>
       </div>
 
-      {/* ── CENTRES DIRECTORY TABLE ── */}
-      <div className="centres-table-card">
-        <div className="centres-table-wrap">
-          <table className="centres-table">
-            <thead>
-              <tr>
-                <th style={{ width: "40px" }}>#</th>
-                <th style={{ minWidth: "260px" }}>Centre &amp; Code</th>
-                <th style={{ width: "160px" }}>District / State</th>
-                <th style={{ width: "130px" }}>Counters / Bays</th>
-                <th style={{ width: "140px" }}>Operating Hours</th>
-                <th style={{ width: "130px" }}>Traffic Level</th>
-                <th style={{ width: "130px" }}>Assigned Staff</th>
-                <th style={{ width: "100px" }}>Status</th>
-                <th style={{ width: "150px" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCentres.length === 0 ? (
+      {/* ── CENTRES DIRECTORY TABLE / GRID VIEW ── */}
+      {viewMode === "grid" ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "20px", marginBottom: "24px" }}>
+          {filteredCentres.length === 0 ? (
+            <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "40px", background: "#fff", borderRadius: "16px", color: "#94a3b8" }}>
+              No procurement centres found matching the selected filters.
+            </div>
+          ) : (
+            filteredCentres.map((centre) => (
+              <div
+                key={centre.id}
+                style={{
+                  background: "white",
+                  borderRadius: "16px",
+                  border: "1px solid #e2e8f0",
+                  overflow: "hidden",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.04)",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                }}
+              >
+                <div style={{ position: "relative", height: "140px", background: "#0f172a" }}>
+                  <img
+                    src={centre.photoUrl}
+                    alt={centre.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      right: "12px",
+                      background: "rgba(255,255,255,0.95)",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      color: "#0f172a",
+                    }}
+                  >
+                    {centre.code}
+                  </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "10px",
+                      left: "12px",
+                      background:
+                        centre.trafficLevel === "High"
+                          ? "#ef4444"
+                          : centre.trafficLevel === "Moderate"
+                          ? "#f59e0b"
+                          : "#10b981",
+                      color: "white",
+                      padding: "3px 10px",
+                      borderRadius: "999px",
+                      fontSize: "11.5px",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    <Signal size={12} />
+                    <span>Load: {centre.trafficLevel} ({centre.trafficPct}%)</span>
+                  </div>
+                </div>
+
+                <div style={{ padding: "18px", display: "flex", flexDirection: "column", gap: "12px", flex: 1 }}>
+                  <div>
+                    <h3 style={{ margin: "0 0 6px 0", fontSize: "16px", fontWeight: 800, color: "#0f172a" }}>
+                      {centre.name}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12.5px", color: "#64748b" }}>
+                      <MapPin size={13} color="#16a34a" />
+                      <span>{centre.district}, {centre.state}</span>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "10px",
+                      background: "#f8fafc",
+                      padding: "12px",
+                      borderRadius: "12px",
+                      fontSize: "12.5px",
+                      border: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: "#64748b", display: "block", fontSize: "11px" }}>Counters / Bays:</span>
+                      <strong style={{ color: "#0f172a" }}>{centre.totalCounters} Bays</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: "#64748b", display: "block", fontSize: "11px" }}>Operating Timings:</span>
+                      <strong style={{ color: "#0f172a" }}>{centre.operatingHours}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    style={{
+                      marginTop: "auto",
+                      background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      padding: "10px 14px",
+                      borderRadius: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 12px rgba(22, 163, 74, 0.25)",
+                      transition: "all 0.15s",
+                    }}
+                    onClick={() => {
+                      setSelectedCentreForSlots(centre);
+                      setShowSlotModal(true);
+                    }}
+                  >
+                    <span style={{ fontSize: "14px" }}>⚡</span>
+                    <span>Generate Operating Slots</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="centres-table-card">
+          <div className="centres-table-wrap">
+            <table className="centres-table">
+              <thead>
                 <tr>
-                  <td colSpan={9} style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
-                    No procurement centres found matching the selected filters.
-                  </td>
+                  <th style={{ width: "40px" }}>#</th>
+                  <th style={{ minWidth: "260px" }}>Centre &amp; Code</th>
+                  <th style={{ width: "160px" }}>District / State</th>
+                  <th style={{ width: "130px" }}>Counters / Bays</th>
+                  <th style={{ width: "140px" }}>Operating Hours</th>
+                  <th style={{ width: "130px" }}>Traffic Level</th>
+                  <th style={{ width: "130px" }}>Assigned Staff</th>
+                  <th style={{ width: "100px" }}>Status</th>
+                  <th style={{ minWidth: "220px" }}>Actions</th>
                 </tr>
-              ) : (
-                filteredCentres.map((centre, idx) => (
-                  <tr key={centre.id}>
-                    {/* # */}
-                    <td className="centres-col-num">{idx + 1}</td>
-
-                    {/* Centre & Code with Thumbnail */}
-                    <td>
-                      <div className="centres-name-cell">
-                        <img
-                          src={centre.photoUrl}
-                          alt={centre.name}
-                          className="centres-thumb-img"
-                        />
-                        <div>
-                          <div className="centres-name-text">{centre.name}</div>
-                          <span className="centres-code-tag">{centre.code}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* District / State */}
-                    <td>
-                      <div className="centres-location-cell">
-                        <MapPin size={13} color="#64748b" />
-                        <span>
-                          {centre.district}, {centre.state}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Counters / Bays */}
-                    <td>
-                      <span className="centres-bays-text">{centre.totalCounters} Bays</span>
-                    </td>
-
-                    {/* Operating Hours */}
-                    <td>
-                      <div className="centres-hours-cell">
-                        <Clock size={13} color="#64748b" />
-                        <span>{centre.operatingHours}</span>
-                      </div>
-                    </td>
-
-                    {/* Traffic Level */}
-                    <td>
-                      <span
-                        className={`centres-traffic-pill ${
-                          centre.trafficLevel === "High"
-                            ? "high"
-                            : centre.trafficLevel === "Moderate"
-                            ? "moderate"
-                            : ""
-                        }`}
-                      >
-                        <Signal size={12} />
-                        <span>
-                          {centre.trafficLevel} ({centre.trafficPct}%)
-                        </span>
-                      </span>
-                    </td>
-
-                    {/* Assigned Staff */}
-                    <td>
-                      <div className="centres-staff-cell">
-                        <Users size={13} color="#64748b" />
-                        <span>
-                          {centre.assignedOperators} Operator{centre.assignedOperators !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Status */}
-                    <td>
-                      <span className="centres-status-badge">
-                        <span className="centres-status-dot" />
-                        <span>{centre.status}</span>
-                      </span>
-                    </td>
-
-                    {/* Actions */}
-                    <td>
-                      <div className="centres-actions-cell">
-                        <button
-                          className="centres-btn-batch-slot"
-                          onClick={() => {
-                            setSelectedCentreForSlots(centre);
-                            setShowSlotModal(true);
-                          }}
-                        >
-                          <CalendarPlus size={13} />
-                          <span>Batch Slots</span>
-                        </button>
-                        <button
-                          className="centres-btn-menu"
-                          onClick={() => {
-                            setSelectedCentreForSlots(centre);
-                            setShowSlotModal(true);
-                          }}
-                        >
-                          <MoreVertical size={16} />
-                        </button>
-                      </div>
+              </thead>
+              <tbody>
+                {filteredCentres.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
+                      No procurement centres found matching the selected filters.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredCentres.map((centre, idx) => (
+                    <tr key={centre.id}>
+                      {/* # */}
+                      <td className="centres-col-num">{idx + 1}</td>
+
+                      {/* Centre & Code with Thumbnail */}
+                      <td>
+                        <div className="centres-name-cell">
+                          <img
+                            src={centre.photoUrl}
+                            alt={centre.name}
+                            className="centres-thumb-img"
+                          />
+                          <div>
+                            <div className="centres-name-text">{centre.name}</div>
+                            <span className="centres-code-tag">{centre.code}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* District / State */}
+                      <td>
+                        <div className="centres-location-cell">
+                          <MapPin size={13} color="#64748b" />
+                          <span>
+                            {centre.district}, {centre.state}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Counters / Bays */}
+                      <td>
+                        <span className="centres-bays-text">{centre.totalCounters} Bays</span>
+                      </td>
+
+                      {/* Operating Hours */}
+                      <td>
+                        <div className="centres-hours-cell">
+                          <Clock size={13} color="#64748b" />
+                          <span>{centre.operatingHours}</span>
+                        </div>
+                      </td>
+
+                      {/* Traffic Level */}
+                      <td>
+                        <span
+                          className={`centres-traffic-pill ${
+                            centre.trafficLevel === "High"
+                              ? "high"
+                              : centre.trafficLevel === "Moderate"
+                              ? "moderate"
+                              : ""
+                          }`}
+                        >
+                          <Signal size={12} />
+                          <span>
+                            {centre.trafficLevel} ({centre.trafficPct}%)
+                          </span>
+                        </span>
+                      </td>
+
+                      {/* Assigned Staff */}
+                      <td>
+                        <div className="centres-staff-cell">
+                          <Users size={13} color="#64748b" />
+                          <span>
+                            {centre.assignedOperators} Operator{centre.assignedOperators !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td>
+                        <span className="centres-status-badge">
+                          <span className="centres-status-dot" />
+                          <span>{centre.status}</span>
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td>
+                        <div className="centres-actions-cell">
+                          <button
+                            className="centres-btn-batch-slot"
+                            style={{
+                              background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+                              color: "#ffffff",
+                              border: "none",
+                              fontWeight: 700,
+                              fontSize: "12px",
+                              padding: "6px 12px",
+                              borderRadius: "8px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              cursor: "pointer",
+                              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+                              whiteSpace: "nowrap",
+                            }}
+                            onClick={() => {
+                              setSelectedCentreForSlots(centre);
+                              setShowSlotModal(true);
+                            }}
+                            title="Generate Operating Slots for this Mandi"
+                          >
+                            <span style={{ fontSize: "13px" }}>⚡</span>
+                            <span>Generate Operating Slots</span>
+                          </button>
+                          <button
+                            className="centres-btn-menu"
+                            onClick={() => {
+                              setSelectedCentreForSlots(centre);
+                              setShowSlotModal(true);
+                            }}
+                            title="More Options"
+                          >
+                            <MoreVertical size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── BOTTOM TRUST & IMPACT BANNER ── */}
       <div className="centres-footer-banner">

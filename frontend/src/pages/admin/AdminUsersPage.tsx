@@ -52,81 +52,8 @@ interface DisplayUser {
   rawUser?: AdminUser;
 }
 
-const DEFAULT_USERS_DATA: DisplayUser[] = [
-  {
-    id: "usr-1",
-    initials: "AM",
-    avatarColor: "blue",
-    name: "Ambala City Grain Market Yard Operator Desk",
-    joinedDate: "Joined 7 Sep 2026",
-    email: "operator.amb@mandi.gov.in",
-    phone: "+91 89012 34567",
-    role: "OPERATOR",
-    affiliationTitle: "Ambala City Grain Market Yard",
-    affiliationSub: "ID: EMP-AMB-01",
-    district: "Ambala",
-    status: "Active",
-  },
-  {
-    id: "usr-2",
-    initials: "HI",
-    avatarColor: "green",
-    name: "HIMANSHU ANAND",
-    joinedDate: "Joined 7 Sep 2026",
-    email: "himanshuanand563@gmail.com",
-    phone: "+91 0825262712",
-    role: "FARMER",
-    affiliationTitle: "Kaimur (Bhabua), Bihar",
-    affiliationSub: "Land: 4 Acres",
-    district: "Kaimur",
-    status: "Active",
-  },
-  {
-    id: "usr-3",
-    initials: "RS",
-    avatarColor: "rose",
-    name: "Ramesh Singh",
-    joinedDate: "Joined 6 Sep 2026",
-    email: "ramesh.singh@mandi.gov.in",
-    phone: "+91 98765 43210",
-    role: "OPERATOR",
-    affiliationTitle: "Karnal Anaj Mandi",
-    affiliationSub: "ID: EMP-KRN-02",
-    district: "Karnal",
-    status: "Active",
-  },
-  {
-    id: "usr-4",
-    initials: "PK",
-    avatarColor: "purple",
-    name: "Pooja Kumari",
-    joinedDate: "Joined 5 Sep 2026",
-    email: "pooja.k@apmc.gov.in",
-    phone: "+91 91234 56789",
-    role: "ADMIN",
-    affiliationTitle: "State APMC HQ, Haryana",
-    affiliationSub: "System Administrator",
-    district: "State HQ",
-    status: "Active",
-  },
-  {
-    id: "usr-5",
-    initials: "SL",
-    avatarColor: "amber",
-    name: "Sandeep Lal",
-    joinedDate: "Joined 3 Sep 2026",
-    email: "sandeep.lal@mandi.gov.in",
-    phone: "+91 99887 66554",
-    role: "OPERATOR",
-    affiliationTitle: "Patiala Grain Market",
-    affiliationSub: "ID: EMP-PAT-03",
-    district: "Patiala",
-    status: "Inactive",
-  },
-];
-
 export default function AdminUsersPage() {
-  const [usersList, setUsersList] = useState<DisplayUser[]>(DEFAULT_USERS_DATA);
+  const [usersList, setUsersList] = useState<DisplayUser[]>([]);
   const [centres, setCentres] = useState<AdminCentre[]>([]);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -186,10 +113,15 @@ export default function AdminUsersPage() {
         const mapped: DisplayUser[] = uData.map((u: AdminUser, idx: number) => {
           const initials = u.name
             .split(" ")
+            .filter(Boolean)
             .map((n) => n[0])
             .join("")
             .slice(0, 2)
             .toUpperCase() || "US";
+
+          const farmerLocation = u.farmerDetails
+            ? [u.farmerDetails.district, u.farmerDetails.state].filter(Boolean).join(", ") || "Registered Farmer"
+            : null;
 
           return {
             id: u.id,
@@ -201,19 +133,20 @@ export default function AdminUsersPage() {
               month: "short",
               year: "numeric",
             })}`,
-            email: u.email || `${u.name.toLowerCase().replace(/\s+/g, ".")}@mandi.gov.in`,
-            phone: u.phone ? (u.phone.startsWith("+91") ? u.phone : `+91 ${u.phone}`) : "+91 98765 00000",
+            email: u.email || "No Email",
+            phone: u.phone ? (u.phone.startsWith("+91") ? u.phone : `+91 ${u.phone}`) : "—",
             role: u.role,
             affiliationTitle:
-              u.operatorDetails?.centreName ||
-              (u.farmerDetails
-                ? `${u.farmerDetails.district || "District"}, ${u.farmerDetails.state || "India"}`
-                : "State APMC HQ, Haryana"),
+              u.role === "OPERATOR"
+                ? (u.operatorDetails?.centreName || "Assigned Mandi Centre")
+                : u.role === "FARMER"
+                ? (farmerLocation || "Farmer Account")
+                : "State APMC HQ / System Administrator",
             affiliationSub:
-              u.operatorDetails?.employeeId
-                ? `ID: ${u.operatorDetails.employeeId}`
-                : u.farmerDetails
-                ? `Land: ${u.farmerDetails.landArea || 4} Acres`
+              u.role === "OPERATOR"
+                ? (u.operatorDetails?.employeeId ? `ID: ${u.operatorDetails.employeeId}` : "Mandi Operator")
+                : u.role === "FARMER"
+                ? (u.farmerDetails?.landArea ? `Land: ${u.farmerDetails.landArea} Acres` : (u.farmerDetails?.farmerId ? `ID: ${u.farmerDetails.farmerId}` : "Farmer Profile"))
                 : "System Administrator",
             district: u.farmerDetails?.district || (u.operatorDetails?.centreName?.split(" ")[0]) || "Ambala",
             status: u.isActive ? "Active" : "Inactive",
@@ -221,19 +154,13 @@ export default function AdminUsersPage() {
           };
         });
 
-        // Merge mapped with seed defaults
-        const merged = [...mapped];
-        DEFAULT_USERS_DATA.forEach((d) => {
-          if (!merged.some((m) => m.name.toLowerCase() === d.name.toLowerCase() || m.id === d.id)) {
-            merged.push(d);
-          }
-        });
-        setUsersList(merged);
+        setUsersList(mapped);
       } else {
-        setUsersList(DEFAULT_USERS_DATA);
+        setUsersList([]);
       }
     } catch (err: any) {
-      console.warn("Using fallback users list:", err);
+      console.warn("Error fetching users list:", err);
+      setUsersList([]);
     } finally {
       setLoading(false);
     }
@@ -513,9 +440,9 @@ export default function AdminUsersPage() {
           </div>
           <div className="rbac-stat-info">
             <div className="rbac-stat-label">Total Users</div>
-            <div className="rbac-stat-val">{countTotal >= 52 ? countTotal : 52}</div>
+            <div className="rbac-stat-val">{countTotal}</div>
             <div className="rbac-stat-sub green">
-              <span>&uarr; +12% this month</span>
+              <span>Database Registered</span>
             </div>
           </div>
           <div className="rbac-stat-sparkline">
@@ -538,7 +465,7 @@ export default function AdminUsersPage() {
           </div>
           <div className="rbac-stat-info">
             <div className="rbac-stat-label">Farmers</div>
-            <div className="rbac-stat-val">{countFarmers >= 28 ? countFarmers : 28}</div>
+            <div className="rbac-stat-val">{countFarmers}</div>
             <div className="rbac-stat-sub">Registered &amp; Verified</div>
           </div>
         </div>
@@ -550,7 +477,7 @@ export default function AdminUsersPage() {
           </div>
           <div className="rbac-stat-info">
             <div className="rbac-stat-label">Operators</div>
-            <div className="rbac-stat-val">{countOperators >= 18 ? countOperators : 18}</div>
+            <div className="rbac-stat-val">{countOperators}</div>
             <div className="rbac-stat-sub">Mandi Yard Operators</div>
           </div>
         </div>
@@ -562,7 +489,7 @@ export default function AdminUsersPage() {
           </div>
           <div className="rbac-stat-info">
             <div className="rbac-stat-label">Admins</div>
-            <div className="rbac-stat-val">{countAdmins >= 6 ? countAdmins : 6}</div>
+            <div className="rbac-stat-val">{countAdmins}</div>
             <div className="rbac-stat-sub">System Administrators</div>
           </div>
         </div>
@@ -800,7 +727,7 @@ export default function AdminUsersPage() {
         <div className="rbac-pagination-bar">
           <div className="rbac-pagination-info">
             Showing {filteredUsers.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}–
-            {Math.min(currentPage * pageSize, filteredUsers.length)} of {countTotal >= 52 ? countTotal : 52} users
+            {Math.min(currentPage * pageSize, filteredUsers.length)} of {countTotal} users
           </div>
 
           <div className="rbac-pagination-controls">
