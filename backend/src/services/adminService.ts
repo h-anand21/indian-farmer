@@ -328,12 +328,18 @@ export async function generateSlotsForCentre(
     { start: "14:30", end: "16:30" },
   ];
 
-  const startDate = new Date(startDateStr);
+  // Parse date safely in UTC
+  const [year, month, day] = (startDateStr || new Date().toISOString().split("T")[0])
+    .split("-")
+    .map(Number);
+  const baseDate = new Date(Date.UTC(year, (month || 1) - 1, day || 1));
+
   let createdCount = 0;
+  let updatedCount = 0;
 
   for (let i = 0; i < daysCount; i++) {
-    const slotDate = new Date(startDate);
-    slotDate.setDate(slotDate.getDate() + i);
+    const slotDate = new Date(baseDate);
+    slotDate.setUTCDate(slotDate.getUTCDate() + i);
 
     for (const win of windows) {
       const existing = await prisma.slot.findFirst({
@@ -357,14 +363,31 @@ export async function generateSlotsForCentre(
           },
         });
         createdCount++;
+      } else {
+        await prisma.slot.update({
+          where: { id: existing.id },
+          data: {
+            capacity: capacityPerSlot,
+            isActive: true,
+          },
+        });
+        updatedCount++;
       }
     }
   }
 
+  const totalProcessed = createdCount + updatedCount;
+  const message =
+    createdCount > 0
+      ? `✅ Successfully created ${createdCount} new slots (${totalProcessed} active operational windows) for ${centre.name} across ${daysCount} days (Capacity: ${capacityPerSlot} vehicles/window)`
+      : `⚡ All ${updatedCount} operational slots for ${centre.name} are already active and up-to-date across ${daysCount} days (Capacity synced: ${capacityPerSlot} vehicles/window)`;
+
   return {
     success: true,
-    message: `Generated ${createdCount} operational slots for ${centre.name} across ${daysCount} days`,
+    message,
     createdCount,
+    updatedCount,
+    totalSlots: totalProcessed,
   };
 }
 
