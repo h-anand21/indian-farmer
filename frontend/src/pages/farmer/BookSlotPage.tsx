@@ -367,8 +367,12 @@ export default function BookSlotPage() {
         }
 
         if (apiCrops.length > 0) {
-          setCrops(apiCrops);
-          setSelectedCrop(apiCrops[0]);
+          const mapped = apiCrops.map((c: any, i: number) => ({
+            ...c,
+            id: c.id || `crop-${i + 1}-${c.name.replace(/\s+/g, "_")}`,
+          }));
+          setCrops(mapped);
+          setSelectedCrop(mapped[0]);
         } else {
           // Fallback crops
           const fallbackCrops: CropData[] = [
@@ -751,31 +755,38 @@ export default function BookSlotPage() {
               <div className="section-icon">🌾</div>
               <div>
                 <h2>Step 2: Select Crop Produce &amp; Estimated Quantity</h2>
-                <p>Choose your harvested crop produce to verify government MSP procurement rate.</p>
+                <p>Click on any crop card below to select or unselect. Check the green badge to confirm your choice.</p>
               </div>
             </div>
 
             {/* Quick Dropdown Select Option */}
-            <div className="tools" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "white", padding: "6px 12px", borderRadius: "10px", border: "1px solid #bcd2e1" }}>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "#15364c" }}>Select Crop:</span>
+            <div className="tools" style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "white", padding: "8px 16px", borderRadius: "12px", border: "2px solid #cbd5e1", boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#0f172a" }}>Crop Dropdown:</span>
                 <select
-                  value={selectedCrop?.id || (crops[0]?.id ?? "")}
+                  value={selectedCrop ? (selectedCrop.id || selectedCrop.name || "") : ""}
                   onChange={(e) => {
-                    const found = crops.find((c) => c.id === e.target.value || c.name === e.target.value);
-                    if (found) setSelectedCrop(found);
+                    const val = e.target.value;
+                    if (!val) {
+                      setSelectedCrop(null);
+                    } else {
+                      const found = crops.find((c) => (c.id && c.id === val) || (c.name && c.name === val));
+                      if (found) setSelectedCrop(found);
+                    }
                   }}
                   style={{
-                    padding: "6px 10px",
+                    padding: "6px 12px",
                     borderRadius: "8px",
-                    border: "1px solid #cbd5e1",
-                    fontSize: "13px",
-                    fontWeight: 700,
+                    border: "1.5px solid #94a3b8",
+                    fontSize: "13.5px",
+                    fontWeight: 750,
                     color: "#0f172a",
                     background: "#f8fafc",
                     cursor: "pointer",
+                    outline: "none",
                   }}
                 >
+                  <option value="">-- Click to Select / Unselect Crop --</option>
                   {crops.map((c) => (
                     <option key={c.id || c.name} value={c.id || c.name}>
                       {c.name} (MSP: ₹{c.mspPrice}/Qtl)
@@ -783,59 +794,199 @@ export default function BookSlotPage() {
                   ))}
                 </select>
               </div>
+
+              {selectedCrop && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCrop(null)}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "10px",
+                    background: "#fee2e2",
+                    border: "1.5px solid #ef4444",
+                    color: "#991b1b",
+                    fontSize: "13px",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                  title="Click to deselect current crop"
+                >
+                  ✕ Clear / Unselect Crop
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Interactive Crop Selection Grid */}
+          {/* Dedicated Live Selection Status Banner (Impossible to miss!) */}
+          {selectedCrop ? (
+            <div
+              style={{
+                background: "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)",
+                border: "2.5px solid #16a34a",
+                padding: "14px 20px",
+                borderRadius: "14px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+                boxShadow: "0 4px 14px rgba(22, 163, 74, 0.15)",
+                flexWrap: "wrap",
+                gap: "12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#16a34a", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 900 }}>
+                  ✓
+                </div>
+                <div>
+                  <div style={{ fontSize: "15px", fontWeight: 900, color: "#14532d" }}>
+                    Currently Selected: <span style={{ textDecoration: "underline" }}>{selectedCrop.name}</span>
+                  </div>
+                  <div style={{ fontSize: "12.5px", color: "#166534", marginTop: "2px" }}>
+                    Government Procurement MSP Rate: <strong>₹{selectedCrop.mspPrice} / Quintal</strong> • {selectedCrop.season || "Rabi Season"}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedCrop(null)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  background: "#ffffff",
+                  border: "1.5px solid #16a34a",
+                  color: "#15803d",
+                  fontSize: "12.5px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                Click to Deselect
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                background: "#fffbeb",
+                border: "2px dashed #f59e0b",
+                padding: "14px 20px",
+                borderRadius: "14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "20px",
+                color: "#92400e",
+              }}
+            >
+              <span style={{ fontSize: "22px" }}>👉</span>
+              <div>
+                <strong style={{ fontSize: "14.5px" }}>No crop selected yet!</strong>
+                <p style={{ margin: "2px 0 0", fontSize: "12.5px", color: "#b45309" }}>
+                  Please click on any crop card below (Wheat, Paddy, Mustard, etc.) to select your produce for booking.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Interactive Crop Selection Grid (Click to Select / Unselect) */}
           <div className="crop-grid">
             {crops.map((cr) => {
-              const isSelected = selectedCrop?.id === cr.id || selectedCrop?.name === cr.name;
+              const isSelected = Boolean(
+                selectedCrop &&
+                  ((selectedCrop.id && cr.id && selectedCrop.id === cr.id) ||
+                    (selectedCrop.name && cr.name && selectedCrop.name.toLowerCase() === cr.name.toLowerCase()))
+              );
               return (
                 <div
                   key={cr.id || cr.name}
                   className={`crop-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => setSelectedCrop(cr)}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedCrop(null);
+                    } else {
+                      setSelectedCrop(cr);
+                    }
+                  }}
                   style={{
                     position: "relative",
-                    border: isSelected ? "2px solid #008653" : "1.5px solid #d7e7e6",
-                    background: isSelected ? "#f4fcf8" : "white",
+                    border: isSelected ? "3.5px solid #00875a" : "2px solid #e2e8f0",
+                    background: isSelected ? "#ecfdf5" : "#ffffff",
+                    borderRadius: "18px",
+                    padding: "20px",
+                    cursor: "pointer",
+                    boxShadow: isSelected
+                      ? "0 10px 30px rgba(0, 135, 90, 0.25), 0 0 0 4px rgba(16, 185, 129, 0.25)"
+                      : "0 2px 10px rgba(0,0,0,0.03)",
+                    transform: isSelected ? "translateY(-4px)" : "none",
+                    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                    opacity: isSelected ? 1 : 0.9,
                   }}
                 >
-                  {isSelected && (
-                    <div
+                  {/* Top Header Badge inside the Card */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <div className="crop-icon-box" style={{ width: "48px", height: "48px", fontSize: "26px", background: isSelected ? "#d1fae5" : "#f1f5f9", borderRadius: "12px" }}>
+                      {cr.icon || "🌾"}
+                    </div>
+
+                    {isSelected ? (
+                      <div
+                        style={{
+                          background: "#00875a",
+                          color: "white",
+                          padding: "5px 12px",
+                          borderRadius: "20px",
+                          fontSize: "12px",
+                          fontWeight: 900,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          boxShadow: "0 2px 8px rgba(0, 135, 90, 0.4)",
+                          letterSpacing: "0.3px",
+                        }}
+                      >
+                        ✓ SELECTED
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          background: "#f1f5f9",
+                          color: "#64748b",
+                          padding: "4px 10px",
+                          borderRadius: "20px",
+                          fontSize: "11.5px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        ○ Click to Select
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "6px" }}>
+                    <h3 style={{ margin: "4px 0", fontSize: "18px", fontWeight: 900, color: isSelected ? "#064e3b" : "#0f172a" }}>
+                      {cr.name}
+                    </h3>
+                    <span
                       style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        width: "26px",
-                        height: "26px",
-                        borderRadius: "50%",
-                        background: "#008653",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "14px",
-                        fontWeight: 900,
-                        boxShadow: "0 2px 6px rgba(0,134,83,0.3)",
+                        fontSize: "12.5px",
+                        fontWeight: 850,
+                        padding: "4px 10px",
+                        borderRadius: "10px",
+                        background: isSelected ? "#dcfce7" : "#fef3c7",
+                        color: isSelected ? "#15803d" : "#92400e",
+                        border: isSelected ? "1px solid #86efac" : "1px solid #fde68a",
                       }}
                     >
-                      ✓
-                    </div>
-                  )}
-
-                  <div className="crop-card-top">
-                    <div className="crop-icon-box">{cr.icon || "🌾"}</div>
-                    <span className="crop-msp-tag" style={{ marginRight: isSelected ? "28px" : "0" }}>
-                      MSP: ₹{cr.mspPrice} / Qtl
+                      ₹{cr.mspPrice} / Qtl
                     </span>
                   </div>
 
-                  <h3 style={{ margin: "10px 0 4px", fontSize: "16px", fontWeight: 800, color: "#081633" }}>
-                    {cr.name}
-                  </h3>
-                  <p style={{ margin: "0 0 12px", fontSize: "12px", color: "#587493" }}>
-                    Season: {cr.season || "Rabi 2026-27"} {cr.variety ? `• ${cr.variety}` : ""}
+                  <p style={{ margin: "4px 0 16px", fontSize: "12.5px", color: isSelected ? "#047857" : "#64748b" }}>
+                    Season: <strong>{cr.season || "Rabi 2026-27"}</strong> {cr.variety ? `• ${cr.variety}` : ""}
                   </p>
 
                   <div style={{ marginTop: "auto" }}>
@@ -845,21 +996,22 @@ export default function BookSlotPage() {
                         className="selected-btn"
                         style={{
                           width: "100%",
-                          height: "36px",
-                          borderRadius: "8px",
-                          fontSize: "12.5px",
-                          fontWeight: 700,
-                          background: "#006f4d",
+                          height: "40px",
+                          borderRadius: "10px",
+                          fontSize: "13.5px",
+                          fontWeight: 850,
+                          background: "#00875a",
                           color: "white",
                           border: "none",
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: "6px",
+                          gap: "8px",
+                          boxShadow: "0 4px 12px rgba(0, 135, 90, 0.3)",
                         }}
                       >
-                        Selected ✓
+                        ✓ Selected (Click to Remove)
                       </button>
                     ) : (
                       <button
@@ -867,21 +1019,22 @@ export default function BookSlotPage() {
                         className="select-btn"
                         style={{
                           width: "100%",
-                          height: "36px",
-                          borderRadius: "8px",
-                          fontSize: "12.5px",
-                          fontWeight: 700,
+                          height: "40px",
+                          borderRadius: "10px",
+                          fontSize: "13px",
+                          fontWeight: 750,
                           background: "#f8fafc",
-                          color: "#15364c",
-                          border: "1px solid #bcd2e1",
+                          color: "#1e293b",
+                          border: "1.5px solid #cbd5e1",
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           gap: "6px",
+                          transition: "all 0.15s ease",
                         }}
                       >
-                        Select Crop →
+                        👉 Select This Crop +
                       </button>
                     )}
                   </div>
@@ -890,97 +1043,224 @@ export default function BookSlotPage() {
             })}
           </div>
 
-          {/* Quantity Selector Card */}
+          {/* Quantity Selector Card (Zero Typing Required - 1-Click Selectable) */}
           <div
             style={{
               background: "white",
-              padding: "22px 26px",
-              borderRadius: "16px",
-              border: "1px solid #dce7ed",
-              marginTop: "16px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+              padding: "24px 28px",
+              borderRadius: "18px",
+              border: selectedCrop ? "2px solid #86efac" : "1.5px solid #dce7ed",
+              marginTop: "20px",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", flexWrap: "wrap", gap: "14px" }}>
               <div>
-                <strong style={{ fontSize: "16px", color: "#081633" }}>Estimated Crop Quantity (Quintals)</strong>
-                <p style={{ fontSize: "12.5px", color: "#587493", margin: "2px 0 0" }}>
-                  Selected Crop: <strong style={{ color: "#006f4d" }}>{selectedCrop?.name || "Wheat"}</strong> (MSP: ₹{selectedCrop?.mspPrice || 2275}/Qtl)
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "22px" }}>⚖️</span>
+                  <strong style={{ fontSize: "17.5px", color: "#081633" }}>Estimated Crop Quantity (Quintals)</strong>
+                </div>
+                <p style={{ fontSize: "13px", color: "#587493", margin: "4px 0 0" }}>
+                  {selectedCrop ? (
+                    <>
+                      Selected Produce: <strong style={{ color: "#00875a", fontSize: "14px" }}>{selectedCrop.name}</strong> &bull; MSP Rate: <strong>₹{selectedCrop.mspPrice}/Qtl</strong>
+                    </>
+                  ) : (
+                    <span style={{ color: "#d97706", fontWeight: 700 }}>⚠️ Please select a crop from above cards first.</span>
+                  )}
                 </p>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <input
-                  type="number"
-                  min={5}
-                  max={250}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+              {/* Quantity Stepper (Click to add/minus with mouse) */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#f8fafc", padding: "6px 12px", borderRadius: "14px", border: "2px solid #cbd5e1" }}>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(5, q - 10))}
                   style={{
-                    width: "80px",
-                    padding: "6px 10px",
+                    width: "38px",
+                    height: "38px",
                     borderRadius: "8px",
-                    border: "2px solid #006f4d",
-                    fontSize: "18px",
-                    fontWeight: 800,
-                    color: "#006f4d",
-                    textAlign: "center",
+                    background: "white",
+                    border: "1.5px solid #94a3b8",
+                    color: "#0f172a",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                />
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#587493" }}>Quintals</span>
+                  title="Minus 10 Quintals"
+                >
+                  -10
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(5, q - 5))}
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "8px",
+                    background: "white",
+                    border: "1.5px solid #94a3b8",
+                    color: "#0f172a",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Minus 5 Quintals"
+                >
+                  -5
+                </button>
+
+                <div
+                  style={{
+                    minWidth: "95px",
+                    padding: "6px 14px",
+                    background: "#00875a",
+                    borderRadius: "10px",
+                    color: "white",
+                    textAlign: "center",
+                    fontWeight: 900,
+                    fontSize: "19px",
+                    boxShadow: "0 2px 8px rgba(0, 135, 90, 0.35)",
+                  }}
+                >
+                  {quantity} <span style={{ fontSize: "13px", fontWeight: 700 }}>Qtl</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(250, q + 5))}
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "8px",
+                    background: "white",
+                    border: "1.5px solid #94a3b8",
+                    color: "#0f172a",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Plus 5 Quintals"
+                >
+                  +5
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(250, q + 10))}
+                  style={{
+                    width: "38px",
+                    height: "38px",
+                    borderRadius: "8px",
+                    background: "white",
+                    border: "1.5px solid #94a3b8",
+                    color: "#0f172a",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  title="Plus 10 Quintals"
+                >
+                  +10
+                </button>
               </div>
             </div>
 
             {/* Slider */}
             <input
               type="range"
-              min={10}
-              max={150}
+              min={5}
+              max={200}
               step={5}
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              style={{ width: "100%", accentColor: "#007a55", cursor: "pointer", marginBottom: "14px" }}
+              style={{ width: "100%", accentColor: "#00875a", cursor: "pointer", marginBottom: "16px", height: "8px" }}
             />
 
-            {/* Quick Quantity Preset Buttons */}
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {[20, 40, 60, 80, 100, 120].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setQuantity(preset)}
-                    style={{
-                      padding: "5px 12px",
-                      borderRadius: "8px",
-                      border: quantity === preset ? "2px solid #006f4d" : "1px solid #cbd5e1",
-                      background: quantity === preset ? "#ecfdf5" : "#f8fafc",
-                      color: quantity === preset ? "#006f4d" : "#475569",
-                      fontSize: "12px",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    {preset} Qtl
-                  </button>
-                ))}
+            {/* Quick 1-Click Selectable Quantity Preset Pills */}
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                <span style={{ fontSize: "13px", fontWeight: 800, color: "#475569", marginRight: "4px" }}>
+                  Quick Pick:
+                </span>
+                {[10, 20, 30, 40, 50, 60, 80, 100, 120, 150].map((preset) => {
+                  const isActive = quantity === preset;
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setQuantity(preset)}
+                      style={{
+                        padding: "7px 15px",
+                        borderRadius: "10px",
+                        border: isActive ? "2.5px solid #005f3e" : "1.5px solid #cbd5e1",
+                        background: isActive ? "#00875a" : "#f8fafc",
+                        color: isActive ? "white" : "#1e293b",
+                        fontSize: "13.5px",
+                        fontWeight: 850,
+                        cursor: "pointer",
+                        boxShadow: isActive ? "0 4px 12px rgba(0, 135, 90, 0.3)" : "none",
+                        transform: isActive ? "scale(1.05)" : "none",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {isActive ? `✓ ${preset} Qtl` : `${preset} Qtl`}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Total Estimated MSP Payout */}
-              <div style={{ background: "#f0fdf4", padding: "6px 14px", borderRadius: "10px", border: "1px solid #bbf7d0", fontSize: "13px", fontWeight: 700, color: "#166534" }}>
-                💰 Estimated MSP Payout: ₹{((selectedCrop?.mspPrice || 2275) * quantity).toLocaleString("en-IN")}
+              {/* Total Estimated MSP Payout Banner */}
+              <div
+                style={{
+                  background: selectedCrop ? "linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)" : "#fefce8",
+                  padding: "10px 20px",
+                  borderRadius: "12px",
+                  border: selectedCrop ? "2px solid #22c55e" : "1.5px solid #fef08a",
+                  fontSize: "15px",
+                  fontWeight: 900,
+                  color: selectedCrop ? "#14532d" : "#a16207",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                }}
+              >
+                {selectedCrop ? (
+                  <>💰 Estimated Total MSP Payout: ₹{((selectedCrop.mspPrice || 2275) * quantity).toLocaleString("en-IN")}</>
+                ) : (
+                  <>👉 Select a crop card to calculate MSP total</>
+                )}
               </div>
             </div>
           </div>
 
           <div className="bottom-bar">
             <button className="back-btn" onClick={() => setStep(1)}>
-              ← Back
+              ← Back to Mandi
             </button>
 
-            <button className="proceed-btn" onClick={() => setStep(3)}>
-              Proceed to Transport Details &nbsp; <span>→</span>
-            </button>
+            {selectedCrop ? (
+              <button className="proceed-btn" onClick={() => setStep(3)}>
+                Proceed to Transport Details &nbsp; <span>→</span>
+              </button>
+            ) : (
+              <button
+                className="proceed-btn"
+                onClick={() => alert("Please click on any crop card above to select your crop produce first.")}
+                style={{ opacity: 0.6, cursor: "not-allowed", background: "#64748b" }}
+              >
+                Select a Crop to Proceed &nbsp; <span>→</span>
+              </button>
+            )}
           </div>
         </>
       )}

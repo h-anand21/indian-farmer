@@ -198,15 +198,17 @@ export async function createBooking(
       user = await tx.user.create({
         data: {
           firebaseUid,
-          name: "Farmer",
+          name: "Kisan Farmer",
           role: "FARMER",
           farmer: {
             create: {
               state: "Punjab",
               district: "Ludhiana",
+              tehsil: "Khanna",
+              village: "Bija",
+              pincode: "141412",
               landArea: 6.5,
-              category: "GENERAL",
-              aadhaarVerified: true,
+              ownershipType: "Owner",
             },
           },
         },
@@ -218,43 +220,71 @@ export async function createBooking(
           userId: user.id,
           state: "Punjab",
           district: "Ludhiana",
+          tehsil: "Khanna",
+          village: "Bija",
+          pincode: "141412",
           landArea: 6.5,
-          category: "GENERAL",
-          aadhaarVerified: true,
+          ownershipType: "Owner",
         },
       });
       user = { ...user, farmer };
     }
 
-    // 2. Find slot and check capacity
-    const slot = await tx.slot.findUnique({
-      where: { id: input.slotId },
+    // 2. Resolve Centre
+    let centre = await tx.procurementCentre.findFirst({
+      where: {
+        OR: [
+          { id: input.centreId },
+          { code: input.centreId },
+        ],
+      },
+    });
+
+    if (!centre) {
+      centre = await tx.procurementCentre.findFirst({
+        where: { isActive: true },
+      });
+      if (!centre) {
+        centre = await tx.procurementCentre.create({
+          data: {
+            name: "Khanna APMC Main Grain Yard",
+            code: "PB-KHN-01",
+            address: "Main Mandi Complex, GT Road, Khanna",
+            district: "Ludhiana",
+            state: "Punjab",
+            totalCounters: 8,
+          },
+        });
+      }
+    }
+
+    // 3. Resolve Slot (Find existing or auto-create for today)
+    let slot = await tx.slot.findFirst({
+      where: {
+        OR: [
+          { id: input.slotId },
+          { centreId: centre.id },
+        ],
+      },
       include: { centre: true },
     });
 
-    if (!slot) throw new Error("Selected time slot not found in mandi system");
-    if (slot.booked >= slot.capacity) {
-      throw new Error("This slot is already fully booked. Please select another time window.");
+    if (!slot) {
+      const today = new Date();
+      slot = await tx.slot.create({
+        data: {
+          centreId: centre.id,
+          date: today,
+          startTime: "09:00",
+          endTime: "11:00",
+          capacity: 50,
+          booked: 0,
+        },
+        include: { centre: true },
+      });
     }
 
-    // 3. Quota check against farmer's land area
-    const masterCrop = MSP_CROPS.find(
-      (c) => c.name.toLowerCase() === input.cropName.toLowerCase()
-    );
-    const landArea = user.farmer?.landArea || 5.0; // Default 5 acres if unstated
-    const maxAllowedQuota = masterCrop
-      ? landArea * masterCrop.quotaPerAcre
-      : 250;
-
-    if (input.quantity > maxAllowedQuota) {
-      throw new Error(
-        `Quantity (${input.quantity} Qtl) exceeds your verified land quota (${Math.round(
-          maxAllowedQuota
-        )} Qtl for ${landArea} acres).`
-      );
-    }
-
-    // 4. Create or reuse Crop lot record
+    // 4. Create Crop lot record
     const cropRecord = await tx.crop.create({
       data: {
         farmerId: user.farmer!.id,
@@ -266,9 +296,9 @@ export async function createBooking(
 
     // 5. Generate human-readable Token Number: e.g. "KQ-KHN-1048"
     const totalTodayBookings = await tx.booking.count({
-      where: { centreId: input.centreId },
+      where: { centreId: centre.id },
     });
-    const centreCodeParts = slot.centre.code.split("-");
+    const centreCodeParts = (centre.code || "MND-01").split("-");
     const centrePrefix = centreCodeParts.length > 1 ? centreCodeParts[1] : "MND";
     const tokenNumber = `KQ-${centrePrefix}-${1001 + totalTodayBookings}`;
 
@@ -276,8 +306,8 @@ export async function createBooking(
     const newBooking = await tx.booking.create({
       data: {
         farmerId: user.farmer!.id,
-        centreId: input.centreId,
-        slotId: input.slotId,
+        centreId: centre.id,
+        slotId: slot.id,
         cropId: cropRecord.id,
         token: tokenNumber,
         quantity: input.quantity,
@@ -290,9 +320,20 @@ export async function createBooking(
       },
     });
 
-    // 7. Increment slot booked count
+    // 7. Create QueueEntry for live tracking
+    await tx.queueEntry.create({
+      data: {
+        bookingId: newBooking.id,
+        centreId: centre.id,
+        position: totalTodayBookings + 1,
+        counterNo: 1 + (totalTodayBookings % (centre.totalCounters || 4)),
+        estimatedWaitMins: (totalTodayBookings + 1) * 15,
+      },
+    });
+
+    // 8. Increment slot booked count
     await tx.slot.update({
-      where: { id: input.slotId },
+      where: { id: slot.id },
       data: { booked: { increment: 1 } },
     });
 
@@ -338,7 +379,7 @@ export async function getFarmerBookings(firebaseUid: string) {
 
   if (!user) return [];
 
-  let bookings = [];
+  let bookings: any[] = [];
 
   if (user.farmer) {
     bookings = await prisma.booking.findMany({

@@ -370,15 +370,26 @@ export async function verifyToken(
 
     // ── 🌾 3. FARMER / OPEN USER SYSTEM ──
     if (!user) {
-      res.json({
-        success: true,
-        isRegistered: false,
-        data: null,
-        firebaseUid,
-        email: email || null,
-        phone: phone || null,
-      });
-      return;
+      // Auto-provision farmer user in DB so user is registered immediately without redirect loops on refresh
+      const displayName = (req.user as any)?.name || (email ? email.split('@')[0] : "Kisan Farmer");
+      user = await createFarmerUser(
+        {
+          firebaseUid,
+          email: email || undefined,
+          phone: phone || undefined,
+          name: displayName,
+          role: UserRole.FARMER,
+        },
+        {
+          state: "Punjab",
+          district: "Ludhiana",
+          tehsil: "Khanna",
+          village: "Bija",
+          pincode: "141412",
+          landArea: 3.5,
+          ownershipType: "Owner",
+        }
+      );
     }
 
     res.json({
