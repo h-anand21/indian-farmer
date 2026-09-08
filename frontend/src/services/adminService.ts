@@ -193,6 +193,22 @@ export async function updateCropMsp(payload: {
 }
 
 /**
+ * Add new Crop to Master Catalog
+ */
+export async function createAdminCrop(payload: {
+  name: string;
+  code: string;
+  category: "RABI" | "KHARIF";
+  cropCategory: string;
+  mspRate: number;
+  perAcreLimit: number;
+  mspIncreasePct?: number;
+}) {
+  const res = await api.post("/admin/crops", payload);
+  return res.data;
+}
+
+/**
  * List system users
  */
 export async function fetchAdminUsers(search?: string, role?: string): Promise<AdminUser[]> {

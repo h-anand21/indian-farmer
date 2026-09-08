@@ -62,13 +62,23 @@ export const BookingCard: React.FC<BookingCardProps> = ({ booking }) => {
             <Calendar size={15} className="text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold text-slate-800 block">
-                {new Date(booking.slotDate).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
+                {(() => {
+                  try {
+                    if (!booking.slotDate) return "Today";
+                    const d = new Date(booking.slotDate);
+                    return isNaN(d.getTime())
+                      ? "Today"
+                      : d.toLocaleDateString("en-IN", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        });
+                  } catch {
+                    return "Today";
+                  }
+                })()}
               </span>
-              <span className="text-slate-500 font-mono">{booking.slotWindow}</span>
+              <span className="text-slate-500 font-mono">{booking.slotWindow || "09:00 - 11:00"}</span>
             </div>
           </div>
         </div>

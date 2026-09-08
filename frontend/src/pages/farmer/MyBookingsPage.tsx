@@ -8,6 +8,35 @@ import {
 } from "@/services/bookingService";
 import "@/styles/MyBookings.css";
 
+function formatBookingDate(dateVal?: string | Date | null): string {
+  if (!dateVal) return "Today";
+  try {
+    if (typeof dateVal === "string" && /^\d{4}-\d{2}-\d{2}/.test(dateVal)) {
+      const parts = dateVal.split("T")[0].split("-");
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      }
+    }
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "Today";
+    return d.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "Today";
+  }
+}
+
 // Fallback demo mock bookings matching the exact reference UI
 const DEMO_BOOKINGS: BookingData[] = [
   {
@@ -412,20 +441,7 @@ export default function MyBookingsPage() {
                     <div className="booking-meta">
                       <span>🌾 &nbsp; {b.crop?.name || "Wheat"} {b.quantity} Qtl</span>
                       <span>
-                        📅 &nbsp;{" "}
-                        {b.slotDate
-                          ? new Date(b.slotDate).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : b.slot?.date
-                          ? new Date(b.slot.date).toLocaleDateString("en-IN", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "Today"}
+                        📅 &nbsp; {formatBookingDate(b.slotDate || b.slot?.date || b.bookedAt || b.createdAt)}
                       </span>
                       <span>
                         🕒 &nbsp;{" "}
@@ -592,19 +608,7 @@ export default function MyBookingsPage() {
                 <div className="pass-item">
                   <label>Slot Date</label>
                   <strong>
-                    {selectedPass.slotDate
-                      ? new Date(selectedPass.slotDate).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : selectedPass.slot?.date
-                      ? new Date(selectedPass.slot.date).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "Today"}
+                    {formatBookingDate(selectedPass.slotDate || selectedPass.slot?.date || selectedPass.bookedAt || selectedPass.createdAt)}
                   </strong>
                 </div>
 

@@ -20,10 +20,13 @@ import {
   TrendingUp,
   RotateCcw,
   AlertCircle,
+  Plus,
+  Loader2,
 } from "lucide-react";
 import {
   fetchAdminCrops,
   updateCropMsp,
+  createAdminCrop,
   type CropMaster,
 } from "@/services/adminService";
 import "@/styles/AdminCrops.css";
@@ -167,6 +170,18 @@ export default function AdminCropsPage() {
   const [editRate, setEditRate] = useState<number>(0);
   const [editLimit, setEditLimit] = useState<number>(0);
 
+  // Add Crop Modal State
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [addCropForm, setAddCropForm] = useState({
+    name: "",
+    code: "",
+    category: "RABI" as "RABI" | "KHARIF",
+    cropCategory: "Cereals" as "Cereals" | "Pulses" | "Oilseeds" | "Commercial" | "Fibre" | "Others",
+    mspRate: 2500,
+    perAcreLimit: 20,
+    mspIncreasePct: 5.0,
+  });
+
   const loadCropsData = async () => {
     try {
       setLoading(true);
@@ -288,6 +303,70 @@ export default function AdminCropsPage() {
         type: "success",
       });
       setSelectedCrop(null);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateCrop = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addCropForm.name.trim() || !addCropForm.code.trim()) {
+      alert("Please enter crop name and unique code");
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const res = await createAdminCrop({
+        name: addCropForm.name,
+        code: addCropForm.code,
+        category: addCropForm.category,
+        cropCategory: addCropForm.cropCategory,
+        mspRate: Number(addCropForm.mspRate),
+        perAcreLimit: Number(addCropForm.perAcreLimit),
+        mspIncreasePct: Number(addCropForm.mspIncreasePct),
+      });
+
+      const newCropItem: CropDirectoryItem = {
+        id: res.data?.id || `crop-${Date.now()}`,
+        name: addCropForm.name.trim(),
+        code: addCropForm.code.trim().toUpperCase().replace(/\s+/g, "_"),
+        category: addCropForm.cropCategory,
+        season: addCropForm.category,
+        mspRate: Number(addCropForm.mspRate),
+        mspIncreasePct: Number(addCropForm.mspIncreasePct) || 5.0,
+        perAcreLimit: Number(addCropForm.perAcreLimit),
+        registeredFarmers: 0,
+        expectedProduceQtl: 0,
+        iconType: (addCropForm.name.toLowerCase().includes("wheat")
+          ? "wheat"
+          : addCropForm.name.toLowerCase().includes("mustard")
+          ? "mustard"
+          : addCropForm.name.toLowerCase().includes("cotton")
+          ? "cotton"
+          : addCropForm.name.toLowerCase().includes("paddy")
+          ? "paddy_common"
+          : "wheat") as any,
+      };
+
+      setCropsList((prev) => [newCropItem, ...prev]);
+      setShowAddModal(false);
+      setAddCropForm({
+        name: "",
+        code: "",
+        category: "RABI",
+        cropCategory: "Cereals",
+        mspRate: 2500,
+        perAcreLimit: 20,
+        mspIncreasePct: 5.0,
+      });
+      setNotification({
+        text: res.message || `Crop "${newCropItem.name}" (${newCropItem.code}) added successfully to MSP Master!`,
+        type: "success",
+      });
+      await loadCropsData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to add crop");
     } finally {
       setSubmitting(false);
     }
@@ -492,10 +571,41 @@ export default function AdminCropsPage() {
                 <Calendar size={18} className="crops-season-cal-icon" />
               </div>
 
-              <button className="crops-btn-refresh-rates" onClick={loadCropsData} title="Sync latest rates from Central Government API">
-                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
-                <span>Refresh Rates</span>
-              </button>
+              <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                <button
+                  className="crops-btn-refresh-rates"
+                  onClick={loadCropsData}
+                  title="Sync latest rates from Central Government API"
+                  style={{ flex: 1 }}
+                >
+                  <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                  <span>Refresh</span>
+                </button>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  title="Add New Crop to Master Catalog"
+                  style={{
+                    flex: 1,
+                    background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+                    color: "#ffffff",
+                    border: "none",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "5px",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px rgba(22, 163, 74, 0.3)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Plus size={14} />
+                  <span>Add Crop</span>
+                </button>
+              </div>
 
               <div className="crops-updated-text">Last updated: {lastSyncTime}</div>
             </div>
@@ -682,6 +792,32 @@ export default function AdminCropsPage() {
         >
           <RotateCcw size={14} />
           <span>Reset</span>
+        </button>
+
+        {/* Add Crop Button */}
+        <button
+          className="crops-btn-add-crop"
+          onClick={() => setShowAddModal(true)}
+          style={{
+            background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+            color: "#ffffff",
+            border: "none",
+            padding: "9px 16px",
+            borderRadius: "8px",
+            fontWeight: 700,
+            fontSize: "13px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(22, 163, 74, 0.3)",
+            whiteSpace: "nowrap",
+            marginLeft: "auto",
+          }}
+          title="Add New Crop to Master Catalog"
+        >
+          <Plus size={16} />
+          <span>Add New Crop</span>
         </button>
       </div>
 
@@ -1040,6 +1176,234 @@ export default function AdminCropsPage() {
                 </button>
                 <button type="submit" className="crops-btn-save" disabled={submitting}>
                   {submitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADD NEW CROP MODAL ── */}
+      {showAddModal && (
+        <div className="crops-modal-backdrop" onClick={() => setShowAddModal(false)}>
+          <div
+            className="crops-modal-content"
+            style={{ maxWidth: "520px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="crops-modal-header"
+              style={{
+                background: "linear-gradient(135deg, #064e3b 0%, #047857 100%)",
+                color: "#ffffff",
+                padding: "16px 20px",
+                borderRadius: "16px 16px 0 0",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Sprout size={20} color="#86efac" />
+                <div className="crops-modal-title" style={{ color: "#ffffff", fontSize: "16px", fontWeight: 800 }}>
+                  Add New Crop to MSP Master
+                </div>
+              </div>
+              <button
+                className="crops-modal-close"
+                onClick={() => setShowAddModal(false)}
+                style={{ color: "#ffffff", background: "rgba(255,255,255,0.15)", borderRadius: "50%", padding: "4px" }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateCrop}>
+              <div
+                className="crops-modal-body"
+                style={{ display: "flex", flexDirection: "column", gap: "14px", maxHeight: "70vh", overflowY: "auto", padding: "20px" }}
+              >
+                <div
+                  style={{
+                    background: "#f0fdf4",
+                    border: "1px solid #bbf7d0",
+                    padding: "10px 14px",
+                    borderRadius: "10px",
+                    fontSize: "12.5px",
+                    color: "#166534",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <Leaf size={16} color="#16a34a" />
+                  <span>Enter official crop specifications notified under Central/State MSP Agriculture Scheme.</span>
+                </div>
+
+                <div className="crops-form-group">
+                  <label className="crops-form-label">Crop Common Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Barley (Jau), Sunflower, Jowar (Sorghum)"
+                    className="crops-form-input"
+                    value={addCropForm.name}
+                    onChange={(e) => {
+                      const name = e.target.value;
+                      const autoCode = name.trim().split(" ")[0].toUpperCase().replace(/[^A-Z0-9]/g, "");
+                      setAddCropForm((prev) => ({
+                        ...prev,
+                        name,
+                        code: prev.code && prev.code !== autoCode.slice(0, -1) ? prev.code : autoCode,
+                      }));
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Unique Crop Code *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BARLEY, JOWAR"
+                      className="crops-form-input"
+                      style={{ textTransform: "uppercase", fontWeight: 700 }}
+                      value={addCropForm.code}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          code: e.target.value.toUpperCase().replace(/\s+/g, "_"),
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Season *</label>
+                    <select
+                      className="crops-form-input"
+                      value={addCropForm.category}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          category: e.target.value as "RABI" | "KHARIF",
+                        }))
+                      }
+                    >
+                      <option value="RABI">Rabi (Winter)</option>
+                      <option value="KHARIF">Kharif (Monsoon)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Crop Category *</label>
+                    <select
+                      className="crops-form-input"
+                      value={addCropForm.cropCategory}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          cropCategory: e.target.value as any,
+                        }))
+                      }
+                    >
+                      <option value="Cereals">Cereals</option>
+                      <option value="Pulses">Pulses</option>
+                      <option value="Oilseeds">Oilseeds</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Fibre">Fibre</option>
+                      <option value="Others">Others</option>
+                    </select>
+                  </div>
+
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Official MSP Rate (₹/Qtl) *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      placeholder="e.g. 2450"
+                      className="crops-form-input"
+                      value={addCropForm.mspRate}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          mspRate: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Per-Acre Limit (Qtl / Acre) *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      placeholder="e.g. 20"
+                      className="crops-form-input"
+                      value={addCropForm.perAcreLimit}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          perAcreLimit: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="crops-form-group">
+                    <label className="crops-form-label">Expected Annual Hike %</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      placeholder="e.g. 5.5"
+                      className="crops-form-input"
+                      value={addCropForm.mspIncreasePct}
+                      onChange={(e) =>
+                        setAddCropForm((prev) => ({
+                          ...prev,
+                          mspIncreasePct: Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="crops-modal-footer">
+                <button
+                  type="button"
+                  className="crops-btn-cancel"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="crops-btn-save"
+                  disabled={submitting}
+                  style={{
+                    background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      <span>Saving Crop...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={15} />
+                      <span>Save &amp; Add to Catalog</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

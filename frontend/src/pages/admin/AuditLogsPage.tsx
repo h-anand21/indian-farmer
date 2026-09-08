@@ -3,9 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ShieldCheck,
-  Lock,
-  Link as LinkIcon,
-  Radio,
   FileText,
   Search,
   Calendar,
@@ -24,6 +21,7 @@ import {
   Database,
   Info,
   GitCommit,
+  X,
 } from "lucide-react";
 import "@/styles/AuditLogs.css";
 
@@ -346,16 +344,26 @@ export const AuditLogsPage: React.FC = () => {
         return <Smartphone size={13} />;
       case "mobile":
         return <Smartphone size={13} />;
-      case "admin":
-        return <Laptop size={13} />;
       default:
         return <Laptop size={13} />;
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedDateFilter("ALL");
+    setSelectedActionFilter("ALL");
+    setSelectedUserFilter("ALL");
+  };
+
+  const totalEvents = logsList.length;
+  const procurementCount = logsList.filter((l) => l.category === "Procurement").length;
+  const paymentCount = logsList.filter((l) => l.category === "Payment").length;
+  const gateCount = logsList.filter((l) => l.category === "Gate Entry").length;
+
   return (
     <div className="audit-logs-page">
-      {/* ── TOPBAR ── */}
+      {/* ── TOPBAR & CLEAN TITLE ── */}
       <div className="audit-topbar">
         <button
           className="audit-back-btn"
@@ -364,150 +372,165 @@ export const AuditLogsPage: React.FC = () => {
           <ArrowLeft size={16} />
           <span>Back to Dashboard</span>
         </button>
+      </div>
 
-        <div className="audit-status-badge">
-          <div className="audit-status-icon-wrap">
-            <ShieldCheck size={18} />
+      <div className="audit-title-section">
+        <h1 className="audit-clean-title">Immutable Audit Trail &amp; Logs</h1>
+      </div>
+
+      {/* ── 4 KPI STATS ROW ── */}
+      <div className="audit-stats-grid">
+        <div className="audit-stat-card">
+          <div className="audit-stat-icon-box green">
+            <Database size={20} />
           </div>
           <div>
-            <div className="audit-status-text-main">Tamper-Proof Trail Active</div>
-            <div className="audit-status-text-sub">All activities are securely logged and immutable</div>
+            <div className="audit-stat-label">Total Audit Events</div>
+            <div className="audit-stat-val">{totalEvents}</div>
+            <div className="audit-stat-sub">Across All Mandis &amp; Gateways</div>
+          </div>
+        </div>
+
+        <div className="audit-stat-card">
+          <div className="audit-stat-icon-box blue">
+            <FileText size={20} />
+          </div>
+          <div>
+            <div className="audit-stat-label">Procurement Records</div>
+            <div className="audit-stat-val">{procurementCount}</div>
+            <div className="audit-stat-sub">Weighbridge Intakes Logged</div>
+          </div>
+        </div>
+
+        <div className="audit-stat-card">
+          <div className="audit-stat-icon-box orange">
+            <IndianRupee size={20} />
+          </div>
+          <div>
+            <div className="audit-stat-label">DBT Disbursals</div>
+            <div className="audit-stat-val">{paymentCount}</div>
+            <div className="audit-stat-sub">Bank Payout Transactions</div>
+          </div>
+        </div>
+
+        <div className="audit-stat-card">
+          <div className="audit-stat-icon-box purple">
+            <QrCode size={20} />
+          </div>
+          <div>
+            <div className="audit-stat-label">Gate Check-Ins</div>
+            <div className="audit-stat-val">{gateCount}</div>
+            <div className="audit-stat-sub">Farmer Physical Arrivals</div>
           </div>
         </div>
       </div>
 
-      {/* ── HERO BANNER ── */}
-      <div className="audit-hero">
-        <div className="audit-hero-left">
-          <div className="audit-hero-shield">
-            <ShieldCheck size={28} />
-          </div>
-          <div>
-            <h1 className="audit-hero-title">Immutable Audit Trail &amp; Logs</h1>
-            <p className="audit-hero-subtitle">
-              Complete tamper-evident log of every gate check-in, weighment record, MSP transaction, and DBT disbursal.
-            </p>
-            <div className="audit-hero-pills">
-              <span className="audit-pill">
-                <Lock size={13} /> Tamper-Proof Records
-              </span>
-              <span className="audit-pill">
-                <LinkIcon size={13} /> Blockchain-Style Audit Trail
-              </span>
-              <span className="audit-pill">
-                <Radio size={13} /> Real-time Monitoring
-              </span>
-              <span className="audit-pill">
-                <FileText size={13} /> Full Traceability
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="audit-hero-right">
-          {/* Mandi Silhouette Art */}
-          <div className="audit-mandi-artwork">
-            <svg width="180" height="70" viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* APMC Mandi Shed */}
-              <path d="M70 45 L130 45 L145 60 L145 82 L55 82 L55 60 Z" fill="#bbf7d0" opacity="0.4" />
-              <path d="M60 58 L140 58 L140 82 L60 82 Z" stroke="#004b38" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.4" />
-              <rect x="75" y="48" width="50" height="10" rx="2" fill="#004b38" opacity="0.15" />
-              <text x="100" y="55" fontSize="6.5" fontWeight="bold" fill="#004b38" textAnchor="middle" opacity="0.7">APMC MANDI</text>
-              {/* Tractor */}
-              <circle cx="38" cy="74" r="8" stroke="#004b38" strokeWidth="1.5" opacity="0.4" />
-              <circle cx="20" cy="77" r="5" stroke="#004b38" strokeWidth="1.5" opacity="0.4" />
-              <path d="M22 75 L30 75 L32 66 L44 66 L44 74" stroke="#004b38" strokeWidth="1.5" fill="none" opacity="0.4" />
-              {/* Crop Rows */}
-              <path d="M155 78 C 170 70, 190 75, 210 78" stroke="#86efac" strokeWidth="2" strokeDasharray="4 4" />
-              <path d="M158 84 C 173 76, 193 81, 215 84" stroke="#86efac" strokeWidth="2" strokeDasharray="4 4" />
-            </svg>
-          </div>
-
-          <div className="audit-mandi-tagline">
-            <span>Transparent</span>
-            <span className="mandi-highlight">Mandi.</span>
-            <span className="india-highlight">
-              Trusted India. <span style={{ color: "#16a34a" }}>🌿</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── FILTER & ACTION BAR ── */}
-      <div className="audit-filter-bar">
-        <div className="audit-filter-left">
-          {/* Search Input */}
+      {/* ── FILTER & ACTION TOOLBAR (ORGANIZED 2 ROWS) ── */}
+      <div className="audit-toolbar-card">
+        {/* Row 1: Search Box & Reset */}
+        <div className="audit-toolbar-search-row">
           <div className="audit-search-box">
             <Search size={16} className="audit-search-icon" />
             <input
               type="text"
-              placeholder="Search by action, token ID, operator, or details..."
+              placeholder="Search by action name, token ID, operator name, IP, or details..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="audit-search-input"
             />
+            {searchTerm && (
+              <button
+                className="audit-search-clear-btn"
+                onClick={() => setSearchTerm("")}
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
 
-          {/* Date Filter */}
-          <div className="audit-filter-select-wrap">
-            <Calendar size={15} className="audit-select-icon" />
-            <select
-              value={selectedDateFilter}
-              onChange={(e) => setSelectedDateFilter(e.target.value)}
-              className="audit-filter-select"
-            >
-              <option value="ALL">All Dates</option>
-              <option value="TODAY">Today (7 Sep)</option>
-              <option value="YESTERDAY">Yesterday (6 Sep)</option>
-            </select>
-            <span className="audit-select-chevron">⌄</span>
-          </div>
-
-          {/* Action Filter */}
-          <div className="audit-filter-select-wrap">
-            <Filter size={15} className="audit-select-icon" />
-            <select
-              value={selectedActionFilter}
-              onChange={(e) => setSelectedActionFilter(e.target.value)}
-              className="audit-filter-select"
-            >
-              <option value="ALL">All Actions</option>
-              <option value="PROCUREMENT_RECORDED">PROCUREMENT_RECORDED</option>
-              <option value="DBT_PAYMENT_DISBURSED">DBT_PAYMENT_DISBURSED</option>
-              <option value="GATE_CHECK_IN">GATE_CHECK_IN</option>
-              <option value="SLOT_BOOKED">SLOT_BOOKED</option>
-              <option value="MSP_RATE_UPDATED">MSP_RATE_UPDATED</option>
-            </select>
-            <span className="audit-select-chevron">⌄</span>
-          </div>
-
-          {/* User Filter */}
-          <div className="audit-filter-select-wrap">
-            <User size={15} className="audit-select-icon" />
-            <select
-              value={selectedUserFilter}
-              onChange={(e) => setSelectedUserFilter(e.target.value)}
-              className="audit-filter-select"
-            >
-              <option value="ALL">All Users</option>
-              <option value="OPERATOR">Operators</option>
-              <option value="SYSTEM">System</option>
-              <option value="FARMER">Farmers</option>
-              <option value="ADMIN">Admins</option>
-            </select>
-            <span className="audit-select-chevron">⌄</span>
-          </div>
+          <button
+            className="audit-btn-reset"
+            onClick={handleResetFilters}
+            title="Reset All Filters"
+          >
+            <RotateCcw size={14} />
+            <span>Reset Filters</span>
+          </button>
         </div>
 
-        <div className="audit-filter-right">
-          <button className="audit-btn-refresh" onClick={handleRefresh}>
-            <RotateCcw size={15} className={isRefreshing ? "animate-spin" : ""} />
-            <span>Refresh</span>
-          </button>
-          <button className="audit-btn-export" onClick={handleExportLogs}>
-            <Download size={15} />
-            <span>Export Logs</span>
-          </button>
+        {/* Row 2: 3 Dropdowns Left & Action Buttons Right */}
+        <div className="audit-toolbar-filters-row">
+          <div className="audit-dropdowns-group">
+            {/* Date Filter */}
+            <div className="audit-filter-select-wrap">
+              <Calendar size={14} className="audit-select-icon" />
+              <select
+                value={selectedDateFilter}
+                onChange={(e) => setSelectedDateFilter(e.target.value)}
+                className="audit-filter-select"
+              >
+                <option value="ALL">All Dates</option>
+                <option value="TODAY">Today Only</option>
+                <option value="YESTERDAY">Yesterday Only</option>
+              </select>
+              <span className="audit-select-chevron">&#x2304;</span>
+            </div>
+
+            {/* Action Filter */}
+            <div className="audit-filter-select-wrap">
+              <Filter size={14} className="audit-select-icon" />
+              <select
+                value={selectedActionFilter}
+                onChange={(e) => setSelectedActionFilter(e.target.value)}
+                className="audit-filter-select"
+              >
+                <option value="ALL">All Actions</option>
+                <option value="PROCUREMENT_RECORDED">Procurement Recorded</option>
+                <option value="DBT_PAYMENT_DISBURSED">DBT Payment Disbursed</option>
+                <option value="GATE_CHECK_IN">Gate Check-In</option>
+                <option value="SLOT_BOOKED">Slot Booked</option>
+                <option value="MSP_RATE_UPDATED">MSP Rate Updated</option>
+              </select>
+              <span className="audit-select-chevron">&#x2304;</span>
+            </div>
+
+            {/* User Filter */}
+            <div className="audit-filter-select-wrap">
+              <User size={14} className="audit-select-icon" />
+              <select
+                value={selectedUserFilter}
+                onChange={(e) => setSelectedUserFilter(e.target.value)}
+                className="audit-filter-select"
+              >
+                <option value="ALL">All User Roles</option>
+                <option value="OPERATOR">Operators</option>
+                <option value="SYSTEM">System Automations</option>
+                <option value="FARMER">Farmers</option>
+                <option value="ADMIN">Administrators</option>
+              </select>
+              <span className="audit-select-chevron">&#x2304;</span>
+            </div>
+          </div>
+
+          <div className="audit-actions-group">
+            <button
+              className="audit-btn-refresh"
+              onClick={handleRefresh}
+              title="Refresh Real-time Audit Stream"
+            >
+              <RotateCcw size={14} className={isRefreshing ? "animate-spin" : ""} />
+              <span>Refresh</span>
+            </button>
+            <button
+              className="audit-btn-export"
+              onClick={handleExportLogs}
+              title="Export Filtered Logs as CSV"
+            >
+              <Download size={14} />
+              <span>Export CSV</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -550,76 +573,121 @@ export const AuditLogsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log) => (
-                <tr key={log.id}>
-                  {/* # & Timeline node */}
-                  <td className="audit-col-node">
-                    <div className="audit-timeline-node-container">
-                      <div className={`audit-node-badge ${log.nodeColor}`}>
-                        {log.nodeNumber}
+              {filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "48px 20px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "50%",
+                          background: "#f1f5f9",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#64748b",
+                        }}
+                      >
+                        <Search size={20} />
                       </div>
-                      <div className="audit-branch-connector">
-                        <GitCommit size={14} />
+                      <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a" }}>
+                        No audit log events match your filter
                       </div>
+                      <div style={{ fontSize: "13px", color: "#64748b" }}>
+                        Try searching with a different keyword, token ID, or reset all filters.
+                      </div>
+                      <button
+                        onClick={handleResetFilters}
+                        style={{
+                          marginTop: "6px",
+                          background: "#ecfdf5",
+                          color: "#059669",
+                          border: "1px solid #a7f3d0",
+                          padding: "6px 14px",
+                          borderRadius: "8px",
+                          fontSize: "12.5px",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Reset All Filters
+                      </button>
                     </div>
-                  </td>
-
-                  {/* TIME */}
-                  <td>
-                    <div className="audit-time-main">{log.date}</div>
-                    <div className="audit-time-clock">{log.time}</div>
-                    <div className="audit-time-relative">{log.relativeTime}</div>
-                  </td>
-
-                  {/* ACTION & ENTITY */}
-                  <td>
-                    <div className="audit-action-entity-cell">
-                      {renderActionIcon(log.iconType, log.nodeColor)}
-                      <div>
-                        <div className="audit-action-name">{log.action}</div>
-                        <div className="audit-entity-tag">
-                          {log.entityType}:{" "}
-                          <span className="audit-entity-highlight">{log.entityId}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* TRIGGERED BY */}
-                  <td>
-                    <div className="audit-user-cell">
-                      <div className="audit-user-avatar">
-                        {log.userRole === "SYSTEM" ? <Settings size={18} /> : <User size={18} />}
-                      </div>
-                      <div>
-                        <div className="audit-user-name">{log.userName}</div>
-                        <span className="audit-user-role-badge">{log.userRole}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* DETAILS */}
-                  <td>
-                    <div className="audit-details-text">{log.details}</div>
-                  </td>
-
-                  {/* IP / SOURCE */}
-                  <td>
-                    <div className="audit-ip-address">{log.ipAddress}</div>
-                    <div className="audit-source-type">
-                      {renderSourceDeviceIcon(log.sourceDevice)}
-                      <span>{log.sourceType}</span>
-                    </div>
-                  </td>
-
-                  {/* TYPE */}
-                  <td>
-                    <span className={`audit-type-pill ${log.nodeColor}`}>
-                      <span className="audit-type-dot" /> {log.category}
-                    </span>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredLogs.map((log) => (
+                  <tr key={log.id}>
+                    {/* # & Timeline node */}
+                    <td className="audit-col-node">
+                      <div className="audit-timeline-node-container">
+                        <div className={`audit-node-badge ${log.nodeColor}`}>
+                          {log.nodeNumber}
+                        </div>
+                        <div className="audit-branch-connector">
+                          <GitCommit size={14} />
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* TIME */}
+                    <td>
+                      <div className="audit-time-main">{log.date}</div>
+                      <div className="audit-time-clock">{log.time}</div>
+                      <div className="audit-time-relative">{log.relativeTime}</div>
+                    </td>
+
+                    {/* ACTION & ENTITY */}
+                    <td>
+                      <div className="audit-action-entity-cell">
+                        {renderActionIcon(log.iconType, log.nodeColor)}
+                        <div>
+                          <div className="audit-action-name">{log.action}</div>
+                          <div className="audit-entity-tag">
+                            {log.entityType}:{" "}
+                            <span className="audit-entity-highlight">{log.entityId}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* TRIGGERED BY */}
+                    <td>
+                      <div className="audit-user-cell">
+                        <div className="audit-user-avatar">
+                          {log.userRole === "SYSTEM" ? <Settings size={18} /> : <User size={18} />}
+                        </div>
+                        <div>
+                          <div className="audit-user-name">{log.userName}</div>
+                          <span className="audit-user-role-badge">{log.userRole}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* DETAILS */}
+                    <td>
+                      <div className="audit-details-text">{log.details}</div>
+                    </td>
+
+                    {/* IP / SOURCE */}
+                    <td>
+                      <div className="audit-ip-address">{log.ipAddress}</div>
+                      <div className="audit-source-type">
+                        {renderSourceDeviceIcon(log.sourceDevice)}
+                        <span>{log.sourceType}</span>
+                      </div>
+                    </td>
+
+                    {/* TYPE */}
+                    <td>
+                      <span className={`audit-type-pill ${log.nodeColor}`}>
+                        <span className="audit-type-dot" /> {log.category}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

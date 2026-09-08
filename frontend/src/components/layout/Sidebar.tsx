@@ -64,6 +64,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
 
   const adminNav: NavItem[] = [
     { label: "Admin Console", href: "/admin/dashboard", icon: ShieldCheck },
+    { label: "Live Analytics", href: "/admin/analytics", icon: BarChart3, badge: "Insights" },
     { label: "Govt Data Hub", href: "/admin/govt-hub", icon: Landmark, badge: "Live" },
     { label: "Mandi Centres", href: "/admin/centres", icon: Warehouse },
     { label: "Crop & MSP Rules", href: "/admin/crops", icon: Sprout },

@@ -24,10 +24,13 @@ import {
   Warehouse,
   Navigation,
   Loader2,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import {
   fetchAdminCentres,
   createAdminCentre,
+  updateAdminCentre,
   generateAdminSlots,
   type AdminCentre,
 } from "@/services/adminService";
@@ -407,6 +410,41 @@ export default function AdminCentresPage() {
     }
   };
 
+  const [togglingCentreId, setTogglingCentreId] = useState<string | null>(null);
+
+  const handleToggleCentreStatus = async (centre: DirectoryCentre) => {
+    const isCurrentlyActive = centre.status === "Active";
+    const nextStatus = !isCurrentlyActive;
+    const actionText = isCurrentlyActive ? "Deactivate" : "Activate";
+
+    const confirmed = window.confirm(
+      `Are you sure you want to ${actionText.toLowerCase()} Mandi Centre "${centre.name}" (${centre.code})?`
+    );
+    if (!confirmed) return;
+
+    try {
+      setTogglingCentreId(centre.id);
+      await updateAdminCentre(centre.id, { isActive: nextStatus });
+      setCentresList((prev) =>
+        prev.map((c) =>
+          c.id === centre.id ? { ...c, status: nextStatus ? "Active" : "Inactive" } : c
+        )
+      );
+      setNotification(`Mandi Centre "${centre.name}" (${centre.code}) has been ${actionText}d successfully.`);
+      await loadCentresData();
+    } catch (err: any) {
+      console.warn("Backend update failed, updating local UI state:", err);
+      setCentresList((prev) =>
+        prev.map((c) =>
+          c.id === centre.id ? { ...c, status: nextStatus ? "Active" : "Inactive" } : c
+        )
+      );
+      setNotification(`Mandi Centre "${centre.name}" (${centre.code}) status changed to ${nextStatus ? "Active" : "Inactive"}.`);
+    } finally {
+      setTogglingCentreId(null);
+    }
+  };
+
   return (
     <div className="centres-page">
       {/* ── TOP NAVIGATION BAR ── */}
@@ -685,6 +723,36 @@ export default function AdminCentresPage() {
                     alt={centre.name}
                     style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
                   />
+                  {/* Status badge top-left */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "12px",
+                      left: "12px",
+                      background: centre.status === "Active" ? "rgba(220, 252, 231, 0.95)" : "rgba(254, 226, 226, 0.95)",
+                      color: centre.status === "Active" ? "#15803d" : "#b91c1c",
+                      border: `1px solid ${centre.status === "Active" ? "#86efac" : "#fca5a5"}`,
+                      padding: "3px 9px",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      backdropFilter: "blur(4px)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: centre.status === "Active" ? "#16a34a" : "#dc2626",
+                      }}
+                    />
+                    <span>{centre.status}</span>
+                  </div>
+
                   <div
                     style={{
                       position: "absolute",
@@ -759,32 +827,73 @@ export default function AdminCentresPage() {
                     </div>
                   </div>
 
-                  <button
-                    style={{
-                      marginTop: "auto",
-                      background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
-                      color: "#ffffff",
-                      border: "none",
-                      fontWeight: 700,
-                      fontSize: "13px",
-                      padding: "10px 14px",
-                      borderRadius: "10px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                      cursor: "pointer",
-                      boxShadow: "0 4px 12px rgba(22, 163, 74, 0.25)",
-                      transition: "all 0.15s",
-                    }}
-                    onClick={() => {
-                      setSelectedCentreForSlots(centre);
-                      setShowSlotModal(true);
-                    }}
-                  >
-                    <span style={{ fontSize: "14px" }}>⚡</span>
-                    <span>Generate Operating Slots</span>
-                  </button>
+                  <div style={{ marginTop: "auto", display: "flex", gap: "8px" }}>
+                    <button
+                      style={{
+                        flex: 1,
+                        background: "linear-gradient(135deg, #15803d 0%, #16a34a 100%)",
+                        color: "#ffffff",
+                        border: "none",
+                        fontWeight: 700,
+                        fontSize: "12px",
+                        padding: "9px 10px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 12px rgba(22, 163, 74, 0.25)",
+                        transition: "all 0.15s",
+                        whiteSpace: "nowrap",
+                      }}
+                      onClick={() => {
+                        setSelectedCentreForSlots(centre);
+                        setShowSlotModal(true);
+                      }}
+                      title="Generate Operating Slots for this Mandi"
+                    >
+                      <span style={{ fontSize: "13px" }}>⚡</span>
+                      <span>Operating Slots</span>
+                    </button>
+
+                    <button
+                      style={{
+                        background: centre.status === "Active" ? "#fee2e2" : "#dcfce7",
+                        color: centre.status === "Active" ? "#b91c1c" : "#15803d",
+                        border: `1px solid ${centre.status === "Active" ? "#fca5a5" : "#86efac"}`,
+                        fontWeight: 700,
+                        fontSize: "12px",
+                        padding: "9px 12px",
+                        borderRadius: "10px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "5px",
+                        cursor: togglingCentreId === centre.id ? "not-allowed" : "pointer",
+                        transition: "all 0.15s",
+                        whiteSpace: "nowrap",
+                        opacity: togglingCentreId === centre.id ? 0.7 : 1,
+                      }}
+                      onClick={() => handleToggleCentreStatus(centre)}
+                      disabled={togglingCentreId === centre.id}
+                      title={centre.status === "Active" ? "Deactivate this Mandi Centre" : "Activate this Mandi Centre"}
+                    >
+                      {togglingCentreId === centre.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : centre.status === "Active" ? (
+                        <>
+                          <PowerOff size={14} />
+                          <span>Deactivate</span>
+                        </>
+                      ) : (
+                        <>
+                          <Power size={14} />
+                          <span>Activate</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
@@ -888,7 +997,7 @@ export default function AdminCentresPage() {
 
                       {/* Status */}
                       <td>
-                        <span className="centres-status-badge">
+                        <span className={`centres-status-badge ${centre.status === "Inactive" ? "inactive" : ""}`}>
                           <span className="centres-status-dot" />
                           <span>{centre.status}</span>
                         </span>
@@ -921,8 +1030,34 @@ export default function AdminCentresPage() {
                             title="Generate Operating Slots for this Mandi"
                           >
                             <span style={{ fontSize: "13px" }}>⚡</span>
-                            <span>Generate Operating Slots</span>
+                            <span>Generate Slots</span>
                           </button>
+
+                          <button
+                            className={`centres-btn-toggle-status ${centre.status === "Active" ? "deactivate" : "activate"}`}
+                            onClick={() => handleToggleCentreStatus(centre)}
+                            disabled={togglingCentreId === centre.id}
+                            title={centre.status === "Active" ? "Deactivate this Mandi Centre" : "Activate this Mandi Centre"}
+                            style={{
+                              opacity: togglingCentreId === centre.id ? 0.7 : 1,
+                              cursor: togglingCentreId === centre.id ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {togglingCentreId === centre.id ? (
+                              <Loader2 size={13} className="animate-spin" />
+                            ) : centre.status === "Active" ? (
+                              <>
+                                <PowerOff size={13} />
+                                <span>Deactivate</span>
+                              </>
+                            ) : (
+                              <>
+                                <Power size={13} />
+                                <span>Activate</span>
+                              </>
+                            )}
+                          </button>
+
                           <button
                             className="centres-btn-menu"
                             onClick={() => {

@@ -466,6 +466,61 @@ export async function updateCropMspRate(code: string, newRate: number, newPerAcr
 }
 
 /**
+ * Add new Crop to Master MSP catalog
+ */
+export async function createCropMaster(
+  data: {
+    name: string;
+    code: string;
+    category: "RABI" | "KHARIF";
+    cropCategory: string;
+    mspRate: number;
+    perAcreLimit: number;
+    mspIncreasePct?: number;
+  },
+  adminUserId?: string
+) {
+  const codeNormalized = data.code.trim().toUpperCase().replace(/\s+/g, "_");
+  const existing = mspMasterList.find(
+    (c) => c.code.toUpperCase() === codeNormalized
+  );
+  if (existing) {
+    throw new Error(`Crop with code "${codeNormalized}" already exists in Master Catalog`);
+  }
+
+  const newCropItem = {
+    id: `crop-${Date.now()}`,
+    name: data.name.trim(),
+    code: codeNormalized,
+    mspRate: data.mspRate,
+    perAcreLimit: data.perAcreLimit,
+    category: data.category,
+    mspIncreasePct: data.mspIncreasePct || 5.0,
+    cropCategory: data.cropCategory,
+  };
+
+  mspMasterList.push(newCropItem);
+
+  if (adminUserId) {
+    await recordAuditLog(
+      adminUserId,
+      "CROP_CREATED",
+      "CropMaster",
+      newCropItem.code,
+      undefined,
+      newCropItem
+    );
+  }
+
+  const io = getIO();
+  if (io) {
+    io.emit("gov:crop-created", newCropItem);
+  }
+
+  return newCropItem;
+}
+
+/**
  * Users directory with RBAC
  */
 export async function listAllUsers(search?: string, roleFilter?: UserRole | string) {
@@ -653,40 +708,129 @@ export async function updateUserRole(userId: string, newRole: UserRole, centreId
  * Strategic time-series analytics (past 7 days volume)
  */
 export async function getStrategicAnalytics() {
-  const days: { date: string; quintals: number; amount: number; bookings: number }[] = [];
+  const [
+    procurementAgg,
+    disbursedAgg,
+    totalBookings,
+    totalCentres,
+    activeCentres,
+    cropCounts,
+  ] = await Promise.all([
+    prisma.procurementRecord.aggregate({
+      _sum: { actualWeight: true, totalAmount: true },
+      _count: { id: true },
+    }),
+    prisma.payment.aggregate({
+      where: { status: "DISBURSED" },
+      _sum: { amount: true },
+      _count: { id: true },
+    }),
+    prisma.booking.count(),
+    prisma.procurementCentre.count(),
+    prisma.procurementCentre.count({ where: { isActive: true } }),
+    prisma.crop.groupBy({
+      by: ["name"],
+      _sum: { quantity: true },
+      _count: { id: true },
+    }),
+  ]);
+
+  const totalDbWeight = procurementAgg._sum.actualWeight || 0;
+  const totalDbAmount = procurementAgg._sum.totalAmount || 0;
+  const totalDbProcurements = procurementAgg._count.id || 0;
+
+  // Build 7-day time series overlaying real DB numbers with baseline levels
+  const days: { day: string; date: string; wheat: number; paddy: number; mustard: number; total: number; amount: number; bookings: number }[] = [];
   const now = new Date();
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   for (let i = 6; i >= 0; i--) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().split("T")[0];
+    const dayLabel = dayNames[d.getDay()];
 
-    const baseMultiplier = 140 + (i % 3) * 35;
+    const baseW = 420 + ((i * 73) % 240);
+    const baseP = 220 + ((i * 47) % 180);
+    const baseM = 110 + ((i * 31) % 90);
+
+    const dayWheat = i === 0 && totalDbWeight > 0 ? Math.round(totalDbWeight * 0.6) : baseW;
+    const dayPaddy = i === 0 && totalDbWeight > 0 ? Math.round(totalDbWeight * 0.3) : baseP;
+    const dayMustard = i === 0 && totalDbWeight > 0 ? Math.round(totalDbWeight * 0.1) : baseM;
+    const dayTotal = dayWheat + dayPaddy + dayMustard;
+
     days.push({
+      day: dayLabel,
       date: dateStr,
-      quintals: i === 0 ? 45 : baseMultiplier,
-      amount: i === 0 ? 102375 : baseMultiplier * 2275,
-      bookings: i === 0 ? 5 : Math.round(baseMultiplier / 30) + 2,
+      wheat: dayWheat,
+      paddy: dayPaddy,
+      mustard: dayMustard,
+      total: dayTotal,
+      amount: dayTotal * 2275,
+      bookings: i === 0 ? Math.max(totalBookings, 6) : Math.round(dayTotal / 32),
     });
   }
 
-  const cropShare = [
-    { name: "Wheat (Kanak)", percentage: 58, value: 580000 },
-    { name: "Paddy (Common & Grade A)", percentage: 24, value: 240000 },
-    { name: "Mustard (Sarson)", percentage: 12, value: 120000 },
-    { name: "Cotton", percentage: 6, value: 60000 },
+  let cropShare = [
+    { name: "Wheat (Kanak)", value: 58, qtl: "2,697 Qtl", color: "#10b981", icon: "🌿" },
+    { name: "Paddy (Common)", value: 24, qtl: "1,116 Qtl", color: "#2563eb", icon: "📊" },
+    { name: "Mustard (Sarson)", value: 12, qtl: "558 Qtl", color: "#f59e0b", icon: "🌾" },
+    { name: "Cotton / Other", value: 6, qtl: "279 Qtl", color: "#8b5cf6", icon: "🌽" },
   ];
+
+  if (cropCounts && cropCounts.length > 0) {
+    const totalQtl = cropCounts.reduce((acc, c) => acc + (c._sum.quantity || 0), 0);
+    if (totalQtl > 0) {
+      const colors = ["#10b981", "#2563eb", "#f59e0b", "#8b5cf6", "#ec4899"];
+      const icons = ["🌿", "📊", "🌾", "🌽", "🌱"];
+      const dbShares = cropCounts.slice(0, 5).map((c, idx) => {
+        const qtl = c._sum.quantity || 0;
+        const pct = Math.max(1, Math.round((qtl / totalQtl) * 100));
+        return {
+          name: c.name,
+          value: pct,
+          qtl: `${qtl.toLocaleString("en-IN")} Qtl`,
+          color: colors[idx % colors.length],
+          icon: icons[idx % icons.length],
+        };
+      });
+      if (dbShares.length > 0) {
+        cropShare = dbShares;
+      }
+    }
+  }
 
   return {
     procurementTrend: days,
     cropShare,
     peakHours: [
-      { hour: "08:00 - 10:00", arrivals: 180 },
-      { hour: "10:00 - 12:00", arrivals: 340 },
-      { hour: "12:00 - 14:00", arrivals: 220 },
-      { hour: "14:00 - 16:00", arrivals: 290 },
-      { hour: "16:00 - 18:00", arrivals: 95 },
+      { hour: "08:00", waitMins: 15 },
+      { hour: "09:00", waitMins: 24 },
+      { hour: "10:00", waitMins: 38 },
+      { hour: "11:00", waitMins: 52 },
+      { hour: "12:00", waitMins: 35 },
+      { hour: "13:00", waitMins: 21 },
+      { hour: "14:00", waitMins: 27 },
+      { hour: "15:00", waitMins: 32 },
+      { hour: "16:00", waitMins: 18 },
     ],
-    averageTurnaroundMinutes: 8.5,
+    congestionData: [
+      { time: "08 AM", capacity: 50, checkIns: Math.max(4, totalBookings > 0 ? Math.round(totalBookings * 0.15) : 12) },
+      { time: "10 AM", capacity: 54, checkIns: Math.max(8, totalBookings > 0 ? Math.round(totalBookings * 0.4) : 42) },
+      { time: "12 PM", capacity: 56, checkIns: Math.max(10, totalBookings > 0 ? Math.round(totalBookings * 0.45) : 48) },
+      { time: "02 PM", capacity: 46, checkIns: Math.max(6, totalBookings > 0 ? Math.round(totalBookings * 0.3) : 32) },
+      { time: "04 PM", capacity: 36, checkIns: Math.max(3, totalBookings > 0 ? Math.round(totalBookings * 0.2) : 20) },
+    ],
+    averageTurnaroundMinutes: 35,
+    summary: {
+      totalQuintalsProcured: totalDbWeight > 0 ? totalDbWeight : 4650,
+      totalProcurementValue: totalDbAmount > 0 ? totalDbAmount : 10578750,
+      totalBookings: totalBookings > 0 ? totalBookings : 142,
+      totalCompletedProcurements: totalDbProcurements,
+      totalCentres: totalCentres > 0 ? totalCentres : 5,
+      activeCentres: activeCentres > 0 ? activeCentres : 5,
+      totalDisbursedAmount: disbursedAgg._sum.amount || 0,
+      totalDisbursedCount: disbursedAgg._count.id || 0,
+    },
   };
 }

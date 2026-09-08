@@ -580,7 +580,6 @@
   font-weight: 600;
 }
 
-/* Status Pill */
 .centres-status-badge {
   display: inline-flex;
   align-items: center;
@@ -591,6 +590,7 @@
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 999px;
+  border: 1px solid #bbf7d0;
 }
 
 .centres-status-dot {
@@ -598,6 +598,51 @@
   height: 6px;
   border-radius: 50%;
   background: #16a34a;
+}
+
+.centres-status-badge.inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.centres-status-badge.inactive .centres-status-dot {
+  background: #dc2626;
+}
+
+.centres-btn-toggle-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  padding: 6px 11px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.centres-btn-toggle-status.deactivate {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.centres-btn-toggle-status.deactivate:hover {
+  background: #fecaca;
+  border-color: #f87171;
+}
+
+.centres-btn-toggle-status.activate {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.centres-btn-toggle-status.activate:hover {
+  background: #bbf7d0;
+  border-color: #4ade80;
 }
 
 /* Actions Column */

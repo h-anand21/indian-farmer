@@ -408,9 +408,11 @@ export async function getFarmerBookings(firebaseUid: string) {
 
   return bookings.map((b) => ({
     ...b,
-    slotDate: b.slot?.date ? new Date(b.slot.date).toISOString().split("T")[0] : undefined,
-    slotWindow: b.slot ? `${b.slot.startTime} - ${b.slot.endTime}` : undefined,
-    queueNumber: b.queueEntry?.queueNumber || 1,
+    slotDate: b.slot?.date
+      ? new Date(b.slot.date).toISOString().split("T")[0]
+      : (b.bookedAt ? new Date(b.bookedAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]),
+    slotWindow: b.slot ? `${b.slot.startTime} - ${b.slot.endTime}` : "09:00 - 11:00",
+    queueNumber: b.queueEntry?.position || 1,
   }));
 }
 

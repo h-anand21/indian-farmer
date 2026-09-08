@@ -6,6 +6,7 @@ import {
   putCentre,
   postGenerateSlots,
   getCrops,
+  postCrop,
   patchCropMsp,
   getUsers,
   postUser,
@@ -39,6 +40,7 @@ router.post("/slots/generate", postGenerateSlots);
 
 // Crop catalog & MSP pricing
 router.get("/crops", getCrops);
+router.post("/crops", postCrop);
 router.patch("/crops/msp", patchCropMsp);
 
 // Stakeholder directory & RBAC

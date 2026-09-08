@@ -7,6 +7,7 @@ import {
   updateCentre,
   generateSlotsForCentre,
   listCropsMaster,
+  createCropMaster,
   updateCropMspRate,
   listAllUsers,
   createUserByAdmin,
@@ -46,6 +47,16 @@ const generateSlotsSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   daysCount: z.number().int().min(1).max(30).default(7),
   capacityPerSlot: z.number().int().min(5).max(200).default(35),
+});
+
+const createCropSchema = z.object({
+  name: z.string().min(2, "Crop name is required"),
+  code: z.string().min(2, "Crop code is required"),
+  category: z.enum(["RABI", "KHARIF"]).default("RABI"),
+  cropCategory: z.string().default("Cereals"),
+  mspRate: z.number().positive("MSP rate must be positive"),
+  perAcreLimit: z.number().positive().default(20),
+  mspIncreasePct: z.number().optional().default(5.0),
 });
 
 const updateMspSchema = z.object({
@@ -160,6 +171,24 @@ export async function getCrops(_req: Request, res: Response, next: NextFunction)
   try {
     const crops = await listCropsMaster();
     res.json({ success: true, data: crops });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/admin/crops
+ */
+export async function postCrop(req: Request, res: Response, next: NextFunction) {
+  try {
+    const parsed = createCropSchema.parse(req.body);
+    const adminUserId = (req as any).user?.uid;
+    const newCrop = await createCropMaster(parsed, adminUserId);
+    res.status(201).json({
+      success: true,
+      message: `Crop "${newCrop.name}" (${newCrop.code}) added to Master Catalog successfully`,
+      data: newCrop,
+    });
   } catch (error) {
     next(error);
   }
