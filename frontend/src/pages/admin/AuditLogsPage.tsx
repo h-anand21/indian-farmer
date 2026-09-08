@@ -375,7 +375,19 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       <div className="audit-title-section">
-        <h1 className="audit-clean-title">Immutable Audit Trail &amp; Logs</h1>
+        <div className="audit-title-wrapper">
+          <div className="audit-title-icon-badge">
+            <ShieldCheck size={24} />
+          </div>
+          <h1 className="audit-stylish-title">
+            <span className="audit-title-main">Immutable</span>{" "}
+            <span className="audit-title-gradient">Audit Trail &amp; Logs</span>
+            <span className="audit-title-live-pill">
+              <span className="audit-title-pulse-dot" />
+              Live Ledger
+            </span>
+          </h1>
+        </div>
       </div>
 
       {/* ── 4 KPI STATS ROW ── */}
