@@ -106,6 +106,10 @@ scratch/
 tmp/
 temp/
 
-# Planning artifacts
+# Planning & Project Documentation Artifacts
 implementation_plan.md
-
+HACKATHON_PROJECT_DOCS.md
+SYSTEM_ARCHITECTURE_AND_WORKFLOWS.md
+SYSTEM_ARCHITECTURE_AND_WORKFLOWS.html
+SYSTEM_ARCHITECTURE_AND_WORKFLOWS.pdf
+SYSTEM_ARCHITECTURE_AND_WORKFLOWS_preview.html
