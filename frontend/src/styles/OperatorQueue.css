@@ -35,7 +35,7 @@
 /* =====================================================
    TOP HEADER
 ===================================================== */
-.kq-header {
+.kq-operator-app .kq-header {
   width: 100%;
   min-height: 68px;
   display: flex;
