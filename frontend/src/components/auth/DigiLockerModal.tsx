@@ -14,6 +14,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
+import { API_URL } from "@/lib/constants";
 
 interface DigiLockerModalProps {
   isOpen: boolean;
@@ -85,7 +86,7 @@ export default function DigiLockerModal({
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3001/api/kyc/digilocker/send-otp", {
+      const res = await fetch(`${API_URL}/kyc/digilocker/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ aadhaarNumber, farmerName }),
@@ -121,7 +122,7 @@ export default function DigiLockerModal({
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3001/api/kyc/digilocker/verify-otp", {
+      const res = await fetch(`${API_URL}/kyc/digilocker/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ txnId, otp, aadhaarNumber }),

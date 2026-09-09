@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Loader2, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
+import { API_URL } from "@/lib/constants";
 
 export default function DigiLockerCallbackPage() {
   const [status, setStatus] = useState<"PROCESSING" | "SUCCESS" | "ERROR">("PROCESSING");
@@ -18,7 +19,7 @@ export default function DigiLockerCallbackPage() {
     }
 
     // Call backend exchange token endpoint
-    fetch("http://localhost:3001/api/kyc/digilocker/callback", {
+    fetch(`${API_URL}/kyc/digilocker/callback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code, state, aadhaarLast4 }),

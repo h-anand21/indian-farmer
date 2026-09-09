@@ -12,12 +12,38 @@ import { initSocketServer } from "./socket/socketServer";
 const app = express();
 
 // ── Security & Parsing ──
-app.use(helmet());
-app.use(cors({
-  origin: env.FRONTEND_URL,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-  credentials: true,
-}));
+const allowedOrigins = [
+  env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+].filter(Boolean);
+
+const isOriginAllowed = (
+  origin: string | undefined,
+  callback: (err: Error | null, allow?: boolean) => void
+) => {
+  if (!origin) return callback(null, true);
+  if (
+    allowedOrigins.includes(origin) ||
+    origin.endsWith(".vercel.app") ||
+    origin.includes("localhost") ||
+    origin.includes("127.0.0.1")
+  ) {
+    return callback(null, true);
+  }
+  return callback(null, true);
+};
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(
+  cors({
+    origin: isOriginAllowed,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -74,7 +100,7 @@ app.use(errorHandler);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: env.FRONTEND_URL,
+    origin: isOriginAllowed,
     methods: ["GET", "POST"],
     credentials: true,
   },

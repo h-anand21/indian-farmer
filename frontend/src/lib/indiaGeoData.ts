@@ -3,6 +3,8 @@
  * 28 States + 8 Union Territories with official district mappings
  */
 
+import { API_URL } from "@/lib/constants";
+
 export interface StateData {
   name: string;
   type: "STATE" | "UT";
@@ -3019,7 +3021,7 @@ export async function fetchDynamicTehsilsForDistrict(
 
   // Try backend proxy resolver first
   try {
-    const backendUrl = `http://localhost:3001/api/geo/tehsils?state=${encodeURIComponent(stateName)}&district=${encodeURIComponent(cleanDistrict)}`;
+    const backendUrl = `${API_URL}/geo/tehsils?state=${encodeURIComponent(stateName)}&district=${encodeURIComponent(cleanDistrict)}`;
     const bRes = await fetch(backendUrl);
     const bJson = await bRes.json();
     if (bJson && bJson.success && Array.isArray(bJson.tehsils) && bJson.tehsils.length > 0) {

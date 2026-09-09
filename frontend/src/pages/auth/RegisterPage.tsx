@@ -35,6 +35,7 @@ import {
 } from "@/lib/indiaGeoData";
 import LanguageSelector from "@/components/common/LanguageSelector";
 import DigiLockerModal from "@/components/auth/DigiLockerModal";
+import { API_URL } from "@/lib/constants";
 import "@/styles/register.css";
 
 export default function RegisterPage() {
@@ -299,7 +300,7 @@ export default function RegisterPage() {
       setIsOpeningDigiLocker(true);
       setError("");
 
-      const res = await fetch("http://localhost:3001/api/kyc/digilocker/auth-url");
+      const res = await fetch(`${API_URL}/kyc/digilocker/auth-url`);
       const data = await res.json();
 
       if (data.success && data.authUrl) {
@@ -360,7 +361,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:3001/api/kyc/ekisan/verify", {
+      const res = await fetch(`${API_URL}/kyc/ekisan/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
