@@ -21,6 +21,7 @@ import {
   Building,
   Wheat,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import "@/styles/LandingPage.css";
 
 // Framer Motion Variants
@@ -58,6 +59,7 @@ const cardHover = {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { user, isAuthenticated, role, logout } = useAuth();
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   return (
@@ -118,13 +120,51 @@ export default function LandingPage() {
               <a href="#contact" className="landing-nav-link">Contact</a>
             </nav>
 
-            {/* Sign in Button */}
-            <button
-              className="landing-sign-in-pill"
-              onClick={() => navigate({ to: "/login" })}
-            >
-              Sign in
-            </button>
+            {/* Auth Actions (Sign in / Register or Dashboard) */}
+            <div className="landing-auth-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {isAuthenticated && user ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    className="landing-sign-in-pill"
+                    style={{ background: "#186341", color: "#ffffff", border: "1.5px solid #22c55e", fontWeight: 700 }}
+                    onClick={() => {
+                      const redirectMap: Record<string, string> = {
+                        FARMER: "/farmer/dashboard",
+                        OPERATOR: "/operator/dashboard",
+                        ADMIN: "/admin/dashboard",
+                      };
+                      navigate({ to: (redirectMap[role || "FARMER"] || "/farmer/dashboard") as any });
+                    }}
+                  >
+                    <span>{role === "ADMIN" ? "Admin" : role === "OPERATOR" ? "Operator" : "Kisan"} Dashboard →</span>
+                  </button>
+                  <button
+                    className="landing-sign-in-pill"
+                    style={{ background: "rgba(255,255,255,0.15)", color: "#ffffff", padding: "6px 12px", fontSize: "12px" }}
+                    onClick={logout}
+                    title="Sign out"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <button
+                    className="landing-sign-in-pill"
+                    onClick={() => navigate({ to: "/login" })}
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    className="landing-sign-in-pill"
+                    style={{ background: "#186341", color: "#ffffff", border: "1.5px solid #22c55e", fontWeight: 700 }}
+                    onClick={() => navigate({ to: "/register" })}
+                  >
+                    Register 🌾
+                  </button>
+                </div>
+              )}
+            </div>
           </motion.header>
 
           {/* Hero Center Content */}
@@ -181,22 +221,53 @@ export default function LandingPage() {
               Book. Track. Get Notified. Hassle-Free Procurement.
             </motion.p>
 
-            {/* CTA Button */}
+            {/* CTA Buttons */}
             <motion.div
               className="landing-cta-wrap"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.55 }}
+              style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "12px" }}
             >
-              <motion.button
-                className="landing-hero-cta-btn"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate({ to: "/login" })}
-              >
-                <span>Get Started</span>
-                <ArrowRight size={18} />
-              </motion.button>
+              {isAuthenticated && user ? (
+                <motion.button
+                  className="landing-hero-cta-btn"
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const redirectMap: Record<string, string> = {
+                      FARMER: "/farmer/dashboard",
+                      OPERATOR: "/operator/dashboard",
+                      ADMIN: "/admin/dashboard",
+                    };
+                    navigate({ to: (redirectMap[role || "FARMER"] || "/farmer/dashboard") as any });
+                  }}
+                >
+                  <span>Open Your Dashboard</span>
+                  <ArrowRight size={18} />
+                </motion.button>
+              ) : (
+                <>
+                  <motion.button
+                    className="landing-hero-cta-btn"
+                    whileHover={{ scale: 1.03, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate({ to: "/login" })}
+                  >
+                    <span>Sign in / Access Mandi</span>
+                    <ArrowRight size={18} />
+                  </motion.button>
+                  <motion.button
+                    className="landing-hero-cta-btn"
+                    style={{ background: "rgba(255, 255, 255, 0.94)", color: "#186341", border: "2px solid #186341" }}
+                    whileHover={{ scale: 1.03, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate({ to: "/register" })}
+                  >
+                    <span>Register New Farmer 🌾</span>
+                  </motion.button>
+                </>
+              )}
             </motion.div>
           </main>
 

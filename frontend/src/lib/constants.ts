@@ -163,8 +163,8 @@ export const QUEUE_STAGES = [
 ] as const;
 
 // ── API Base URL ──
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
+export const API_URL = import.meta.env.VITE_API_URL || "https://indian-farmer.onrender.com/api";
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "https://indian-farmer.onrender.com";
 
 // ── App Constants ──
 export const APP_NAME = "KisanQueue";
