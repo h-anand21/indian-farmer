@@ -9,7 +9,9 @@ import {
   Info,
   X,
   Volume2,
-  Sparkles,
+  VolumeX,
+  Megaphone,
+  Radio,
 } from "lucide-react";
 
 export default function TopNotificationBanner() {
@@ -32,48 +34,74 @@ export default function TopNotificationBanner() {
     switch (activePushBanner.type) {
       case "TURN_CALLED":
         return {
-          bg: "bg-gradient-to-r from-amber-900/95 via-orange-900/95 to-amber-950/95",
-          border: "border-orange-500/50 shadow-orange-950/50",
-          badgeBg: "bg-orange-500/20 text-orange-300 border-orange-400/30",
-          icon: <Bell className="w-5 h-5 text-orange-400 animate-bounce" />,
-          accent: "text-orange-300",
-          progressBg: "bg-orange-400",
+          cardBg: "bg-white/95 backdrop-blur-xl",
+          border: "border-amber-300 shadow-[0_20px_50px_-12px_rgba(217,119,6,0.3)]",
+          accentLine: "bg-amber-500",
+          iconBg: "bg-gradient-to-br from-amber-100 to-amber-200 text-amber-800",
+          icon: <Bell className="w-5 h-5 animate-bounce" />,
+          badgeBg: "bg-amber-100/80 text-amber-900 border-amber-300/80",
+          badgeText: "⚡ WEIGHBRIDGE CALL • YOUR TURN",
+          titleColor: "text-slate-900",
+          descColor: "text-slate-600",
+          progressBg: "bg-gradient-to-r from-amber-500 to-orange-500",
+          glowDot: "bg-amber-500",
         };
       case "PROXIMITY_ALERT":
         return {
-          bg: "bg-gradient-to-r from-amber-950/95 via-stone-900/95 to-yellow-950/95",
-          border: "border-yellow-500/50 shadow-yellow-950/50",
-          badgeBg: "bg-yellow-500/20 text-yellow-300 border-yellow-400/30",
-          icon: <AlertTriangle className="w-5 h-5 text-yellow-400 animate-pulse" />,
-          accent: "text-yellow-300",
-          progressBg: "bg-yellow-400",
+          cardBg: "bg-white/95 backdrop-blur-xl",
+          border: "border-orange-300 shadow-[0_20px_50px_-12px_rgba(234,88,12,0.25)]",
+          accentLine: "bg-orange-500",
+          iconBg: "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-800",
+          icon: <AlertTriangle className="w-5 h-5 animate-pulse" />,
+          badgeBg: "bg-orange-100/80 text-orange-900 border-orange-300/80",
+          badgeText: "⚠️ GATE ARRIVAL PROXIMITY ALERT",
+          titleColor: "text-slate-900",
+          descColor: "text-slate-600",
+          progressBg: "bg-gradient-to-r from-orange-500 to-amber-500",
+          glowDot: "bg-orange-500",
         };
       case "PAYMENT_PAID":
         return {
-          bg: "bg-gradient-to-r from-emerald-950/95 via-teal-950/95 to-stone-900/95",
-          border: "border-emerald-500/50 shadow-emerald-950/50",
-          badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
-          icon: <CreditCard className="w-5 h-5 text-emerald-400" />,
-          accent: "text-emerald-300",
-          progressBg: "bg-emerald-400",
+          cardBg: "bg-white/95 backdrop-blur-xl",
+          border: "border-emerald-300 shadow-[0_20px_50px_-12px_rgba(16,185,129,0.25)]",
+          accentLine: "bg-emerald-600",
+          iconBg: "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-800",
+          icon: <CreditCard className="w-5 h-5" />,
+          badgeBg: "bg-emerald-100/80 text-emerald-900 border-emerald-300/80",
+          badgeText: "₹ DBT PAYMENT DISBURSED",
+          titleColor: "text-slate-900",
+          descColor: "text-slate-600",
+          progressBg: "bg-gradient-to-r from-emerald-600 to-teal-500",
+          glowDot: "bg-emerald-500",
         };
       case "SLOT_BOOKED":
         return {
-          bg: "bg-gradient-to-r from-green-950/95 via-emerald-950/95 to-stone-900/95",
-          border: "border-green-500/50 shadow-green-950/50",
-          badgeBg: "bg-green-500/20 text-green-300 border-green-400/30",
-          icon: <QrCode className="w-5 h-5 text-green-400" />,
-          accent: "text-green-300",
-          progressBg: "bg-green-400",
+          cardBg: "bg-white/95 backdrop-blur-xl",
+          border: "border-teal-300 shadow-[0_20px_50px_-12px_rgba(13,148,136,0.25)]",
+          accentLine: "bg-teal-600",
+          iconBg: "bg-gradient-to-br from-teal-100 to-teal-200 text-teal-800",
+          icon: <QrCode className="w-5 h-5" />,
+          badgeBg: "bg-teal-100/80 text-teal-900 border-teal-300/80",
+          badgeText: "📅 MANDI GATE PASS CONFIRMED",
+          titleColor: "text-slate-900",
+          descColor: "text-slate-600",
+          progressBg: "bg-gradient-to-r from-teal-600 to-emerald-500",
+          glowDot: "bg-teal-500",
         };
+      case "SYSTEM":
       default:
         return {
-          bg: "bg-gradient-to-r from-stone-900/95 via-zinc-900/95 to-stone-950/95",
-          border: "border-emerald-500/30 shadow-black/60",
-          badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
-          icon: <Info className="w-5 h-5 text-emerald-400" />,
-          accent: "text-emerald-300",
-          progressBg: "bg-emerald-400",
+          cardBg: "bg-white/95 backdrop-blur-xl",
+          border: "border-emerald-300 shadow-[0_20px_50px_-12px_rgba(22,163,74,0.25)]",
+          accentLine: "bg-emerald-600",
+          iconBg: "bg-gradient-to-br from-emerald-100 to-green-200 text-emerald-800",
+          icon: <Megaphone className="w-5 h-5" />,
+          badgeBg: "bg-emerald-100/80 text-emerald-900 border-emerald-300/80",
+          badgeText: "🏛️ APMC MANDI OFFICIAL BROADCAST",
+          titleColor: "text-slate-900",
+          descColor: "text-slate-600",
+          progressBg: "bg-gradient-to-r from-emerald-600 to-green-500",
+          glowDot: "bg-emerald-500",
         };
     }
   };
@@ -82,83 +110,117 @@ export default function TopNotificationBanner() {
 
   return (
     <AnimatePresence>
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] w-[92vw] max-w-[580px] pointer-events-auto">
+      <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-[99999] w-[94vw] max-w-[580px] pointer-events-auto">
         <motion.div
-          initial={{ opacity: 0, y: -60, scale: 0.94 }}
+          initial={{ opacity: 0, y: -50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -40, scale: 0.95 }}
-          transition={{ type: "spring", damping: 22, stiffness: 300 }}
-          className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border ${theme.bg} ${theme.border} shadow-2xl text-white p-4`}
+          exit={{ opacity: 0, y: -30, scale: 0.96 }}
+          transition={{ type: "spring", damping: 24, stiffness: 320 }}
+          className={`relative overflow-hidden rounded-2xl border-1.5 ${theme.cardBg} ${theme.border} p-4 sm:p-5 shadow-2xl transition-all`}
         >
-          {/* Header row */}
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-white/10 backdrop-blur-md">
+          {/* Top colored accent indicator line */}
+          <div className={`absolute top-0 left-0 right-0 h-1 ${theme.accentLine}`} />
+
+          {/* Header Row: Icon + Badge + Sound/Dismiss Controls */}
+          <div className="flex items-center justify-between gap-3 mb-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${theme.iconBg}`}>
                 {theme.icon}
               </div>
-              <span
-                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${theme.badgeBg} uppercase tracking-wider flex items-center gap-1.5`}
-              >
-                <Sparkles className="w-3 h-3" />
-                {activePushBanner.type.replace("_", " ")}
-              </span>
+
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[11px] font-extrabold px-3 py-1 rounded-full border shadow-xs tracking-wider truncate ${theme.badgeBg}`}
+                >
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${theme.glowDot} animate-pulse`} />
+                  {theme.badgeText}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* Quick Action Controls */}
+            <div className="flex items-center gap-1 shrink-0">
               <button
+                type="button"
                 onClick={toggleSound}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-stone-300 hover:text-white transition-colors"
-                title={soundEnabled ? "Mute alerts" : "Enable alert sounds"}
+                className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                  soundEnabled
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                    : "bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
+                }`}
+                title={soundEnabled ? "Mute alert sounds" : "Enable alert sounds"}
+                aria-label="Toggle Sound"
               >
-                <Volume2
-                  className={`w-4 h-4 ${!soundEnabled ? "opacity-40 line-through" : ""}`}
-                />
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
 
               <button
+                type="button"
                 onClick={() => {
                   markAsRead(activePushBanner.id);
                   dismissPushBanner();
                 }}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-stone-300 hover:text-white transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-300 transition-all"
+                title="Dismiss Notification"
+                aria-label="Close Notification"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          {/* Title & Message */}
-          <div className="pl-1 pr-2">
-            <h4 className="text-sm font-bold text-white mb-1 flex items-center gap-2">
+          {/* Notification Title & Body */}
+          <div className="pl-1 pr-1">
+            <h4 className={`text-[15px] font-bold ${theme.titleColor} leading-snug tracking-tight mb-1`}>
               {activePushBanner.title}
             </h4>
-            <p className="text-xs text-stone-200 leading-relaxed font-normal">
+
+            <p className={`text-[13.5px] ${theme.descColor} font-medium leading-relaxed`}>
               {activePushBanner.message}
             </p>
 
-            {/* Quick Metadata Info */}
-            {activePushBanner.metadata?.token && (
-              <div className="mt-2.5 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-black/40 border border-white/10 text-xs">
-                <span className="text-stone-400">Token Pass:</span>
-                <span className="font-mono font-bold text-amber-300">
-                  {activePushBanner.metadata.token}
-                </span>
+            {/* Rich Metadata Pills (Mandi Yard, Token, Counter, Amount) */}
+            {(activePushBanner.metadata?.centreName ||
+              activePushBanner.metadata?.token ||
+              activePushBanner.metadata?.counterNo ||
+              activePushBanner.metadata?.amount) && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                {activePushBanner.metadata.centreName && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11.5px] font-semibold">
+                    🏛️ Mandi Yard: {activePushBanner.metadata.centreName}
+                  </span>
+                )}
+
+                {activePushBanner.metadata.token && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 border border-amber-200 text-[11.5px] font-bold font-mono">
+                    🎫 Token Pass: {activePushBanner.metadata.token}
+                  </span>
+                )}
+
                 {activePushBanner.metadata.counterNo && (
-                  <span className="text-emerald-300 font-semibold pl-2 border-l border-white/20">
-                    Counter #{activePushBanner.metadata.counterNo}
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-900 border border-blue-200 text-[11.5px] font-bold">
+                    ⚖️ Weighbridge Counter #{activePushBanner.metadata.counterNo}
+                  </span>
+                )}
+
+                {activePushBanner.metadata.amount && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-[11.5px] font-bold">
+                    ₹ Payout: ₹{activePushBanner.metadata.amount.toLocaleString("en-IN")}
                   </span>
                 )}
               </div>
             )}
           </div>
 
-          {/* Progress bar timer indicator */}
-          <motion.div
-            initial={{ scaleX: 1 }}
-            animate={{ scaleX: 0 }}
-            transition={{ duration: 5, ease: "linear" }}
-            className={`absolute bottom-0 left-0 right-0 h-1 origin-left ${theme.progressBg}`}
-          />
+          {/* Progress Bar Timer (Counts down 5 seconds smoothly) */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100 overflow-hidden">
+            <motion.div
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 5, ease: "linear" }}
+              className={`h-full origin-left ${theme.progressBg}`}
+            />
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>
