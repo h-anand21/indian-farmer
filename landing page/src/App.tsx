@@ -397,7 +397,8 @@ export default function App() {
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   const handleSignIn = () => {
-    window.location.href = 'http://localhost:5173/login';
+    const loginUrl = import.meta.env.VITE_LOGIN_URL || 'https://farmer-jii.vercel.app/login';
+    window.location.href = loginUrl;
   };
 
   return (
