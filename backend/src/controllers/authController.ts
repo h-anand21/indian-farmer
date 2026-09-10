@@ -10,7 +10,7 @@ import {
   setFirebaseCustomClaims,
 } from "../services/authService";
 import { UserRole } from "../types/enums";
-import { isWhitelistedAdminEmail } from "../config/env";
+import { isWhitelistedAdminEmail, checkIsWhitelistedAdminEmailAsync } from "../config/env";
 
 // ── Validation Schemas ──
 
@@ -62,8 +62,9 @@ export async function register(
     const phone = req.user?.phone || data.phone;
 
     // RBAC Security Checks
+    const isWhitelistedAdmin = await checkIsWhitelistedAdminEmailAsync(email);
     if (data.role === "ADMIN") {
-      if (!isWhitelistedAdminEmail(email)) {
+      if (!isWhitelistedAdmin) {
         res.status(403).json({
           success: false,
           error: "ACCESS_DENIED_ADMIN",
@@ -114,7 +115,7 @@ export async function register(
     }
 
     // If email is in whitelisted admin list, create with ADMIN role
-    const assignedRole = (isWhitelistedAdminEmail(email) ? "ADMIN" : data.role) as UserRole;
+    const assignedRole = (isWhitelistedAdmin ? "ADMIN" : data.role) as UserRole;
 
     // Create user + farmer profile
     const user = await createFarmerUser(
@@ -288,7 +289,8 @@ export async function verifyToken(
     }
 
     // ── 🛡️ 1. ADMIN WHITELIST CHECK ──
-    if (email && isWhitelistedAdminEmail(email)) {
+    const isWhitelisted = email ? await checkIsWhitelistedAdminEmailAsync(email) : false;
+    if (email && isWhitelisted) {
       const prisma = (await import("../config/database")).default;
       if (user) {
         if (user.role !== "ADMIN") {
@@ -347,7 +349,7 @@ export async function verifyToken(
     // ── 🏢 2. MANDI OPERATOR AUTHORIZATION CHECK ──
     if (requestedRole === "OPERATOR") {
       // Administrators have automatic Superuser access to Operator desks
-      const isAdmin = (email && isWhitelistedAdminEmail(email)) || user?.role === "ADMIN";
+      const isAdmin = isWhitelisted || user?.role === "ADMIN";
 
       if (!isAdmin && (!user || user.role !== "OPERATOR")) {
         res.status(403).json({

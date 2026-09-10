@@ -507,3 +507,13 @@ model SyncLog {
   @@map("sync_logs")
 }
 
+/// Permanent database storage for authorized Administrator Gmail accounts
+model AdminWhitelist {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  addedBy   String?  @map("added_by")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("admin_whitelist")
+}
+

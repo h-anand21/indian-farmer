@@ -4,7 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import http from "http";
 import { Server } from "socket.io";
-import { env } from "./config/env";
+import { env, initAdminWhitelist } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
 import { initSocketServer } from "./socket/socketServer";
 
@@ -126,6 +126,11 @@ server.listen(env.PORT, () => {
   🌾  Sync Worker: Starting 🔄
   🌾 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
+
+  // Sync and seed permanent Admin Whitelist in database
+  initAdminWhitelist().catch((err) => {
+    console.error("⚠️ Failed to initialize admin whitelist:", err);
+  });
 
   // Boot the government data sync worker
   startSyncWorker();

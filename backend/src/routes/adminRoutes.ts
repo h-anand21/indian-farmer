@@ -16,6 +16,7 @@ import {
   getAnalytics,
   getWhitelistedAdmins,
   postWhitelistedAdmin,
+  deleteWhitelistedAdmin,
 } from "../controllers/adminController";
 
 const router = Router();
@@ -29,6 +30,7 @@ router.get("/analytics", getAnalytics);
 // Admin Whitelist Management
 router.get("/admins", getWhitelistedAdmins);
 router.post("/admins", postWhitelistedAdmin);
+router.delete("/admins/:email", deleteWhitelistedAdmin);
 
 // Centre management
 router.get("/centres", getCentres);

@@ -127,6 +127,29 @@ async function main() {
   }
 
   console.log(`  ✓ Generated 40 slots each across ${centres.length} Mandi centres.`);
+
+  // 3. Seed Authorized Administrator Whitelist
+  console.log("🛡️ Seeding Authorized Admin Whitelist...");
+  const adminEmails = [
+    "himanshuanand563@gmail.com",
+    "dollysingh1369@gmail.com",
+    "fardishmostofa@gmail.com",
+    "joyetasahoo3@gmail.com",
+    "sayandhar361@gmail.com",
+  ];
+
+  for (const email of adminEmails) {
+    await prisma.adminWhitelist.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        addedBy: "system-seed",
+      },
+    });
+    console.log(`  ✓ Whitelisted Admin: ${email}`);
+  }
+
   console.log("✅ Database Seeding Completed Successfully!");
 }
 

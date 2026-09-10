@@ -308,12 +308,12 @@ export async function getAnalytics(req: Request, res: Response, next: NextFuncti
 
 /**
  * GET /api/admin/admins
- * List all whitelisted administrator emails
+ * List all whitelisted administrator emails from database
  */
 export async function getWhitelistedAdmins(_req: Request, res: Response, next: NextFunction) {
   try {
     const { getDynamicAdminEmails } = await import("../config/env");
-    const admins = getDynamicAdminEmails();
+    const admins = await getDynamicAdminEmails();
     res.json({ success: true, data: admins });
   } catch (error) {
     next(error);
@@ -322,7 +322,7 @@ export async function getWhitelistedAdmins(_req: Request, res: Response, next: N
 
 /**
  * POST /api/admin/admins
- * Whitelist a new administrator email
+ * Whitelist a new administrator email (persisted permanently in PostgreSQL)
  */
 export async function postWhitelistedAdmin(req: Request, res: Response, next: NextFunction) {
   try {
@@ -333,14 +333,39 @@ export async function postWhitelistedAdmin(req: Request, res: Response, next: Ne
     }
 
     const { addDynamicAdminEmail } = await import("../config/env");
-    const updatedList = addDynamicAdminEmail(email);
+    const updatedList = await addDynamicAdminEmail(email, (req as any).user?.email || "admin");
 
     res.status(201).json({
       success: true,
-      message: `Administrator '${email.trim().toLowerCase()}' has been whitelisted successfully.`,
+      message: `Administrator '${email.trim().toLowerCase()}' has been whitelisted and permanently saved to the database.`,
       data: updatedList,
     });
   } catch (error) {
     next(error);
+  }
+}
+
+/**
+ * DELETE /api/admin/admins/:email
+ * Remove an administrator email from whitelist (cannot remove superadmin)
+ */
+export async function deleteWhitelistedAdmin(req: Request, res: Response, next: NextFunction) {
+  try {
+    const email = req.params.email as string;
+    if (!email) {
+      res.status(400).json({ success: false, message: "Email parameter is required." });
+      return;
+    }
+
+    const { removeDynamicAdminEmail } = await import("../config/env");
+    const updatedList = await removeDynamicAdminEmail(email);
+
+    res.json({
+      success: true,
+      message: `Administrator '${email.trim().toLowerCase()}' has been removed from the whitelist.`,
+      data: updatedList,
+    });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message || "Failed to remove admin." });
   }
 }
