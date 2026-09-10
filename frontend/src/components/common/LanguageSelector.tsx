@@ -18,6 +18,7 @@ import {
 interface LanguageSelectorProps {
   variant?: "header" | "floating" | "compact";
   className?: string;
+  autoPrompt?: boolean;
 }
 
 type FilterTab = "all" | "popular" | "north" | "south" | "east" | "west";
@@ -25,6 +26,7 @@ type FilterTab = "all" | "popular" | "north" | "south" | "east" | "west";
 export default function LanguageSelector({
   variant = "header",
   className = "",
+  autoPrompt = false,
 }: LanguageSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeCode, setActiveCode] = useState("en");
@@ -35,7 +37,19 @@ export default function LanguageSelector({
   useEffect(() => {
     setMounted(true);
     setActiveCode(getCurrentLanguage());
-  }, []);
+
+    if (autoPrompt) {
+      // Prompt whenever entering or returning to the login page
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [autoPrompt]);
+
+  const closeModal = () => {
+    setIsOpen(false);
+  };
 
   // Keyboard shortcut (Ctrl + K) & Escape listener
   useEffect(() => {
@@ -45,7 +59,7 @@ export default function LanguageSelector({
         setIsOpen((prev) => !prev);
       }
       if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
+        closeModal();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -152,7 +166,7 @@ export default function LanguageSelector({
           <div
             className="language-modal-overlay notranslate"
             translate="no"
-            onClick={() => setIsOpen(false)}
+            onClick={closeModal}
           >
             <div
               className="language-modal"
@@ -181,7 +195,7 @@ export default function LanguageSelector({
                 <button
                   type="button"
                   className="close-btn"
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeModal}
                   aria-label="Close modal"
                 >
                   &times;

@@ -180,7 +180,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <LanguageSelector variant="compact" />
+          <LanguageSelector variant="compact" autoPrompt={true} />
         </div>
       </nav>
 

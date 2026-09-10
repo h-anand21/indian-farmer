@@ -493,7 +493,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="reg-nav-actions">
-          <LanguageSelector variant="compact" />
+          <LanguageSelector variant="compact" autoPrompt={true} />
           <button
             type="button"
             className="reg-nav-btn"
