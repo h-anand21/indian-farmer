@@ -36,22 +36,43 @@ async function executeSyncJob(sourceId?: string): Promise<void> {
   }
 }
 
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delayMs = 3000,
+  context = 'Operation'
+): Promise<T> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      if (attempt === retries) throw err;
+      console.warn(
+        `[SyncWorker] ⏳ ${context} waiting for database (attempt ${attempt}/${retries}). Retrying in ${delayMs / 1000}s...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw new Error(`${context} failed after ${retries} attempts`);
+}
+
 let cronTask: ScheduledTask | null = null;
 
 export function startSyncWorker(): void {
   console.log('[SyncWorker] 🌾 Initializing Government Data Sync Worker...');
 
-  // Seed source registry on first boot
-  seedSyncSources().catch((err) =>
-    console.error('[SyncWorker] Source seeding failed:', err.message)
-  );
+  // Allow database connection pool to settle (Neon serverless wake-up)
+  setTimeout(async () => {
+    try {
+      await retryWithBackoff(() => seedSyncSources(), 3, 3000, 'Source Seeding');
+      console.log('[SyncWorker] ✅ Sync sources verified & ready');
 
-  // Run an immediate first sync (with a 5s delay to allow DB connections to settle)
-  setTimeout(() => {
-    executeSyncJob().catch((err) =>
-      console.error('[SyncWorker] Initial sync failed:', err.message)
-    );
-  }, 5000);
+      // Run initial sync after seeding successfully completes
+      await retryWithBackoff(() => executeSyncJob(), 2, 4000, 'Initial Sync');
+    } catch (err: any) {
+      console.warn('[SyncWorker] ⚠️ Sync worker initialization deferred:', err.message);
+    }
+  }, 3000);
 
   // Schedule recurring sync every 6 hours
   cronTask = cron.schedule('0 */6 * * *', async () => {
@@ -59,7 +80,7 @@ export function startSyncWorker(): void {
     await executeSyncJob();
   });
 
-  console.log('[SyncWorker] ✅ Cron worker started — runs every 6 hours');
+  console.log('[SyncWorker] ✅ Cron worker scheduled — runs every 6 hours');
 }
 
 export function stopSyncWorker(): void {
