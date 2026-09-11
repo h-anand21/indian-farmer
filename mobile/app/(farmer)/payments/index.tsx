@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   IndianRupee,
   Calendar,
   ChevronRight,
+  ChevronDown,
   Filter,
   Download,
   ArrowLeft,
@@ -20,41 +21,64 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  TrendingUp,
+  Copy,
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import Colors from '../../../src/theme/colors';
 
-const PAYMENTS = [
+const PAYMENTS_DATA = [
   {
     id: 'pay-1',
     date: '12 Sep 2026',
     mandi: 'Azadpur Mandi, Delhi',
-    crop: 'Wheat',
-    quantity: '45.5 Qt',
-    mspRate: '₹ 2,275/Qt',
-    totalAmount: '₹ 1,03,513',
+    crop: 'Wheat (45.5 Qt)',
+    msp: '₹ 2,275/Qt',
+    amount: '₹ 1,03,513',
     status: 'COMPLETED',
-    statusLabel: 'DBT Credited',
     bankRef: 'SBI-DBT-98412034',
+    color: '#2D8A39',
+    bg: '#ECF8EE',
     token: '#KQ-1048',
   },
   {
     id: 'pay-2',
     date: '28 Aug 2026',
     mandi: 'Ghazipur Mandi, Delhi',
-    crop: 'Rice',
-    quantity: '32.0 Qt',
-    mspRate: '₹ 2,183/Qt',
-    totalAmount: '₹ 69,856',
-    status: 'COMPLETED',
-    statusLabel: 'DBT Credited',
+    crop: 'Rice (32 Qt)',
+    msp: '₹ 2,183/Qt',
+    amount: '₹ 69,856',
+    status: 'PENDING',
     bankRef: 'PNB-DBT-88123049',
+    color: '#2B70C9',
+    bg: '#EDF4FC',
     token: '#KQ-1047',
   },
   {
     id: 'pay-3',
     date: '15 Aug 2026',
     mandi: 'Narela Mandi, Delhi',
+    crop: 'Maize (50 Qt)',
+    msp: '₹ 2,090/Qt',
+    amount: '₹ 1,04,500',
+    status: 'COMPLETED',
+    bankRef: 'HDFC-DBT-77410293',
+    color: '#2D8A39',
+    bg: '#ECF8EE',
+    token: '#KQ-1045',
+  },
+  {
+    id: 'pay-4',
+    date: '02 Aug 2026',
+    mandi: 'Shahdara Mandi, Delhi',
+    crop: 'Soybean (30 Qt)',
+    msp: '₹ 4,600/Qt',
+    amount: '₹ 1,38,000',
+    status: 'FAILED',
+    bankRef: 'ICIC-DBT-00098765',
+    color: '#D93838',
     bg: '#FFF2F2',
+    token: '#KQ-1042',
   },
 ];
 
