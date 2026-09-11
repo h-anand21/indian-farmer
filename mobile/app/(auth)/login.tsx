@@ -5,10 +5,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Globe, Sprout, ShieldCheck, Users, FlaskConical } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
@@ -31,22 +31,27 @@ if (!__DEV__) {
 }
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const { login, loginAsDemo } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showDevLogin, setShowDevLogin] = useState(false);
   const [devEmail, setDevEmail] = useState('');
   const [devPassword, setDevPassword] = useState('');
-  const [showDevLogin, setShowDevLogin] = useState(false);
-  const { login, loginAsDemo } = useAuth();
-  const router = useRouter();
 
-  // ── APK: Native Google Sign-in ──
+  // ── Production APK: Native Google Sign-In ──
   const handleGoogleSignIn = async () => {
-    if (__DEV__) {
-      // Expo Go me show dev options
+    setIsLoading(true);
+    if (__DEV__ || !NativeGoogleSignin) {
       setShowDevLogin(true);
+      setIsLoading(false);
+      Toast.show({
+        type: 'info',
+        text1: '📱 Expo Go Testing Mode',
+        text2: 'Expo Go me native Google sign-in APK me chalega. Neeche Dev Testing options dekhein! 👇',
+      });
       return;
     }
 
-    setIsLoading(true);
     try {
       const { GoogleAuthProvider, signInWithCredential } = require('firebase/auth');
       await NativeGoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -61,16 +66,7 @@ export default function LoginScreen() {
       Toast.show({ type: 'success', text1: '✅ Google Login Successful!' });
     } catch (error: any) {
       if (error?.code !== statusCodes?.SIGN_IN_CANCELLED) {
-        if (__DEV__) {
-          setShowDevLogin(true);
-          Toast.show({
-            type: 'info',
-            text1: '📱 Expo Go Testing Note',
-            text2: 'Expo Go me native Google login APK ke baad chalega. Neeche Dev Testing options dekhein! 👇',
-          });
-        } else {
-          Toast.show({ type: 'error', text1: 'Login Failed', text2: error?.message });
-        }
+        Toast.show({ type: 'error', text1: 'Login Failed', text2: error?.message });
       }
     } finally {
       setIsLoading(false);
@@ -113,7 +109,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoGroup}>
