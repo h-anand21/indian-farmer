@@ -9,6 +9,24 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import {
+  User,
+  Phone,
+  MapPin,
+  ShieldCheck,
+  Globe,
+  LogOut,
+  ChevronRight,
+  FileCheck,
+  CreditCard,
+  Wheat,
+  Landmark,
+  HelpCircle,
+  Info,
+  IndianRupee,
+  Bell,
+  Megaphone,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
@@ -118,6 +136,53 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Quick Menu Shortcuts (Procurements, Payments, Govt Hub) */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Services & Hub Shortcuts</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(farmer)/payments')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#EBF4E5' }]}>
+              <IndianRupee size={18} color="#3B7A1E" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Payments & Earnings Log</Text>
+              <Text style={styles.settingSub}>View DBT bank credits and payout receipts</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(farmer)/procurements')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#FFF4EC' }]}>
+              <Wheat size={18} color="#E66919" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Procurements & Form J</Text>
+              <Text style={styles.settingSub}>View weighment slips & Form J receipts</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(farmer)/govt-hub')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#F0F9FF' }]}>
+              <Landmark size={18} color="#0284C7" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Government Hub & MSP Rates</Text>
+              <Text style={styles.settingSub}>PM-Kisan, Fasal Bima & Crop Advisories</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Farm & Account Metadata */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Farmer & Land Verification</Text>
@@ -155,7 +220,7 @@ export default function ProfileScreen() {
 
         {/* App Settings */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>Preferences & Help</Text>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -167,6 +232,34 @@ export default function ProfileScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.settingTitle}>Change App Language</Text>
               <Text style={styles.settingSub}>Hindi / Punjabi / English Available</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(shared)/support')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#EBF4E5' }]}>
+              <HelpCircle size={18} color="#3B7A1E" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Help & Support Helpline</Text>
+              <Text style={styles.settingSub}>Toll-Free 1800-180-1551 & WhatsApp</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(shared)/about')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+              <Info size={18} color="#7C3AED" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>About KisanQueue</Text>
+              <Text style={styles.settingSub}>Version 2.4.0 • National Agritech Portal</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
