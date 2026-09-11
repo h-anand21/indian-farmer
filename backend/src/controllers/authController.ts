@@ -255,37 +255,50 @@ export async function verifyToken(
 
     let user = await findUserByFirebaseUid(firebaseUid);
 
-    // If not found by Firebase UID, check by Email (since user may have registered with Gmail)
-    if (!user && email) {
-      user = await findUserByEmail(email);
-      if (user) {
-        // Link the Firebase UID to this existing user record
-        const prisma = (await import("../config/database")).default;
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { firebaseUid },
-          include: {
-            farmer: true,
-            operator: { include: { centre: true } },
-          },
-        });
-      }
-    }
+    // Auto-create demo user in DB for dev testing if using demo token
+    if (!user && firebaseUid.startsWith("demo-")) {
+      const prisma = (await import("../config/database")).default;
+      const demoRole = (req.user?.role || "FARMER") as UserRole;
+      const isOp = demoRole === "OPERATOR";
+      const isAdmin = demoRole === "ADMIN";
 
-    // If still not found, check by Phone
-    if (!user && phone) {
-      user = await findUserByPhone(phone);
-      if (user) {
-        const prisma = (await import("../config/database")).default;
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { firebaseUid },
-          include: {
-            farmer: true,
-            operator: { include: { centre: true } },
+      let centre = await prisma.procurementCentre.findFirst();
+
+      user = await prisma.user.create({
+        data: {
+          firebaseUid,
+          email: email || `${demoRole.toLowerCase()}@kisanqueue.gov.in`,
+          phone: phone || "+919814012345",
+          name: isOp ? "Khanna Mandi Operator Desk" : isAdmin ? "Punjab State Agriculture Admin" : "Sardar Gurdeep Singh",
+          role: demoRole,
+          farmer: {
+            create: {
+              farmerId: "PMK-984210",
+              state: "Punjab",
+              district: "Ludhiana",
+              tehsil: "Khanna",
+              village: "Bija",
+              pincode: "141412",
+              landArea: 4.5,
+              ownershipType: "Owner",
+            },
           },
-        });
-      }
+          ...(isOp && centre
+            ? {
+                operator: {
+                  create: {
+                    centreId: centre.id,
+                    employeeId: "EMP-KHN-01",
+                  },
+                },
+              }
+            : {}),
+        },
+        include: {
+          farmer: true,
+          operator: { include: { centre: true } },
+        },
+      });
     }
 
     // ── 🛡️ 1. ADMIN WHITELIST CHECK ──

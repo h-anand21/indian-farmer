@@ -40,7 +40,19 @@ export async function authMiddleware(
     const idToken = authHeader.split("Bearer ")[1];
     let decodedToken: any;
 
-    if (isFirebaseDevMode) {
+    if (idToken.startsWith("demo-")) {
+      const demoRole = idToken.includes("operator")
+        ? "OPERATOR"
+        : idToken.includes("admin")
+        ? "ADMIN"
+        : "FARMER";
+      decodedToken = {
+        uid: `demo-${demoRole.toLowerCase()}-uid`,
+        email: `${demoRole.toLowerCase()}@kisanqueue.gov.in`,
+        phone_number: "+919814012345",
+        role: demoRole,
+      };
+    } else if (isFirebaseDevMode) {
       // In dev mode without service account key, decode the Firebase JWT payload
       try {
         const payloadBase64 = idToken.split(".")[1];

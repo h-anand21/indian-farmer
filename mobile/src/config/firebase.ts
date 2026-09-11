@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+// @ts-ignore - getReactNativePersistence is available in react-native environment
 import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";

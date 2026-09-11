@@ -1,24 +1,30 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, Calendar, Sprout, Clock, User, QrCode, LayoutDashboard, BarChart3, Building2 } from 'lucide-react-native';
-
-const { width } = Dimensions.get('window');
+import Svg, { Path, Circle } from 'react-native-svg';
+import { IndianRupee, QrCode, BarChart3, Building2 } from 'lucide-react-native';
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // Filter visible routes (exclude hidden ones with href: null)
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
-    return options.href !== null && options.tabBarButton !== null;
+    return (options as any)?.href !== null && options.tabBarButton !== null;
   });
 
   return (
-    <View style={styles.outerContainer}>
+    <View style={styles.outerContainer} pointerEvents="box-none">
       <View style={styles.glassPill}>
-        {visibleRoutes.map((route, index) => {
+        {visibleRoutes.map((route) => {
           const { options } = descriptors[route.key];
           const routeIndex = state.routes.findIndex((r) => r.key === route.key);
           const isFocused = state.index === routeIndex;
+
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+              ? options.title
+              : route.name;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -32,56 +38,111 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
           };
 
-          // Check if this is the center action button (e.g. queue/book-slot/scan or middle item)
-          const isCenterAction =
-            route.name === 'book-slot' ||
-            route.name === 'scan' ||
-            (visibleRoutes.length === 3 && index === 1) ||
-            (visibleRoutes.length === 4 && index === 2);
-
-          // Get icon component
-          const renderIcon = () => {
-            if (route.name === 'dashboard') return <Home size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            if (route.name === 'bookings') return <Calendar size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            if (route.name === 'queue') return <Clock size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            if (route.name === 'scan') return <QrCode size={24} color="#12160F" />;
-            if (route.name === 'analytics') return <BarChart3 size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            if (route.name === 'centres') return <Building2 size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            if (route.name === 'profile') return <User size={22} color={isFocused ? '#FFFFFF' : '#B2C0B0'} />;
-            
-            // Center action default Sprout icon
-            return <Sprout size={24} color={isCenterAction ? '#12160F' : isFocused ? '#FFFFFF' : '#B2C0B0'} />;
+          const onLongPress = () => {
+            navigation.emit({
+              type: 'tabLongPress',
+              target: route.key,
+            });
           };
 
-          if (isCenterAction) {
+          // Render Icon matching the exact reference screenshot
+          const renderIcon = (focused: boolean) => {
+            const iconColor = focused ? '#FFFFFF' : '#141713';
+
+            if (route.name === 'dashboard') {
+              // Solid House silhouette
+              return (
+                <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
+                  <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
+                </Svg>
+              );
+            }
+
+            if (route.name === 'queue') {
+              // Two-leaf Sprout silhouette from screenshot
+              return (
+                <Svg width={23} height={23} viewBox="0 0 24 24">
+                  <Path
+                    d="M12 19 C 13.5 12.5 17.5 7.5 21 6.5 C 21 11.5 18 17 12 19 Z"
+                    fill={iconColor}
+                  />
+                  <Path
+                    d="M12 19 C 10.5 14 7.2 10.5 3.5 10 C 4 14 7.5 17.5 12 19 Z"
+                    fill={iconColor}
+                  />
+                </Svg>
+              );
+            }
+
+            if (route.name === 'payments') {
+              // Indian Rupee symbol
+              return <IndianRupee size={22} color={iconColor} strokeWidth={2.8} />;
+            }
+
+            if (route.name === 'profile') {
+              // Person silhouette (avatar)
+              return (
+                <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
+                  <Circle cx="12" cy="7.5" r="4.2" />
+                  <Path d="M4.5 19.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5v0.5H4.5v-0.5z" />
+                </Svg>
+              );
+            }
+
+            if (route.name === 'scan') {
+              return <QrCode size={22} color={iconColor} strokeWidth={2.5} />;
+            }
+
+            if (route.name === 'analytics') {
+              return <BarChart3 size={22} color={iconColor} strokeWidth={2.5} />;
+            }
+
+            if (route.name === 'centres') {
+              return <Building2 size={22} color={iconColor} strokeWidth={2.5} />;
+            }
+
             return (
-              <TouchableOpacity
-                key={route.key}
-                accessibilityRole="button"
-                accessibilityState={isFocused ? { selected: true } : {}}
-                onPress={onPress}
-                style={styles.centerButton}
-                activeOpacity={0.85}
-              >
-                <View style={styles.centerButtonInner}>
-                  {renderIcon()}
-                </View>
-              </TouchableOpacity>
+              <Svg width={23} height={23} viewBox="0 0 24 24">
+                <Path
+                  d="M12 19 C 13.5 12.5 17.5 7.5 21 6.5 C 21 11.5 18 17 12 19 Z"
+                  fill={iconColor}
+                />
+                <Path
+                  d="M12 19 C 10.5 14 7.2 10.5 3.5 10 C 4 14 7.5 17.5 12 19 Z"
+                  fill={iconColor}
+                />
+              </Svg>
             );
-          }
+          };
 
           return (
             <TouchableOpacity
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
+              accessibilityLabel={options.tabBarAccessibilityLabel}
               onPress={onPress}
-              style={styles.tabButton}
-              activeOpacity={0.7}
+              onLongPress={onLongPress}
+              style={styles.tabItem}
+              activeOpacity={0.8}
             >
-              <View style={[styles.iconContainer, isFocused && styles.iconContainerActive]}>
-                {renderIcon()}
+              <View style={styles.circleWrapper}>
+                {/* Radiant Golden Glow Halo when focused */}
+                {isFocused && (
+                  <>
+                    <View style={styles.haloOuterGlow} />
+                    <View style={styles.haloMiddleGlow} />
+                  </>
+                )}
+
+                <View style={[styles.circle, isFocused ? styles.circleActive : styles.circleInactive]}>
+                  {renderIcon(isFocused)}
+                </View>
               </View>
+
+              <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]} numberOfLines={1}>
+                {String(label)}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -93,66 +154,87 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
 const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 22,
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 99,
+    zIndex: 999,
   },
   glassPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(24, 34, 24, 0.78)',
-    borderRadius: 40,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    justifyContent: 'space-around',
+    backgroundColor: '#FAF7F0', // Warm ivory cream marble tone from screenshot
+    borderRadius: 48,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    width: '92%',
+    maxWidth: 390,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#000',
+    borderColor: 'rgba(235, 229, 217, 0.9)',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.28,
+    shadowOpacity: 0.16,
     shadowRadius: 20,
     elevation: 10,
-    minWidth: 220,
   },
-  tabButton: {
-    padding: 6,
+  tabItem: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 2,
   },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  circleWrapper: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    width: 60,
+    height: 60,
   },
-  iconContainerActive: {
-    backgroundColor: '#12160F',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+  haloOuterGlow: {
+    position: 'absolute',
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: 'rgba(245, 158, 11, 0.22)',
   },
-  centerButton: {
-    marginHorizontal: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centerButtonInner: {
+  haloMiddleGlow: {
+    position: 'absolute',
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: '#F3CF65',
+    backgroundColor: 'rgba(245, 158, 11, 0.50)',
+  },
+  circle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2.5,
-    borderColor: '#FFFFFF',
-    shadowColor: '#F3CF65',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+  },
+  circleInactive: {
+    backgroundColor: '#EDE7DA', // Warm light cream circle, distinct from pill
+  },
+  circleActive: {
+    backgroundColor: '#0A0D08', // Solid deep black circle
+    borderWidth: 1.5,
+    borderColor: '#F59E0B', // Golden amber radiant ring
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.95,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  tabLabel: {
+    fontSize: 11.5,
+    color: '#656A60',
+    fontWeight: '600',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  tabLabelActive: {
+    color: '#0A0D08',
+    fontWeight: '800',
   },
 });
