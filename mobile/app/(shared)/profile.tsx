@@ -9,13 +9,25 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { User, Phone, MapPin, ShieldCheck, Globe, LogOut, ChevronRight, FileCheck, CreditCard, Award } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, role, logout } = useAuth();
+  const { user, role, logout, switchRole } = useAuth();
+
+  const handleRoleSwitch = async (newRole: 'FARMER' | 'OPERATOR' | 'ADMIN') => {
+    try {
+      await switchRole(newRole);
+      Toast.show?.({ type: 'success', text1: `Switched to ${newRole} mode!` });
+      if (newRole === 'FARMER') router.replace('/(farmer)/dashboard');
+      else if (newRole === 'OPERATOR') router.replace('/(operator)/dashboard');
+      else if (newRole === 'ADMIN') router.replace('/(admin)/dashboard');
+    } catch (e: any) {
+      Alert.alert('Role Switch Error', e?.message || 'Could not switch role');
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to log out of KisanQueue?', [
@@ -43,14 +55,66 @@ export default function ProfileScreen() {
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{user?.name ? user.name[0] : 'K'}</Text>
           </View>
-          <Text style={styles.userName}>{user?.name || 'Ram Singh Gurjar'}</Text>
-          <Text style={styles.userPhone}>{user?.phone || '+91 98765 43210'}</Text>
+          <Text style={styles.userName}>{user?.name || 'Sardar Gurdeep Singh'}</Text>
+          <Text style={styles.userPhone}>{user?.phone || '+91 98140 12345'}</Text>
 
           <View style={styles.roleBadge}>
             <ShieldCheck size={14} color="#3B7A1E" />
             <Text style={styles.roleText}>
-              Verified {role?.toUpperCase() || 'FARMER'} • DigiLocker KYC Approved
+              Active Mode: {role?.toUpperCase() || 'FARMER'} • DigiLocker KYC Verified
             </Text>
+          </View>
+        </View>
+
+        {/* Switch Role Card (Multi-Role Portal) */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>🔄 Switch User Role Portal</Text>
+          <Text style={{ fontSize: 12, color: Colors.light.textMuted, marginBottom: 8 }}>
+            Switch between Farmer, Operator, and Admin views seamlessly:
+          </Text>
+
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={[
+                styles.roleSwitchBtn,
+                role === 'FARMER' && styles.roleSwitchActive,
+                { borderColor: '#3B7A1E' },
+              ]}
+              onPress={() => handleRoleSwitch('FARMER')}
+            >
+              <Text style={{ fontSize: 16 }}>🌾</Text>
+              <Text style={[styles.roleSwitchText, role === 'FARMER' && { color: '#3B7A1E', fontWeight: '800' }]}>
+                Farmer
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.roleSwitchBtn,
+                role === 'OPERATOR' && styles.roleSwitchActive,
+                { borderColor: '#0284C7' },
+              ]}
+              onPress={() => handleRoleSwitch('OPERATOR')}
+            >
+              <Text style={{ fontSize: 16 }}>🚜</Text>
+              <Text style={[styles.roleSwitchText, role === 'OPERATOR' && { color: '#0284C7', fontWeight: '800' }]}>
+                Operator
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.roleSwitchBtn,
+                role === 'ADMIN' && styles.roleSwitchActive,
+                { borderColor: '#7C3AED' },
+              ]}
+              onPress={() => handleRoleSwitch('ADMIN')}
+            >
+              <Text style={{ fontSize: 16 }}>👑</Text>
+              <Text style={[styles.roleSwitchText, role === 'ADMIN' && { color: '#7C3AED', fontWeight: '800' }]}>
+                Admin
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -64,7 +128,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>Registered Mandi Location</Text>
-              <Text style={styles.infoVal}>Karond APMC Yard, Bhopal District</Text>
+              <Text style={styles.infoVal}>Khanna APMC Grain Market, Punjab</Text>
             </View>
           </View>
 
@@ -74,7 +138,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>Land Khasra ID (Bhoomi Abhilekh)</Text>
-              <Text style={styles.infoVal}>Khasra #142/2 (4.5 Hectares Registered)</Text>
+              <Text style={styles.infoVal}>PMK-984210 (4.5 Hectares Registered)</Text>
             </View>
           </View>
 
@@ -102,7 +166,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.settingTitle}>Change App Language</Text>
-              <Text style={styles.settingSub}>Hindi (हिन्दी) Selected</Text>
+              <Text style={styles.settingSub}>Hindi / Punjabi / English Available</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -199,6 +263,31 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#12160F',
     marginBottom: 2,
+  },
+  roleSwitchBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    backgroundColor: '#FAF9F5',
+  },
+  roleSwitchActive: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  roleSwitchText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#444',
   },
   infoRow: {
     flexDirection: 'row',
