@@ -74,7 +74,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               );
             }
 
-            if (route.name === 'payments') {
+            if (route.name === 'payments' || route.name === 'payments/index') {
               // Indian Rupee symbol
               return <IndianRupee size={22} color={iconColor} strokeWidth={2.8} />;
             }
@@ -97,7 +97,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               return <BarChart3 size={22} color={iconColor} strokeWidth={2.5} />;
             }
 
-            if (route.name === 'centres') {
+            if (route.name === 'centres' || route.name === 'centres/index') {
               return <Building2 size={22} color={iconColor} strokeWidth={2.5} />;
             }
 

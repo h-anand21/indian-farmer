@@ -28,7 +28,7 @@ export default function FarmerTabsLayout() {
 
       {/* 3. Payments */}
       <Tabs.Screen
-        name="payments"
+        name="payments/index"
         options={{
           title: 'Payments',
         }}
@@ -43,7 +43,9 @@ export default function FarmerTabsLayout() {
       />
 
       {/* Hidden Screens (Accessible via Dashboard & Profile/Settings) */}
-      <Tabs.Screen name="bookings" options={{ href: null }} />
+      <Tabs.Screen name="payments/[id]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/index" options={{ href: null }} />
+      <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
       <Tabs.Screen name="book-slot" options={{ href: null }} />
       <Tabs.Screen name="procurements" options={{ href: null }} />
       <Tabs.Screen name="govt-hub" options={{ href: null }} />

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 // @ts-ignore - getReactNativePersistence is available in react-native environment
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { initializeAuth, getAuth, getReactNativePersistence, Auth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
@@ -22,12 +22,20 @@ const firebaseConfig = {
 // Singleton Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Auth with AsyncStorage persistence — user won't be logged out on app restart
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+// Auth with AsyncStorage persistence (safe against Metro hot reloading)
+let authInstance: Auth;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (err: any) {
+  authInstance = getAuth(app);
+}
+
+export const auth = authInstance;
 
 // Realtime Database
 export const realtimeDB = getDatabase(app);
 
 export default app;
+

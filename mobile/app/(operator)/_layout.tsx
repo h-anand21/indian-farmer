@@ -43,6 +43,7 @@ export default function OperatorLayout() {
       />
 
       {/* Hidden Screens */}
+      <Tabs.Screen name="farmer-detail/[id]" options={{ href: null }} />
       <Tabs.Screen name="intake" options={{ href: null }} />
       <Tabs.Screen name="payments" options={{ href: null }} />
       <Tabs.Screen name="daily-report" options={{ href: null }} />

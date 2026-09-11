@@ -28,7 +28,7 @@ export default function AdminLayout() {
 
       {/* 3. Mandi Centres */}
       <Tabs.Screen
-        name="centres"
+        name="centres/index"
         options={{
           title: 'Centres',
         }}
@@ -43,8 +43,10 @@ export default function AdminLayout() {
       />
 
       {/* Hidden Screens */}
+      <Tabs.Screen name="centres/[id]" options={{ href: null }} />
+      <Tabs.Screen name="users/index" options={{ href: null }} />
+      <Tabs.Screen name="users/[id]" options={{ href: null }} />
       <Tabs.Screen name="crops" options={{ href: null }} />
-      <Tabs.Screen name="users" options={{ href: null }} />
       <Tabs.Screen name="audit-logs" options={{ href: null }} />
       <Tabs.Screen name="broadcast" options={{ href: null }} />
       <Tabs.Screen name="govt-hub" options={{ href: null }} />
