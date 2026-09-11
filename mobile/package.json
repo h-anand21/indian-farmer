@@ -30,7 +30,7 @@
     "react": "19.2.0",
     "react-hook-form": "^7.87.0",
     "react-i18next": "^17.0.13",
-    "react-native": "0.83.10",
+    "react-native": "0.78.0",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-qrcode-svg": "^6.3.24",
     "react-native-reanimated": "4.2.1",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~5.9.2"
   },
   "scripts": {
     "start": "expo start",
