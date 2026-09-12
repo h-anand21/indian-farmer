@@ -30,7 +30,21 @@ import {
 import Colors from '../../src/theme/colors';
 import { fetchAdminAuditLogs } from '../../src/services/adminService';
 
-const MOCK_LOGS = [
+interface AuditLogItem {
+  id: string;
+  user: string;
+  role: string;
+  category: string;
+  action: string;
+  details: string;
+  ip: string;
+  device: string;
+  timestamp: string;
+  status: string;
+  extraData?: Record<string, any>;
+}
+
+const MOCK_LOGS: AuditLogItem[] = [
   {
     id: 'log-101',
     user: 'Ramesh Sharma',

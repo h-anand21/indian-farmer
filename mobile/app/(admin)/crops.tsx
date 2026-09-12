@@ -62,8 +62,8 @@ export default function AdminCropsScreen() {
         const mapped = apiData.map((c) => ({
           id: c.id,
           name: c.name,
-          category: c.cropCategory || 'Cereal',
-          season: c.category || 'Rabi',
+          category: c.category || 'Cereal',
+          season: 'Rabi',
           mspRate: c.mspRate.toString(),
           prevYearRate: (c.mspRate * 0.95).toFixed(0),
           moistureMax: '12%',
