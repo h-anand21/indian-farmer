@@ -28,6 +28,10 @@ import {
   Megaphone,
   Calendar,
   CalendarPlus,
+  QrCode,
+  BarChart3,
+  Building2,
+  Users,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
@@ -41,9 +45,6 @@ export default function ProfileScreen() {
     try {
       await switchRole(newRole);
       Toast.show?.({ type: 'success', text1: `Switched to ${newRole} mode!` });
-      if (newRole === 'FARMER') router.replace('/(farmer)/dashboard');
-      else if (newRole === 'OPERATOR') router.replace('/(operator)/dashboard');
-      else if (newRole === 'ADMIN') router.replace('/(admin)/dashboard');
     } catch (e: any) {
       Alert.alert('Role Switch Error', e?.message || 'Could not switch role');
     }
@@ -137,6 +138,146 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Operator Tools (Visible when Operator mode is active) */}
+        {role === 'OPERATOR' && (
+          <View style={[styles.sectionCard, { borderColor: '#0284C7' }]}>
+            <Text style={[styles.sectionTitle, { color: '#0284C7' }]}>🚜 Operator Mandi Desk Tools</Text>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(operator)/scan')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <QrCode size={18} color="#0284C7" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>Gate QR Code Scanner</Text>
+                <Text style={styles.settingSub}>Scan farmer entry tokens & vehicle passes</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(operator)/intake')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <Wheat size={18} color="#0284C7" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>Crop Intake & Weighment</Text>
+                <Text style={styles.settingSub}>Record gross weight, tare & moisture grade</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(operator)/daily-report')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <BarChart3 size={18} color="#0284C7" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>Daily Procurement Report</Text>
+                <Text style={styles.settingSub}>Download daily mandi weighment summaries</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(operator)/stats')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <Building2 size={18} color="#0284C7" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>Centre Performance Stats</Text>
+                <Text style={styles.settingSub}>Queue velocity, waiting time & intake capacity</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Admin Master Tools (Visible when Admin mode is active) */}
+        {role === 'ADMIN' && (
+          <View style={[styles.sectionCard, { borderColor: '#7C3AED' }]}>
+            <Text style={[styles.sectionTitle, { color: '#7C3AED' }]}>👑 Admin Master Controls</Text>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/analytics')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <BarChart3 size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>State Analytics & Insights</Text>
+                <Text style={styles.settingSub}>Real-time mandi volumes, payouts & trends</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/centres')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <Building2 size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>APMC Mandi Centres</Text>
+                <Text style={styles.settingSub}>Manage procurement hubs, gates & capacity</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/crops')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <Wheat size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>MSP Crop Master</Text>
+                <Text style={styles.settingSub}>Configure MSP rates, seasons & commodities</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/users')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <Users size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>User & Staff Management</Text>
+                <Text style={styles.settingSub}>View registered farmers, operators & roles</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/broadcast')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <Megaphone size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.settingTitle}>Emergency Mandi Broadcast</Text>
+                <Text style={styles.settingSub}>Send push alerts regarding weather or closures</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Complete Services & Hub Shortcuts */}
         <View style={styles.sectionCard}>

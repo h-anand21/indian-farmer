@@ -174,85 +174,15 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          {/* DEV MODE TOGGLE BUTTON */}
-          {__DEV__ && (
-            <TouchableOpacity
-              style={styles.devToggleBtn}
-              onPress={() => setShowDevLogin(!showDevLogin)}
-              activeOpacity={0.7}
-            >
-              <FlaskConical size={16} color="#FF6B35" />
-              <Text style={styles.devToggleBtnText}>
-                {showDevLogin ? 'Hide Dev Testing Options' : '🧪 Dev Testing Mode (Expo Go)'}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* DEV MODE: Quick Role Testing Panel */}
-          {__DEV__ && showDevLogin && (
-            <View style={styles.devPanel}>
-              <Text style={styles.devPanelTitle}>🧪 Quick Test Accounts (No Backend Needed)</Text>
-
-              <View style={styles.devRoleGrid}>
-                <TouchableOpacity
-                  style={[styles.devRoleCard, { borderColor: '#3B7A1E' }]}
-                  onPress={() => handleDemoRoleLogin('FARMER')}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.devRoleIcon}>🌾</Text>
-                  <Text style={styles.devRoleTitle}>Farmer</Text>
-                  <Text style={styles.devRoleSub}>Book slots & view queue</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.devRoleCard, { borderColor: '#0284C7' }]}
-                  onPress={() => handleDemoRoleLogin('OPERATOR')}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.devRoleIcon}>🚜</Text>
-                  <Text style={styles.devRoleTitle}>Operator</Text>
-                  <Text style={styles.devRoleSub}>Intake & QR Scanner</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.devRoleCard, { borderColor: '#7C3AED' }]}
-                  onPress={() => handleDemoRoleLogin('ADMIN')}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.devRoleIcon}>👑</Text>
-                  <Text style={styles.devRoleTitle}>Admin</Text>
-                  <Text style={styles.devRoleSub}>Analytics & Mandi Hub</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.devDivider} />
-
-              <Text style={styles.devSectionSubtitle}>Firebase Email Login</Text>
-              <TextInput
-                style={styles.devInput}
-                placeholder="Firebase Email"
-                placeholderTextColor="#999"
-                value={devEmail}
-                onChangeText={setDevEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={styles.devInput}
-                placeholder="Password"
-                placeholderTextColor="#999"
-                value={devPassword}
-                onChangeText={setDevPassword}
-                secureTextEntry
-              />
-
-              <TouchableOpacity style={styles.devLoginBtn} onPress={handleDevEmailLogin} disabled={isLoading}>
-                <Text style={styles.devLoginBtnText}>
-                  {isLoading ? 'Logging in...' : '🔑 Email Login'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          {/* 1-Tap Demo / Test Login */}
+          <TouchableOpacity
+            style={styles.demoLoginButton}
+            onPress={() => handleDemoRoleLogin('FARMER')}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.demoLoginButtonText}>🌾 Instant Demo Login (1-Tap)</Text>
+          </TouchableOpacity>
 
           <View style={styles.securityNote}>
             <ShieldCheck size={14} color={Colors.light.primary} />
@@ -352,41 +282,22 @@ const styles = StyleSheet.create({
   },
   googleIconText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   googleButtonText: { fontSize: 16, fontWeight: '600', color: '#3C4043' },
-  devToggleBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    marginTop: 14, paddingVertical: 8, paddingHorizontal: 12,
-    backgroundColor: '#FFF4EE', borderRadius: 20, borderWidth: 1, borderColor: '#FFE0D1',
+  demoLoginButton: {
+    backgroundColor: '#EBF4E5',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#3B7A1E',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
   },
-  devToggleBtnText: { fontSize: 12, fontWeight: '700', color: '#FF6B35' },
-  // Dev Panel
-  devPanel: {
-    marginTop: 14, backgroundColor: '#FFF8F0',
-    borderRadius: 16, padding: 14,
-    borderWidth: 1.5, borderColor: '#FF6B35',
+  demoLoginButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#3B7A1E',
   },
-  devPanelTitle: { fontSize: 13, fontWeight: '700', color: '#FF6B35', marginBottom: 10, textAlign: 'center' },
-  devRoleGrid: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  devRoleCard: {
-    flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 10,
-    alignItems: 'center', borderWidth: 1.5,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 3, elevation: 1,
-  },
-  devRoleIcon: { fontSize: 20, marginBottom: 4 },
-  devRoleTitle: { fontSize: 12, fontWeight: '800', color: '#333' },
-  devRoleSub: { fontSize: 9, color: '#666', textAlign: 'center', marginTop: 2 },
-  devDivider: { height: 1, backgroundColor: '#FFE0D1', marginVertical: 10 },
-  devSectionSubtitle: { fontSize: 11, fontWeight: '700', color: '#666', marginBottom: 6 },
-  devInput: {
-    backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1,
-    borderColor: '#E0D8D0', paddingHorizontal: 12, paddingVertical: 8,
-    fontSize: 13, color: '#333', marginBottom: 8,
-  },
-  devLoginBtn: {
-    backgroundColor: '#3B7A1E', borderRadius: 10,
-    paddingVertical: 10, alignItems: 'center',
-  },
-  devLoginBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
   securityNote: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 6, marginTop: 16,

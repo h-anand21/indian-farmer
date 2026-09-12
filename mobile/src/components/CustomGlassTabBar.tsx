@@ -2,13 +2,16 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { IndianRupee, QrCode, BarChart3, Building2, Calendar } from 'lucide-react-native';
+import { Calendar } from 'lucide-react-native';
+
+const ALLOWED_ROUTES = ['dashboard', 'bookings/index', 'bookings', 'queue', 'profile'];
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  // Filter visible routes (exclude hidden ones with href: null)
+  // Strictly filter only the 4 core tabs: Home, Booking, Live, Profile
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
-    return (options as any)?.href !== null && options.tabBarButton !== null;
+    const isAllowed = ALLOWED_ROUTES.includes(route.name);
+    return isAllowed && (options as any)?.href !== null && options.tabBarButton !== null;
   });
 
   return (
@@ -19,12 +22,18 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           const routeIndex = state.routes.findIndex((r) => r.key === route.key);
           const isFocused = state.index === routeIndex;
 
-          const label =
+          let label =
             options.tabBarLabel !== undefined
               ? options.tabBarLabel
               : options.title !== undefined
               ? options.title
               : route.name;
+
+          // Standardize exact 4 tab labels
+          if (route.name === 'dashboard') label = 'Home';
+          else if (route.name === 'bookings' || route.name === 'bookings/index') label = 'Booking';
+          else if (route.name === 'queue') label = 'Live';
+          else if (route.name === 'profile') label = 'Profile';
 
           const onPress = () => {
             const event = navigation.emit({
@@ -50,7 +59,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             const iconColor = focused ? '#FFFFFF' : '#141713';
 
             if (route.name === 'dashboard') {
-              // Solid House silhouette
+              // 1. Home - Solid House silhouette
               return (
                 <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
                   <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
@@ -59,12 +68,12 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
 
             if (route.name === 'bookings' || route.name === 'bookings/index') {
-              // Calendar icon
+              // 2. Booking - Calendar icon
               return <Calendar size={22} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'queue') {
-              // Two-leaf Sprout silhouette from screenshot
+              // 3. Live - Two-leaf Sprout silhouette from screenshot
               return (
                 <Svg width={23} height={23} viewBox="0 0 24 24">
                   <Path
@@ -79,13 +88,8 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               );
             }
 
-            if (route.name === 'payments' || route.name === 'payments/index') {
-              // Indian Rupee symbol
-              return <IndianRupee size={22} color={iconColor} strokeWidth={2.8} />;
-            }
-
             if (route.name === 'profile') {
-              // Person silhouette (avatar)
+              // 4. Profile - Person silhouette (avatar)
               return (
                 <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
                   <Circle cx="12" cy="7.5" r="4.2" />
@@ -94,30 +98,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               );
             }
 
-            if (route.name === 'scan') {
-              return <QrCode size={22} color={iconColor} strokeWidth={2.5} />;
-            }
-
-            if (route.name === 'analytics') {
-              return <BarChart3 size={22} color={iconColor} strokeWidth={2.5} />;
-            }
-
-            if (route.name === 'centres' || route.name === 'centres/index') {
-              return <Building2 size={22} color={iconColor} strokeWidth={2.5} />;
-            }
-
-            return (
-              <Svg width={23} height={23} viewBox="0 0 24 24">
-                <Path
-                  d="M12 19 C 13.5 12.5 17.5 7.5 21 6.5 C 21 11.5 18 17 12 19 Z"
-                  fill={iconColor}
-                />
-                <Path
-                  d="M12 19 C 10.5 14 7.2 10.5 3.5 10 C 4 14 7.5 17.5 12 19 Z"
-                  fill={iconColor}
-                />
-              </Svg>
-            );
+            return null;
           };
 
           return (

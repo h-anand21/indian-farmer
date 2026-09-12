@@ -21,15 +21,9 @@ export default function Index() {
       return;
     }
 
-    // Role-based navigation
-    if (role === 'OPERATOR') {
-      router.replace('/(operator)/dashboard');
-    } else if (role === 'ADMIN') {
-      router.replace('/(admin)/dashboard');
-    } else {
-      router.replace('/(farmer)/dashboard');
-    }
-  }, [isLoading, isAuthenticated, isRegistered, role]);
+    // Navigate directly to the main 4-tab shell (Home, Booking, Live, Profile)
+    router.replace('/(farmer)/dashboard');
+  }, [isLoading, isAuthenticated, isRegistered]);
 
   return (
     <View style={styles.container}>

@@ -1,55 +1,13 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
-import CustomGlassTabBar from '../../src/components/CustomGlassTabBar';
+import { Stack } from 'expo-router';
 
 export default function AdminLayout() {
   return (
-    <Tabs
-      tabBar={(props) => <CustomGlassTabBar {...props} />}
+    <Stack
       screenOptions={{
         headerShown: false,
+        animation: 'slide_from_right',
       }}
-    >
-      {/* 1. Overview */}
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Overview',
-        }}
-      />
-
-      {/* 2. Analytics */}
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          title: 'Analytics',
-        }}
-      />
-
-      {/* 3. Mandi Centres */}
-      <Tabs.Screen
-        name="centres/index"
-        options={{
-          title: 'Centres',
-        }}
-      />
-
-      {/* 4. Profile & Settings */}
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-        }}
-      />
-
-      {/* Hidden Screens */}
-      <Tabs.Screen name="centres/[id]" options={{ href: null }} />
-      <Tabs.Screen name="users/index" options={{ href: null }} />
-      <Tabs.Screen name="users/[id]" options={{ href: null }} />
-      <Tabs.Screen name="crops" options={{ href: null }} />
-      <Tabs.Screen name="audit-logs" options={{ href: null }} />
-      <Tabs.Screen name="broadcast" options={{ href: null }} />
-      <Tabs.Screen name="govt-hub" options={{ href: null }} />
-    </Tabs>
+    />
   );
 }
