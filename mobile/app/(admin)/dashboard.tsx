@@ -96,11 +96,14 @@ const RECENT_ACTIONS: RecentAction[] = [
   { id: 'a5', action: 'Force-Triggered PM-KISAN Database Sync', adminName: 'System Admin', timestamp: '5 hrs ago', category: 'SYNC' },
 ];
 
+import AdminDrawer from '../../src/components/AdminDrawer';
+
 export default function AdminDashboardScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedHeatState, setSelectedHeatState] = useState<string | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
   const [metrics, setMetrics] = useState({
     totalCentres: 148,
@@ -144,7 +147,7 @@ export default function AdminDashboardScreen() {
       {/* Header Bar with Drawer Navigation Trigger */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.menuBtn} onPress={() => router.push('/(shared)/profile')}>
+          <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
             <Menu size={22} color="#1F291E" />
           </TouchableOpacity>
           <View>
@@ -418,6 +421,13 @@ export default function AdminDashboardScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Admin Navigation Drawer */}
+      <AdminDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        currentRoute="/(admin)/dashboard"
+      />
     </SafeAreaView>
   );
 }
