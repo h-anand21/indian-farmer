@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { IndianRupee, QrCode, BarChart3, Building2 } from 'lucide-react-native';
+import { IndianRupee, QrCode, BarChart3, Building2, Calendar } from 'lucide-react-native';
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   // Filter visible routes (exclude hidden ones with href: null)
@@ -56,6 +56,11 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
                 </Svg>
               );
+            }
+
+            if (route.name === 'bookings' || route.name === 'bookings/index') {
+              // Calendar icon
+              return <Calendar size={22} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'queue') {

@@ -26,6 +26,8 @@ import {
   IndianRupee,
   Bell,
   Megaphone,
+  Calendar,
+  CalendarPlus,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
@@ -136,9 +138,37 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Quick Menu Shortcuts (Procurements, Payments, Govt Hub) */}
+        {/* Complete Services & Hub Shortcuts */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Services & Hub Shortcuts</Text>
+          <Text style={styles.sectionTitle}>Mandi Services & Portals</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(farmer)/bookings')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
+              <Calendar size={18} color="#2E7D32" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>My Bookings & QR Token Passes</Text>
+              <Text style={styles.settingSub}>View gate passes, token QR codes & entry times</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(farmer)/book-slot')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#E3F2FD' }]}>
+              <CalendarPlus size={18} color="#1565C0" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Book Mandi Entry Slot</Text>
+              <Text style={styles.settingSub}>Reserve arrival slot for wheat, paddy or mustard</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -148,8 +178,8 @@ export default function ProfileScreen() {
               <IndianRupee size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Payments & Earnings Log</Text>
-              <Text style={styles.settingSub}>View DBT bank credits and payout receipts</Text>
+              <Text style={styles.settingTitle}>Payments & DBT Credits Log</Text>
+              <Text style={styles.settingSub}>Direct bank transfers, settlement receipts & ledger</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -162,8 +192,8 @@ export default function ProfileScreen() {
               <Wheat size={18} color="#E66919" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Procurements & Form J</Text>
-              <Text style={styles.settingSub}>View weighment slips & Form J receipts</Text>
+              <Text style={styles.settingTitle}>Procurements & Form J Slips</Text>
+              <Text style={styles.settingSub}>Weighment certificates, quality grades & invoices</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -177,7 +207,21 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.settingTitle}>Government Hub & MSP Rates</Text>
-              <Text style={styles.settingSub}>PM-Kisan, Fasal Bima & Crop Advisories</Text>
+              <Text style={styles.settingSub}>PM-Kisan, Fasal Bima, MSP pricing & subsidies</Text>
+            </View>
+            <ChevronRight size={18} color={Colors.light.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => router.push('/(shared)/notifications')}
+          >
+            <View style={[styles.iconCircle, { backgroundColor: '#FFF8E1' }]}>
+              <Bell size={18} color="#F57F17" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.settingTitle}>Alerts & Notifications</Text>
+              <Text style={styles.settingSub}>Gate call announcements & MSP updates</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -224,7 +268,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => router.push('/(auth)/change-language')}
+            onPress={() => router.push('/(shared)/change-language')}
           >
             <View style={[styles.iconCircle, { backgroundColor: '#FFF4EC' }]}>
               <Globe size={18} color="#E66919" />
