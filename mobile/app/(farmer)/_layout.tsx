@@ -24,19 +24,19 @@ export default function FarmerTabsLayout() {
         }}
       />
 
-      {/* 2. Booking */}
-      <Tabs.Screen
-        name="bookings/index"
-        options={{
-          title: 'Booking',
-        }}
-      />
-
-      {/* 3. Live */}
+      {/* 2. Live Queue */}
       <Tabs.Screen
         name="queue"
         options={{
-          title: 'Live',
+          title: 'Live Queue',
+        }}
+      />
+
+      {/* 3. Payments */}
+      <Tabs.Screen
+        name="payments/index"
+        options={{
+          title: 'Payments',
         }}
       />
 
@@ -49,9 +49,9 @@ export default function FarmerTabsLayout() {
       />
 
       {/* Hidden Screens (Accessible via Dashboard & Profile/Settings) */}
-      <Tabs.Screen name="payments/index" options={{ href: null }} />
-      <Tabs.Screen name="payments/[id]" options={{ href: null }} />
+      <Tabs.Screen name="bookings/index" options={{ href: null }} />
       <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
+      <Tabs.Screen name="payments/[id]" options={{ href: null }} />
       <Tabs.Screen name="book-slot" options={{ href: null }} />
       <Tabs.Screen name="procurements" options={{ href: null }} />
       <Tabs.Screen name="govt-hub" options={{ href: null }} />

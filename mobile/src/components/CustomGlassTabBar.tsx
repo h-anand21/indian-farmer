@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { Calendar, QrCode, Building2, Users, BarChart3 } from 'lucide-react-native';
+import { Calendar, QrCode, Building2, Users, BarChart3, IndianRupee } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
-const ALLOWED_ROUTES = ['dashboard', 'bookings/index', 'bookings', 'queue', 'profile'];
+const ALLOWED_ROUTES = ['dashboard', 'queue', 'payments', 'payments/index', 'bookings', 'bookings/index', 'profile'];
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -39,10 +39,12 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           // Standardize exact 4 tab labels dynamically per role
           if (route.name === 'dashboard') {
             label = 'Home';
+          } else if (route.name === 'queue') {
+            label = role === 'OPERATOR' ? 'Queue' : role === 'ADMIN' ? 'Analytics' : 'Live Queue';
+          } else if (route.name === 'payments' || route.name === 'payments/index') {
+            label = 'Payments';
           } else if (route.name === 'bookings' || route.name === 'bookings/index') {
             label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Booking';
-          } else if (route.name === 'queue') {
-            label = role === 'OPERATOR' ? 'Queue' : role === 'ADMIN' ? 'Analytics' : 'Live';
           } else if (route.name === 'profile') {
             label = 'Profile';
           }
@@ -110,6 +112,11 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   />
                 </Svg>
               );
+            }
+
+            if (route.name === 'payments' || route.name === 'payments/index') {
+              // Payments - Indian Rupee Icon
+              return <IndianRupee size={16} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'profile') {

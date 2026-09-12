@@ -46,10 +46,16 @@ export async function authMiddleware(
         : idToken.includes("admin")
         ? "ADMIN"
         : "FARMER";
+      const demoPhone =
+        demoRole === "OPERATOR"
+          ? "+919814012346"
+          : demoRole === "ADMIN"
+          ? "+919814012347"
+          : "+919814012345";
       decodedToken = {
         uid: `demo-${demoRole.toLowerCase()}-uid`,
         email: `${demoRole.toLowerCase()}@kisanqueue.gov.in`,
-        phone_number: "+919814012345",
+        phone_number: demoPhone,
         role: demoRole,
       };
     } else if (isFirebaseDevMode) {

@@ -37,6 +37,12 @@
       "expo-sharing",
       "expo-web-browser",
       "expo-localization",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow KisanQueue to access your camera to scan gate passes and QR codes."
+        }
+      ],
       "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",

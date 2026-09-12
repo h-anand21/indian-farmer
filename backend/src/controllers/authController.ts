@@ -264,16 +264,20 @@ export async function verifyToken(
 
       let centre = await prisma.procurementCentre.findFirst();
 
+      const demoPhone = isOp ? "+919814012346" : isAdmin ? "+919814012347" : "+919814012345";
+      const demoFarmerId = isOp ? "PMK-OP-01" : isAdmin ? "PMK-ADM-01" : "PMK-984210";
+      const demoEmail = email || `${demoRole.toLowerCase()}@kisanqueue.gov.in`;
+
       user = await prisma.user.create({
         data: {
           firebaseUid,
-          email: email || `${demoRole.toLowerCase()}@kisanqueue.gov.in`,
-          phone: phone || "+919814012345",
+          email: demoEmail,
+          phone: phone || demoPhone,
           name: isOp ? "Khanna Mandi Operator Desk" : isAdmin ? "Punjab State Agriculture Admin" : "Sardar Gurdeep Singh",
           role: demoRole,
           farmer: {
             create: {
-              farmerId: "PMK-984210",
+              farmerId: demoFarmerId,
               state: "Punjab",
               district: "Ludhiana",
               tehsil: "Khanna",
