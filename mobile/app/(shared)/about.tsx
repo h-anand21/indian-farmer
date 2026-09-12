@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E8E4D8',
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: Colors.light.textPrimary },
-  scrollContent: { padding: 16, gap: 16 },
+  scrollContent: { padding: 16, paddingBottom: 120, gap: 16 },
   brandCard: {
     backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24,
     alignItems: 'center', borderWidth: 1, borderColor: '#E8E4D8',

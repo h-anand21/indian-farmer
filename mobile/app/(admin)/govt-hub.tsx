@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E8E4D8',
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: Colors.light.textPrimary },
-  scrollContent: { padding: 16, gap: 16 },
+  scrollContent: { padding: 16, paddingBottom: 120, gap: 16 },
   syncCard: {
     backgroundColor: '#3B7A1E', borderRadius: 20, padding: 18, gap: 14,
     shadowColor: '#3B7A1E', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, elevation: 4,

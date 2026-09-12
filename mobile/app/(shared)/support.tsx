@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E8E4D8',
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: Colors.light.textPrimary },
-  scrollContent: { padding: 16, gap: 16 },
+  scrollContent: { padding: 16, paddingBottom: 120, gap: 16 },
   callBanner: {
     backgroundColor: '#3B7A1E', borderRadius: 20, padding: 16,
     shadowColor: '#3B7A1E', shadowOffset: { width: 0, height: 4 },

@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E8E4D8',
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: Colors.light.textPrimary },
-  scrollContent: { padding: 16, gap: 16 },
+  scrollContent: { padding: 16, paddingBottom: 120, gap: 16 },
   sectionCard: {
     backgroundColor: '#FFFFFF', borderRadius: 20, padding: 16,
     borderWidth: 1, borderColor: '#E8E4D8', gap: 12,
