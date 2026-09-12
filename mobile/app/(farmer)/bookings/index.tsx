@@ -21,6 +21,9 @@ import {
   ArrowRight,
 } from 'lucide-react-native';
 import Colors from '../../../src/theme/colors';
+import { useAuth } from '../../../src/context/AuthContext';
+import GateScanScreen from '../../(operator)/scan';
+import AdminCentresListScreen from '../../(admin)/centres/index';
 
 const BOOKINGS_DATA = [
   {
@@ -43,15 +46,15 @@ const BOOKINGS_DATA = [
     time: 'Sun, 8:00 - 10:00 AM',
     crop: 'Rice',
     quantity: '32 Qt',
-    status: 'CHECKED IN',
-    badgeColor: '#2B70C9',
-    badgeBg: '#EDF4FC',
+    status: 'COMPLETED',
+    badgeColor: '#2D8A39',
+    badgeBg: '#EBF4E5',
   },
   {
-    id: 'KQ-1045',
-    token: 'Token #KQ-1045',
+    id: 'KQ-1046',
+    token: 'Token #KQ-1046',
     mandi: 'Narela Mandi, Delhi',
-    date: '13 Sep 2025',
+    date: '10 Sep 2025',
     time: 'Sat, 10:00 AM - 12:00 PM',
     crop: 'Maize',
     quantity: '40 Qt',
@@ -62,8 +65,19 @@ const BOOKINGS_DATA = [
 ];
 
 export default function MyBookingsScreen() {
+  const { role } = useAuth();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PAST' | 'CANCELLED'>('ACTIVE');
   const router = useRouter();
+
+  // If Operator is active, show Gate QR Scanner & Intake!
+  if (role === 'OPERATOR') {
+    return <GateScanScreen />;
+  }
+
+  // If Admin is active, show Mandi Centres Directory!
+  if (role === 'ADMIN') {
+    return <AdminCentresListScreen />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

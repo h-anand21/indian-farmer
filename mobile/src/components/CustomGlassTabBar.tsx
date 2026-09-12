@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
-import { Calendar } from 'lucide-react-native';
+import { Calendar, QrCode, Building2, Users, BarChart3 } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
 
 const ALLOWED_ROUTES = ['dashboard', 'bookings/index', 'bookings', 'queue', 'profile'];
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { role } = useAuth();
   // Ensure the navbar stays well above the Android / iOS system navigation bar
   const bottomOffset = Math.max(insets.bottom + 12, 28);
 
@@ -34,11 +36,16 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               ? options.title
               : route.name;
 
-          // Standardize exact 4 tab labels
-          if (route.name === 'dashboard') label = 'Home';
-          else if (route.name === 'bookings' || route.name === 'bookings/index') label = 'Booking';
-          else if (route.name === 'queue') label = 'Live';
-          else if (route.name === 'profile') label = 'Profile';
+          // Standardize exact 4 tab labels dynamically per role
+          if (route.name === 'dashboard') {
+            label = 'Home';
+          } else if (route.name === 'bookings' || route.name === 'bookings/index') {
+            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Booking';
+          } else if (route.name === 'queue') {
+            label = role === 'OPERATOR' ? 'Queue' : role === 'ADMIN' ? 'Analytics' : 'Live';
+          } else if (route.name === 'profile') {
+            label = 'Profile';
+          }
 
           const onPress = () => {
             const event = navigation.emit({
@@ -73,12 +80,24 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
 
             if (route.name === 'bookings' || route.name === 'bookings/index') {
-              // 2. Booking - Calendar icon
+              // 2. Booking / Scan / Centres icon
+              if (role === 'OPERATOR') {
+                return <QrCode size={16} color={iconColor} strokeWidth={2.4} />;
+              }
+              if (role === 'ADMIN') {
+                return <Building2 size={16} color={iconColor} strokeWidth={2.4} />;
+              }
               return <Calendar size={16} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'queue') {
-              // 3. Live - Two-leaf Sprout silhouette from screenshot
+              // 3. Live / Queue / Analytics icon
+              if (role === 'OPERATOR') {
+                return <Users size={16} color={iconColor} strokeWidth={2.4} />;
+              }
+              if (role === 'ADMIN') {
+                return <BarChart3 size={16} color={iconColor} strokeWidth={2.4} />;
+              }
               return (
                 <Svg width={16} height={16} viewBox="0 0 24 24">
                   <Path

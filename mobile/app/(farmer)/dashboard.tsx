@@ -26,11 +26,23 @@ import {
 } from 'lucide-react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
+import OperatorDashboard from '../(operator)/dashboard';
+import AdminDashboardScreen from '../(admin)/dashboard';
 
-export default function FarmerDashboard() {
-  const { user } = useAuth();
+export default function DynamicDashboard() {
+  const { user, role } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+
+  // If active role is OPERATOR, render the dedicated Operator Mandi Desk Dashboard!
+  if (role === 'OPERATOR') {
+    return <OperatorDashboard />;
+  }
+
+  // If active role is ADMIN, render the dedicated State Admin Command Dashboard!
+  if (role === 'ADMIN') {
+    return <AdminDashboardScreen />;
+  }
 
   const farmerName = user?.name || 'Ramesh Ji';
 

@@ -21,6 +21,9 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { useAuth } from '../../src/context/AuthContext';
+import OperatorQueueScreen from '../(operator)/queue';
+import AdminAnalyticsScreen from '../(admin)/analytics';
 
 const QUEUE_LIST = [
   { id: '1', token: '#KQ-1043', name: 'Ramesh Singh', crop: 'Wheat', time: '~2 min', isNowServing: true },
@@ -32,8 +35,19 @@ const QUEUE_LIST = [
 ];
 
 export default function LiveQueueScreen() {
+  const { role } = useAuth();
   const [showTurnAlert, setShowTurnAlert] = useState(false);
   const router = useRouter();
+
+  // If Operator is active, show the Operator Queue Controller!
+  if (role === 'OPERATOR') {
+    return <OperatorQueueScreen />;
+  }
+
+  // If Admin is active, show Statewide Live Analytics & Trends!
+  if (role === 'ADMIN') {
+    return <AdminAnalyticsScreen />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

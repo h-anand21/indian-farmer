@@ -18,6 +18,8 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  FileText,
+  BarChart3,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
@@ -118,6 +120,24 @@ export default function OperatorDashboard() {
             <Text style={styles.actionBtnTitle}>Queue Control</Text>
             <Text style={styles.actionBtnSub}>Call next token</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: '#F3E8FF' }]}
+            onPress={() => router.push('/(operator)/daily-report')}
+          >
+            <FileText size={24} color="#7C3AED" />
+            <Text style={styles.actionBtnTitle}>Daily Report</Text>
+            <Text style={styles.actionBtnSub}>Procurement summary</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: '#FEF3C7' }]}
+            onPress={() => router.push('/(operator)/stats')}
+          >
+            <BarChart3 size={24} color="#D97706" />
+            <Text style={styles.actionBtnTitle}>Centre Stats</Text>
+            <Text style={styles.actionBtnSub}>Yard throughput</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Live Yard Roster Queue Preview */}
@@ -195,7 +215,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   statusBanner: {
     backgroundColor: '#E66919',
