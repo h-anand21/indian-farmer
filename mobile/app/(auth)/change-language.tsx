@@ -8,7 +8,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ArrowRight, CheckCircle2, Sprout } from 'lucide-react-native';
+import { ArrowRight, ArrowLeft, CheckCircle2, Sprout } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import { INDIAN_LANGUAGES, getCurrentLanguage, setLanguage } from '../../src/lib/languages';
 import Colors from '../../src/theme/colors';
 
@@ -24,13 +25,22 @@ export default function ChangeLanguageScreen() {
     loadLang();
   }, []);
 
-  const handleSelect = async (code: string) => {
+  const handleSelect = async (code: string, nativeName: string) => {
     setSelectedLang(code);
     await setLanguage(code);
+    Toast.show({
+      type: 'success',
+      text1: `Language set to ${nativeName}!`,
+      text2: 'App text and voice guides updated.',
+    });
   };
 
   const handleContinue = () => {
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(auth)/login');
+    }
   };
 
   return (
@@ -38,6 +48,11 @@ export default function ChangeLanguageScreen() {
       {/* Header Bar */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
+          {router.canGoBack() && (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtnHeader}>
+              <ArrowLeft size={20} color={Colors.light.textPrimary} />
+            </TouchableOpacity>
+          )}
           <View style={styles.logoBadge}>
             <Text style={styles.logoEmoji}>🌱</Text>
           </View>
@@ -45,7 +60,7 @@ export default function ChangeLanguageScreen() {
         </View>
 
         <TouchableOpacity onPress={handleContinue} style={styles.skipButton}>
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={styles.skipText}>{router.canGoBack() ? 'Done' : 'Skip'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -68,7 +83,7 @@ export default function ChangeLanguageScreen() {
             return (
               <TouchableOpacity
                 key={lang.code}
-                onPress={() => handleSelect(lang.code)}
+                onPress={() => handleSelect(lang.code, lang.nativeName)}
                 style={[
                   styles.langCard,
                   isSelected && styles.selectedCard,
@@ -135,6 +150,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  backBtnHeader: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FAF9F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+    marginRight: 4,
   },
   logoBadge: {
     width: 36,

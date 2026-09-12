@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Image,
+  Linking,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -17,11 +18,21 @@ import {
   Code2,
   Heart,
   ExternalLink,
+  FileText,
+  X,
+  Building,
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 
 export default function AboutScreen() {
   const router = useRouter();
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  const handleOpenGovLink = (url: string, name: string) => {
+    Linking.openURL(url);
+    Toast.show({ type: 'info', text1: `Opening ${name}...` });
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -87,12 +98,61 @@ export default function AboutScreen() {
           </View>
         </View>
 
+        {/* Government Portal Links */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Official Government Integrations</Text>
+          
+          <TouchableOpacity
+            style={styles.portalRow}
+            onPress={() => handleOpenGovLink('https://enam.gov.in', 'e-NAM National Portal')}
+          >
+            <Building size={18} color="#0284C7" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.portalTitle}>e-NAM (National Agriculture Market)</Text>
+              <Text style={styles.portalSub}>enam.gov.in</Text>
+            </View>
+            <ExternalLink size={16} color="#888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.portalRow}
+            onPress={() => handleOpenGovLink('https://agmarknet.gov.in', 'Agmarknet Portal')}
+          >
+            <Building size={18} color="#3B7A1E" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.portalTitle}>Agmarknet (Mandi Prices Feed)</Text>
+              <Text style={styles.portalSub}>agmarknet.gov.in</Text>
+            </View>
+            <ExternalLink size={16} color="#888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.portalRow}
+            onPress={() => handleOpenGovLink('https://pmkisan.gov.in', 'PM-KISAN Portal')}
+          >
+            <Building size={18} color="#E66919" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.portalTitle}>PM-KISAN Samman Nidhi</Text>
+              <Text style={styles.portalSub}>pmkisan.gov.in</Text>
+            </View>
+            <ExternalLink size={16} color="#888" />
+          </TouchableOpacity>
+        </View>
+
         {/* Tech Stack & Credits */}
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Technology & Partners</Text>
           <Text style={styles.bodyText}>
-            Powered by Expo React Native, Node.js, PostgreSQL, Firebase Auth, and Render Cloud Infrastructure. Developed with support from Digital India initiative.
+            Powered by React Native, Expo, TypeScript, Node.js, Prisma ORM, PostgreSQL, and DigiLocker APIs. Designed following Google Material and Agritech design guidelines.
           </Text>
+
+          <TouchableOpacity
+            style={styles.privacyLinkBtn}
+            onPress={() => setShowPrivacyModal(true)}
+          >
+            <FileText size={16} color="#3B7A1E" />
+            <Text style={styles.privacyLinkText}>Privacy Policy & Terms of Service</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Footer Credits */}
@@ -101,6 +161,37 @@ export default function AboutScreen() {
           <Text style={styles.footerSub}>© 2026 KisanQueue National Agritech Portal. All Rights Reserved.</Text>
         </View>
       </ScrollView>
+
+      {/* Privacy Modal */}
+      <Modal visible={showPrivacyModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Privacy Policy & Terms</Text>
+              <TouchableOpacity onPress={() => setShowPrivacyModal(false)}>
+                <X size={22} color="#444" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 320 }}>
+              <Text style={styles.legalHeading}>1. Data Protection & Security</Text>
+              <Text style={styles.legalBody}>
+                KisanQueue complies with the Digital Personal Data Protection Act 2023. All farmer land records and Aadhaar data fetched via DigiLocker are encrypted using AES-256 standards.
+              </Text>
+              <Text style={styles.legalHeading}>2. Mandi Queue Fair Usage</Text>
+              <Text style={styles.legalBody}>
+                Each verified land holding is allocated token slots based on seasonal yield limits. Commercial brokers or unverified entries will be auto-flagged by AI queue anti-cheat algorithms.
+              </Text>
+              <Text style={styles.legalHeading}>3. Direct Benefit Transfer (DBT)</Text>
+              <Text style={styles.legalBody}>
+                Payments are disbursed through NPCI Aadhaar Payment Bridge (APB) directly into bank accounts linked with PM-KISAN.
+              </Text>
+            </ScrollView>
+            <TouchableOpacity style={styles.closeModalBtn} onPress={() => setShowPrivacyModal(false)}>
+              <Text style={styles.closeModalText}>I Understand & Accept</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -157,7 +248,62 @@ const styles = StyleSheet.create({
   bodyText: { fontSize: 13, color: '#555', lineHeight: 20 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   featureText: { fontSize: 13, fontWeight: '600', color: '#333' },
+  portalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0EFEA',
+  },
+  portalTitle: { fontSize: 13, fontWeight: '700', color: '#333' },
+  portalSub: { fontSize: 11, color: '#0284C7' },
+  privacyLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#EBF4E5',
+    padding: 10,
+    borderRadius: 12,
+    marginTop: 6,
+    justifyContent: 'center',
+  },
+  privacyLinkText: { fontSize: 12, fontWeight: '700', color: '#3B7A1E' },
   footer: { alignItems: 'center', paddingVertical: 16, gap: 4 },
   footerText: { fontSize: 13, fontWeight: '700', color: '#333' },
   footerSub: { fontSize: 10, color: '#888', textAlign: 'center' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    gap: 12,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E4D8',
+    paddingBottom: 10,
+  },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: '#12160F' },
+  legalHeading: { fontSize: 13, fontWeight: '700', color: '#3B7A1E', marginTop: 10, marginBottom: 2 },
+  legalBody: { fontSize: 12, color: '#555', lineHeight: 18 },
+  closeModalBtn: {
+    backgroundColor: '#3B7A1E',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  closeModalText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });
+

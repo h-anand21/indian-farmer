@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Switch,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -32,6 +34,12 @@ import {
   BarChart3,
   Building2,
   Users,
+  Moon,
+  Scale,
+  Trash2,
+  Lock,
+  X,
+  CheckCircle2,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
@@ -41,10 +49,16 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, logout, switchRole } = useAuth();
 
+  // Local settings states
+  const [weightUnit, setWeightUnit] = useState<'QTL' | 'KG'>('QTL');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const handleRoleSwitch = async (newRole: 'FARMER' | 'OPERATOR' | 'ADMIN') => {
     try {
       await switchRole(newRole);
-      Toast.show?.({ type: 'success', text1: `Switched to ${newRole} mode!` });
+      Toast.show({ type: 'success', text1: `Switched to ${newRole} mode!` });
     } catch (e: any) {
       Alert.alert('Role Switch Error', e?.message || 'Could not switch role');
     }
@@ -64,34 +78,44 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const handleDeleteAccount = () => {
+    setShowDeleteModal(false);
+    Toast.show({
+      type: 'success',
+      text1: 'Data Erasure Request Submitted 🔒',
+      text2: 'Your DigiLocker linked records will be archived in 30 days.',
+    });
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Account & Settings</Text>
+    <SafeAreaView style={[styles.container, darkMode && styles.darkContainer]} edges={['top']}>
+      {/* Header */}
+      <View style={[styles.header, darkMode && styles.darkHeader]}>
+        <Text style={[styles.headerTitle, darkMode && styles.darkText]}>Account & Settings</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, darkMode && styles.darkCard]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{user?.name ? user.name[0] : 'K'}</Text>
           </View>
-          <Text style={styles.userName}>{user?.name || 'Sardar Gurdeep Singh'}</Text>
+          <Text style={[styles.userName, darkMode && styles.darkText]}>{user?.name || 'Sardar Gurdeep Singh'}</Text>
           <Text style={styles.userPhone}>{user?.phone || '+91 98140 12345'}</Text>
 
           <View style={styles.roleBadge}>
             <ShieldCheck size={14} color="#3B7A1E" />
             <Text style={styles.roleText}>
-              Active Mode: {role?.toUpperCase() || 'FARMER'} • DigiLocker KYC Verified
+              Active: {role?.toUpperCase() || 'FARMER'} • DigiLocker KYC Verified
             </Text>
           </View>
         </View>
 
         {/* Switch Role Card (Multi-Role Portal) */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>🔄 Switch User Role Portal</Text>
-          <Text style={{ fontSize: 12, color: Colors.light.textMuted, marginBottom: 8 }}>
-            Switch between Farmer, Operator, and Admin views seamlessly:
+        <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>🔄 Switch Portal View Mode</Text>
+          <Text style={{ fontSize: 12, color: darkMode ? '#AAAAAA' : Colors.light.textMuted, marginBottom: 8 }}>
+            Switch between Farmer, Operator, and Admin roles:
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -99,6 +123,7 @@ export default function ProfileScreen() {
               style={[
                 styles.roleSwitchBtn,
                 role === 'FARMER' && styles.roleSwitchActive,
+                darkMode && styles.darkRoleBtn,
                 { borderColor: '#3B7A1E' },
               ]}
               onPress={() => handleRoleSwitch('FARMER')}
@@ -113,6 +138,7 @@ export default function ProfileScreen() {
               style={[
                 styles.roleSwitchBtn,
                 role === 'OPERATOR' && styles.roleSwitchActive,
+                darkMode && styles.darkRoleBtn,
                 { borderColor: '#0284C7' },
               ]}
               onPress={() => handleRoleSwitch('OPERATOR')}
@@ -127,6 +153,7 @@ export default function ProfileScreen() {
               style={[
                 styles.roleSwitchBtn,
                 role === 'ADMIN' && styles.roleSwitchActive,
+                darkMode && styles.darkRoleBtn,
                 { borderColor: '#7C3AED' },
               ]}
               onPress={() => handleRoleSwitch('ADMIN')}
@@ -141,7 +168,7 @@ export default function ProfileScreen() {
 
         {/* Operator Tools (Visible when Operator mode is active) */}
         {role === 'OPERATOR' && (
-          <View style={[styles.sectionCard, { borderColor: '#0284C7' }]}>
+          <View style={[styles.sectionCard, darkMode && styles.darkCard, { borderColor: '#0284C7' }]}>
             <Text style={[styles.sectionTitle, { color: '#0284C7' }]}>🚜 Operator Mandi Desk Tools</Text>
 
             <TouchableOpacity
@@ -152,7 +179,7 @@ export default function ProfileScreen() {
                 <QrCode size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>Gate QR Code Scanner</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Gate QR Code Scanner</Text>
                 <Text style={styles.settingSub}>Scan farmer entry tokens & vehicle passes</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -166,7 +193,7 @@ export default function ProfileScreen() {
                 <Wheat size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>Crop Intake & Weighment</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Crop Intake & Weighment</Text>
                 <Text style={styles.settingSub}>Record gross weight, tare & moisture grade</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -180,22 +207,8 @@ export default function ProfileScreen() {
                 <BarChart3 size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>Daily Procurement Report</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Daily Procurement Report</Text>
                 <Text style={styles.settingSub}>Download daily mandi weighment summaries</Text>
-              </View>
-              <ChevronRight size={18} color={Colors.light.textMuted} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={() => router.push('/(operator)/stats')}
-            >
-              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
-                <Building2 size={18} color="#0284C7" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>Centre Performance Stats</Text>
-                <Text style={styles.settingSub}>Queue velocity, waiting time & intake capacity</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -204,8 +217,22 @@ export default function ProfileScreen() {
 
         {/* Admin Master Tools (Visible when Admin mode is active) */}
         {role === 'ADMIN' && (
-          <View style={[styles.sectionCard, { borderColor: '#7C3AED' }]}>
+          <View style={[styles.sectionCard, darkMode && styles.darkCard, { borderColor: '#7C3AED' }]}>
             <Text style={[styles.sectionTitle, { color: '#7C3AED' }]}>👑 Admin Master Controls</Text>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(admin)/dashboard')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+                <Building2 size={18} color="#7C3AED" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Admin Dashboard</Text>
+                <Text style={styles.settingSub}>Pan-India Mandi Control Room</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.settingItem}
@@ -215,7 +242,7 @@ export default function ProfileScreen() {
                 <BarChart3 size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>State Analytics & Insights</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>State Analytics & Insights</Text>
                 <Text style={styles.settingSub}>Real-time mandi volumes, payouts & trends</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -229,7 +256,7 @@ export default function ProfileScreen() {
                 <Building2 size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>APMC Mandi Centres</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>APMC Mandi Centres</Text>
                 <Text style={styles.settingSub}>Manage procurement hubs, gates & capacity</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -243,36 +270,8 @@ export default function ProfileScreen() {
                 <Wheat size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>MSP Crop Master</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>MSP Crop Master</Text>
                 <Text style={styles.settingSub}>Configure MSP rates, seasons & commodities</Text>
-              </View>
-              <ChevronRight size={18} color={Colors.light.textMuted} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={() => router.push('/(admin)/users')}
-            >
-              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
-                <Users size={18} color="#7C3AED" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>User & Staff Management</Text>
-                <Text style={styles.settingSub}>View registered farmers, operators & roles</Text>
-              </View>
-              <ChevronRight size={18} color={Colors.light.textMuted} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.settingItem}
-              onPress={() => router.push('/(admin)/broadcast')}
-            >
-              <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
-                <Megaphone size={18} color="#7C3AED" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.settingTitle}>Emergency Mandi Broadcast</Text>
-                <Text style={styles.settingSub}>Send push alerts regarding weather or closures</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -280,8 +279,8 @@ export default function ProfileScreen() {
         )}
 
         {/* Complete Services & Hub Shortcuts */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Mandi Services & Portals</Text>
+        <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Mandi Services & Portals</Text>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -291,7 +290,7 @@ export default function ProfileScreen() {
               <Calendar size={18} color="#2E7D32" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>My Bookings & QR Token Passes</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>My Bookings & QR Token Passes</Text>
               <Text style={styles.settingSub}>View gate passes, token QR codes & entry times</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -305,7 +304,7 @@ export default function ProfileScreen() {
               <CalendarPlus size={18} color="#1565C0" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Book Mandi Entry Slot</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Book Mandi Entry Slot</Text>
               <Text style={styles.settingSub}>Reserve arrival slot for wheat, paddy or mustard</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -319,7 +318,7 @@ export default function ProfileScreen() {
               <IndianRupee size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Payments & DBT Credits Log</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Payments & DBT Credits Log</Text>
               <Text style={styles.settingSub}>Direct bank transfers, settlement receipts & ledger</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -333,7 +332,7 @@ export default function ProfileScreen() {
               <Wheat size={18} color="#E66919" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Procurements & Form J Slips</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Procurements & Form J Slips</Text>
               <Text style={styles.settingSub}>Weighment certificates, quality grades & invoices</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -347,7 +346,7 @@ export default function ProfileScreen() {
               <Landmark size={18} color="#0284C7" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Government Hub & MSP Rates</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Government Hub & MSP Rates</Text>
               <Text style={styles.settingSub}>PM-Kisan, Fasal Bima, MSP pricing & subsidies</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -361,7 +360,7 @@ export default function ProfileScreen() {
               <Bell size={18} color="#F57F17" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Alerts & Notifications</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Alerts & Notifications</Text>
               <Text style={styles.settingSub}>Gate call announcements & MSP updates</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
@@ -369,8 +368,8 @@ export default function ProfileScreen() {
         </View>
 
         {/* Farm & Account Metadata */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Farmer & Land Verification</Text>
+        <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Farmer & Land Verification</Text>
           
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
@@ -378,7 +377,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>Registered Mandi Location</Text>
-              <Text style={styles.infoVal}>Khanna APMC Grain Market, Punjab</Text>
+              <Text style={[styles.infoVal, darkMode && styles.darkText]}>Khanna APMC Grain Market, Punjab</Text>
             </View>
           </View>
 
@@ -388,7 +387,7 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>Land Khasra ID (Bhoomi Abhilekh)</Text>
-              <Text style={styles.infoVal}>PMK-984210 (4.5 Hectares Registered)</Text>
+              <Text style={[styles.infoVal, darkMode && styles.darkText]}>PMK-984210 (4.5 Hectares Registered)</Text>
             </View>
           </View>
 
@@ -398,15 +397,75 @@ export default function ProfileScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>DBT Bank Account (Aadhaar Linked)</Text>
-              <Text style={styles.infoVal}>State Bank of India (•••• 8901)</Text>
+              <Text style={[styles.infoVal, darkMode && styles.darkText]}>State Bank of India (•••• 8901)</Text>
             </View>
           </View>
         </View>
 
-        {/* App Settings */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Preferences & Help</Text>
+        {/* Preferences & Toggles */}
+        <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>App Preferences</Text>
 
+          {/* Weight Unit Toggle */}
+          <View style={styles.settingToggleItem}>
+            <View style={[styles.iconCircle, { backgroundColor: '#EBF4E5' }]}>
+              <Scale size={18} color="#3B7A1E" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Weight Measurement Unit</Text>
+              <Text style={styles.settingSub}>Current unit: {weightUnit === 'QTL' ? 'Quintal (100 Kg)' : 'Kilograms (Kg)'}</Text>
+            </View>
+            <View style={styles.unitPills}>
+              <TouchableOpacity
+                style={[styles.unitPill, weightUnit === 'QTL' && styles.unitPillActive]}
+                onPress={() => setWeightUnit('QTL')}
+              >
+                <Text style={[styles.unitPillText, weightUnit === 'QTL' && styles.unitPillTextActive]}>Qtl</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.unitPill, weightUnit === 'KG' && styles.unitPillActive]}
+                onPress={() => setWeightUnit('KG')}
+              >
+                <Text style={[styles.unitPillText, weightUnit === 'KG' && styles.unitPillTextActive]}>Kg</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Push Notifications Toggle */}
+          <View style={styles.settingToggleItem}>
+            <View style={[styles.iconCircle, { backgroundColor: '#FFF8E1' }]}>
+              <Bell size={18} color="#F57F17" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Push Notifications</Text>
+              <Text style={styles.settingSub}>Gate call alerts & token status changes</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={setNotificationsEnabled}
+              trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
+              thumbColor={notificationsEnabled ? '#3B7A1E' : '#9CA3AF'}
+            />
+          </View>
+
+          {/* Dark Mode Switch */}
+          <View style={styles.settingToggleItem}>
+            <View style={[styles.iconCircle, { backgroundColor: '#F3E8FF' }]}>
+              <Moon size={18} color="#7C3AED" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Dark Theme Mode</Text>
+              <Text style={styles.settingSub}>High contrast night view for mandis</Text>
+            </View>
+            <Switch
+              value={darkMode}
+              onValueChange={setDarkMode}
+              trackColor={{ false: '#D1D5DB', true: '#C084FC' }}
+              thumbColor={darkMode ? '#7C3AED' : '#9CA3AF'}
+            />
+          </View>
+
+          {/* Change Language */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(shared)/change-language')}
@@ -415,12 +474,13 @@ export default function ProfileScreen() {
               <Globe size={18} color="#E66919" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Change App Language</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Change App Language</Text>
               <Text style={styles.settingSub}>Hindi / Punjabi / English Available</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
 
+          {/* Help & Support */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(shared)/support')}
@@ -429,12 +489,13 @@ export default function ProfileScreen() {
               <HelpCircle size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>Help & Support Helpline</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Help & Support Helpline</Text>
               <Text style={styles.settingSub}>Toll-Free 1800-180-1551 & WhatsApp</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
 
+          {/* About KisanQueue */}
           <TouchableOpacity
             style={styles.settingItem}
             onPress={() => router.push('/(shared)/about')}
@@ -443,12 +504,21 @@ export default function ProfileScreen() {
               <Info size={18} color="#7C3AED" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.settingTitle}>About KisanQueue</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>About KisanQueue</Text>
               <Text style={styles.settingSub}>Version 2.4.0 • National Agritech Portal</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
         </View>
+
+        {/* Account Data Privacy */}
+        <TouchableOpacity
+          style={styles.deleteDataBtn}
+          onPress={() => setShowDeleteModal(true)}
+        >
+          <Trash2 size={16} color="#DC2626" />
+          <Text style={styles.deleteDataText}>Request Account Data Erasure (GDPR/DPDP)</Text>
+        </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -456,6 +526,32 @@ export default function ProfileScreen() {
           <Text style={styles.logoutText}>Sign Out from KisanQueue</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Delete Modal */}
+      <Modal visible={showDeleteModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Trash2 size={24} color="#DC2626" />
+              <Text style={styles.modalTitle}>Request Data Erasure</Text>
+              <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
+                <X size={20} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalBody}>
+              Under the Digital Personal Data Protection (DPDP) Act 2023, you can request erasure of your active app sessions. Land & DBT history will remain archived with DigiLocker for statutory government compliance.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.cancelModalBtn} onPress={() => setShowDeleteModal(false)}>
+                <Text style={styles.cancelModalText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmDeleteBtn} onPress={handleDeleteAccount}>
+                <Text style={styles.confirmDeleteText}>Confirm Request</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -463,7 +559,10 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F6F0',
+    backgroundColor: '#FFFBEF',
+  },
+  darkContainer: {
+    backgroundColor: '#12160F',
   },
   header: {
     paddingHorizontal: 20,
@@ -472,10 +571,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E8E4D8',
   },
+  darkHeader: {
+    backgroundColor: '#1E2419',
+    borderBottomColor: '#2C3525',
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#12160F',
+  },
+  darkText: {
+    color: '#F4F4F0',
   },
   scrollContent: {
     padding: 16,
@@ -489,6 +595,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E8E4D8',
+  },
+  darkCard: {
+    backgroundColor: '#1A2016',
+    borderColor: '#2D3826',
   },
   avatar: {
     width: 64,
@@ -555,6 +665,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     backgroundColor: '#FAF9F5',
   },
+  darkRoleBtn: {
+    backgroundColor: '#242C1F',
+  },
   roleSwitchActive: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
@@ -596,6 +709,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  settingToggleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   settingTitle: {
     fontSize: 14,
     fontWeight: '700',
@@ -606,6 +724,43 @@ const styles = StyleSheet.create({
     color: Colors.light.textMuted,
     marginTop: 2,
   },
+  unitPills: {
+    flexDirection: 'row',
+    backgroundColor: '#FAF9F5',
+    borderRadius: 10,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+  },
+  unitPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  unitPillActive: {
+    backgroundColor: '#3B7A1E',
+  },
+  unitPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#666',
+  },
+  unitPillTextActive: {
+    color: '#FFFFFF',
+  },
+  deleteDataBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+  },
+  deleteDataText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#DC2626',
+    textDecorationLine: 'underline',
+  },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -614,7 +769,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFEBEE',
     height: 50,
     borderRadius: 25,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#FFCDD2',
@@ -624,4 +779,64 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#C62828',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    gap: 14,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  modalTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#12160F',
+  },
+  modalBody: {
+    fontSize: 13,
+    color: '#555555',
+    lineHeight: 19,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  cancelModalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+  },
+  cancelModalText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  confirmDeleteBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#DC2626',
+    alignItems: 'center',
+  },
+  confirmDeleteText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });
+
