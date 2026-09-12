@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   stepTitle: {
     fontSize: 24,

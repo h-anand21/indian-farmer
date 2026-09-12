@@ -8,6 +8,12 @@ export default function FarmerTabsLayout() {
       tabBar={(props) => <CustomGlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+        },
       }}
     >
       {/* 1. Home */}

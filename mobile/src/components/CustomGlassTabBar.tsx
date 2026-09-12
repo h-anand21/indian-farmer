@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Calendar } from 'lucide-react-native';
 
 const ALLOWED_ROUTES = ['dashboard', 'bookings/index', 'bookings', 'queue', 'profile'];
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
+  // Ensure the navbar stays well above the Android / iOS system navigation bar
+  const bottomOffset = Math.max(insets.bottom + 12, 28);
+
   // Strictly filter only the 4 core tabs: Home, Booking, Live, Profile
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
@@ -15,7 +20,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
   });
 
   return (
-    <View style={styles.outerContainer} pointerEvents="box-none">
+    <View style={[styles.outerContainer, { bottom: bottomOffset }]} pointerEvents="box-none">
       <View style={styles.glassPill}>
         {visibleRoutes.map((route) => {
           const { options } = descriptors[route.key];
@@ -140,12 +145,12 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
 const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
-    bottom: 12,
     left: 0,
     right: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 999,
+    zIndex: 9999,
+    elevation: 9999,
   },
   glassPill: {
     flexDirection: 'row',

@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingBottom: 120,
   },
   greetingBanner: {
     backgroundColor: Colors.light.primary,
