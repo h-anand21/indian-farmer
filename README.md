@@ -53,6 +53,34 @@ graph TD
 | **Integrations** | External Govt APIs | DigiLocker OAuth, PM-KISAN, e-NAM, Agmarknet MSP Feed, Bhoomi Abhilekh |
 | **Web Frontends** | Next.js / Vite | React, Vanilla CSS design system, Charting libraries |
 
+### 📦 Required Expo Packages & Purpose
+
+| Package | Purpose |
+| :--- | :--- |
+| `expo-router` | File-based navigation (Stack + Tabs + Drawer) |
+| `expo-camera` | QR Scanner for mandi operators |
+| `expo-barcode-scanner` | Digital token QR code reading |
+| `expo-secure-store` | JWT token & auth secure storage |
+| `expo-notifications` | Push notifications for queue call alerts |
+| `expo-image-picker` | Farmer profile photo & document upload |
+| `expo-document-picker` | Land Khasra extract document upload |
+| `expo-location` | Nearest APMC Mandi location detection |
+| `expo-localization` | Multi-language (i18n) localization |
+| `expo-haptics` | Haptic vibration feedback on gate queue calls |
+| `expo-sharing` | Share Form J receipts & QR tokens via WhatsApp |
+| `expo-print` | Generate PDF procurement receipts |
+| `expo-file-system` | Save downloaded PDF receipts to device |
+| `expo-web-browser` | DigiLocker OAuth web authentication |
+| `expo-linking` | Deep links for notification routing |
+| `react-native-reanimated` | Smooth UI animations & transitions |
+| `react-native-gesture-handler` | Swipe gestures & touch interactions |
+| `@react-navigation/drawer` | Admin drawer navigation menu |
+| `socket.io-client` | Real-time mandi queue updates |
+| `i18next + react-i18next` | Multi-language support (9 Indian languages) |
+| `react-native-chart-kit` | Analytics trend line & bar charts |
+| `react-native-maps` | Mandi location & layout map |
+| `@react-native-async-storage/async-storage` | Local client state storage |
+
 ---
 
 ## 📱 Mobile Application Modules & Screen Directory (38 Screens)
@@ -117,6 +145,25 @@ mobile/
 ---
 
 ### 👑 4. Government Admin Module (`app/(admin)`)
+
+#### 🏛️ Admin Navigation (Drawer Menu Structure)
+```
+┌────────────────────────────────────────┐
+│ 🏛️ KisanQueue Government Admin Control  │
+├────────────────────────────────────────┤
+│ 📊 Dashboard (Pan-India Master View)   │
+│ 📈 Analytics (Procurement Trends)      │
+│ 🏢 Centres Management (APMC Mandis)    │
+│ 🌾 Crops & MSP (Commodity Master)      │
+│ 👥 User Management (Farmers & Staff)   │
+│ 📜 Audit Logs (Immutable Event Trail)  │
+│ 🏛️ Govt Hub (Agmarknet & PM-KISAN Sync) │
+│ 📢 Broadcast (Emergency Mandi Alerts)  │
+│ ────────────────────────────────────── │
+│ ⚙️ Settings (App Preferences)          │
+│ 🚪 Logout (Sign Out)                   │
+└────────────────────────────────────────┘
+```
 
 | Screen # | File Path | Purpose & UI Features |
 | :---: | :--- | :--- |
