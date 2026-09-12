@@ -6,24 +6,55 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Scale, CheckCircle2, FileText, ArrowRight, User, Hash, AlertTriangle, ShieldCheck, Printer } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import {
+  Scale,
+  CheckCircle2,
+  FileText,
+  ArrowRight,
+  User,
+  Hash,
+  AlertTriangle,
+  ShieldCheck,
+  Printer,
+  X,
+  Truck,
+  Layers,
+  Percent,
+  IndianRupee,
+  Share2,
+} from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 
 export default function OperatorIntakeScreen() {
-  const [tokenInput, setTokenInput] = useState('KQ-2026-0842');
+  const router = useRouter();
+
+  // Farmer & Booking State
+  const [tokenInput, setTokenInput] = useState('KQ-1048');
   const [farmerName, setFarmerName] = useState('Ram Singh Gurjar');
+  const [phone, setPhone] = useState('+91 98765 43210');
   const [cropType, setCropType] = useState('Wheat (Sharbati)');
+  const [vehicleNo, setVehicleNo] = useState('MP-04-AB-1234');
+
+  // Weighment State
   const [grossWeight, setGrossWeight] = useState('5450'); // kg
-  const [tareWeight, setTareWeight] = useState('450'); // kg (vehicle tare)
-  const [qualityGrade, setQualityGrade] = useState<'A' | 'B' | 'C'>('A');
+  const [tareWeight, setTareWeight] = useState('450'); // kg
+  const [bagCount, setBagCount] = useState('100'); // 50kg bags
+
+  // Quality Grading State
+  const [grade, setGrade] = useState<'A' | 'B' | 'C'>('A');
   const [moisture, setMoisture] = useState('11.2'); // %
   const [foreignMatter, setForeignMatter] = useState('0.8'); // %
-  const [mspRate, setMspRate] = useState('2275'); // Rs per quintal
+  const [brokenGrains, setBrokenGrains] = useState('1.5'); // %
 
+  // Base MSP Rate (Rs per Quintal)
+  const baseMspRate = 2275;
+
+  // Modals
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -32,217 +63,306 @@ export default function OperatorIntakeScreen() {
   const tare = parseFloat(tareWeight) || 0;
   const netKg = Math.max(0, gross - tare);
   const netQuintals = (netKg / 100).toFixed(2);
-  const msp = parseFloat(mspRate) || 0;
-  const totalAmount = Math.round((parseFloat(netQuintals) || 0) * msp);
+
+  // Grade multiplier: Grade A = 100%, Grade B = 97%, Grade C = 92%
+  const gradeMultiplier = grade === 'A' ? 1.0 : grade === 'B' ? 0.97 : 0.92;
+  const effectiveMspRate = Math.round(baseMspRate * gradeMultiplier);
+  const totalAmount = Math.round((parseFloat(netQuintals) || 0) * effectiveMspRate);
 
   const handleGenerateFormJ = () => {
     if (!tokenInput || gross <= 0 || tare >= gross) {
-      Alert.alert('Invalid Entry', 'Please enter valid Gross Weight and Tare Weight.');
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Weight Entry',
+        text2: 'Gross weight must be greater than vehicle tare weight.',
+      });
       return;
     }
+
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
       setShowReceiptModal(true);
-    }, 600);
+    }, 500);
+  };
+
+  const handleProcessNext = () => {
+    setShowReceiptModal(false);
+    Toast.show({
+      type: 'success',
+      text1: 'Form J Submitted & Saved!',
+      text2: 'Next farmer token loaded.',
+    });
+    // Load next demo token
+    setTokenInput('KQ-1049');
+    setFarmerName('Sita Devi');
+    setPhone('+91 98123 45678');
+    setCropType('Paddy (Basmati)');
+    setVehicleNo('MP-04-CD-5678');
+    setGrossWeight('4820');
+    setTareWeight('520');
+    setBagCount('86');
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Weighment & Grading</Text>
-          <Text style={styles.headerSubtitle}>Gate #2 Weighbridge - Counter B</Text>
+          <Text style={styles.headerTitle}>Intake & Weighment</Text>
+          <Text style={styles.headerSubtitle}>Gate #2 Weighbridge • Scale Counter B</Text>
         </View>
-        <View style={styles.badge}>
-          <Scale size={16} color="#E66919" />
-          <Text style={styles.badgeText}>Live Scale Active</Text>
+        <View style={styles.liveScaleBadge}>
+          <View style={styles.pulseDot} />
+          <Text style={styles.liveScaleText}>LIVE SCALE</Text>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Token Finder Card */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Current Farmer Profile Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>1. Farmer & Booking Info</Text>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Booking Token Number</Text>
-            <View style={styles.inputRow}>
-              <Hash size={18} color={Colors.light.textMuted} style={{ marginRight: 8 }} />
-              <TextInput
-                style={styles.input}
-                value={tokenInput}
-                onChangeText={setTokenInput}
-                placeholder="Enter KQ Token"
-                placeholderTextColor={Colors.light.textMuted}
-              />
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.cardSectionTag}>CURRENT SERVING</Text>
+            <View style={styles.tokenPill}>
+              <Text style={styles.tokenPillText}>#{tokenInput}</Text>
             </View>
           </View>
 
-          <View style={styles.farmerDetailBox}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Farmer Name:</Text>
-              <Text style={styles.detailValue}>{farmerName}</Text>
+          <View style={styles.farmerInfoRow}>
+            <View style={styles.farmerAvatar}>
+              <User size={24} color="#FFFFFF" />
             </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Crop Type:</Text>
-              <Text style={styles.detailValue}>{cropType}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Govt MSP Rate:</Text>
-              <Text style={styles.detailValueHighlight}>₹{mspRate} / Quintal</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.farmerNameText}>{farmerName}</Text>
+              <Text style={styles.farmerSubText}>{phone} • {cropType}</Text>
+              <View style={styles.vehicleRow}>
+                <Truck size={12} color="#667064" />
+                <Text style={styles.vehicleText}>{vehicleNo}</Text>
+                <View style={styles.quotaTag}>
+                  <Text style={styles.quotaTagText}>Quota: 65 Qtl Limit</Text>
+                </View>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Weighment Entry Card */}
+        {/* Weighment Scale Form */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>2. Scale Weights (in Kg)</Text>
-          <View style={styles.twoColumn}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.cardSectionTag}>SCALE WEIGHT RECORDING</Text>
+            <Scale size={18} color="#E66919" />
+          </View>
+
+          <View style={styles.twoColumnInputs}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Gross Weight (Gross)</Text>
+              <Text style={styles.inputLabel}>Gross Weight (Kg)</Text>
               <TextInput
-                style={styles.inputBold}
+                style={styles.weightInput}
                 keyboardType="numeric"
                 value={grossWeight}
                 onChangeText={setGrossWeight}
+                placeholder="5450"
               />
             </View>
+
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Tare Weight (Vehicle)</Text>
+              <Text style={styles.inputLabel}>Tare Weight (Kg)</Text>
               <TextInput
-                style={styles.inputBold}
+                style={styles.weightInput}
                 keyboardType="numeric"
                 value={tareWeight}
                 onChangeText={setTareWeight}
+                placeholder="450"
               />
             </View>
           </View>
 
-          <View style={styles.netWeightBox}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Number of Bags (50kg standard)</Text>
+            <TextInput
+              style={styles.regularInput}
+              keyboardType="numeric"
+              value={bagCount}
+              onChangeText={setBagCount}
+              placeholder="100"
+            />
+          </View>
+
+          {/* Auto-Calculated Net Weight Display Box */}
+          <View style={styles.netWeightResultBox}>
             <View>
-              <Text style={styles.netLabel}>Net Crop Weight</Text>
-              <Text style={styles.netSub}>{netKg} Kg</Text>
+              <Text style={styles.netWeightLabel}>NET CROP WEIGHT</Text>
+              <Text style={styles.netWeightKg}>{netKg.toLocaleString()} Kg</Text>
             </View>
-            <Text style={styles.netValue}>{netQuintals} Quintals</Text>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.netQuintalsVal}>{netQuintals} Qtl</Text>
+              <Text style={styles.netQuintalsSub}>Billable Procurement</Text>
+            </View>
           </View>
         </View>
 
-        {/* Quality Inspection Card */}
+        {/* Quality Inspection & Grading */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>3. Quality Inspection & Moisture</Text>
-          
-          <Text style={styles.label}>Select Quality Grade</Text>
-          <View style={styles.gradeRow}>
-            {(['A', 'B', 'C'] as const).map((grade) => (
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.cardSectionTag}>QUALITY GRADING (FAQ PARAMETERS)</Text>
+            <ShieldCheck size={18} color="#3B7A1E" />
+          </View>
+
+          <Text style={styles.inputLabel}>Select Quality Grade</Text>
+          <View style={styles.gradeButtonsRow}>
+            {(['A', 'B', 'C'] as const).map((g) => (
               <TouchableOpacity
-                key={grade}
-                style={[
-                  styles.gradePill,
-                  qualityGrade === grade && styles.gradePillActive,
-                ]}
-                onPress={() => setQualityGrade(grade)}
+                key={g}
+                style={[styles.gradeBtn, grade === g && styles.gradeBtnActive]}
+                onPress={() => setGrade(g)}
               >
-                <Text
-                  style={[
-                    styles.gradePillText,
-                    qualityGrade === grade && styles.gradePillTextActive,
-                  ]}
-                >
-                  Grade {grade} {grade === 'A' ? '(Premium)' : grade === 'B' ? '(Standard)' : '(Fair)'}
+                <Text style={[styles.gradeLetter, grade === g && styles.gradeLetterActive]}>
+                  Grade {g}
+                </Text>
+                <Text style={[styles.gradeSub, grade === g && styles.gradeSubActive]}>
+                  {g === 'A' ? 'Premium (100%)' : g === 'B' ? 'Standard (97%)' : 'Below Std (92%)'}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View style={styles.twoColumn}>
+          {/* 3 Parameter Inputs */}
+          <View style={styles.threeColumnInputs}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Moisture % (Max 14%)</Text>
+              <Text style={styles.paramLabel}>Moisture %</Text>
               <TextInput
-                style={styles.input}
-                keyboardType="decimal-pad"
+                style={styles.paramInput}
+                keyboardType="numeric"
                 value={moisture}
                 onChangeText={setMoisture}
               />
+              <Text style={styles.paramHint}>Ideal &lt; 12%</Text>
             </View>
+
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Foreign Matter %</Text>
+              <Text style={styles.paramLabel}>Foreign %</Text>
               <TextInput
-                style={styles.input}
-                keyboardType="decimal-pad"
+                style={styles.paramInput}
+                keyboardType="numeric"
                 value={foreignMatter}
                 onChangeText={setForeignMatter}
               />
+              <Text style={styles.paramHint}>Max 2%</Text>
+            </View>
+
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.paramLabel}>Broken %</Text>
+              <TextInput
+                style={styles.paramInput}
+                keyboardType="numeric"
+                value={brokenGrains}
+                onChangeText={setBrokenGrains}
+              />
+              <Text style={styles.paramHint}>Max 4%</Text>
             </View>
           </View>
         </View>
 
-        {/* Summary Payout Card */}
-        <View style={styles.payoutCard}>
-          <View style={styles.payoutHeader}>
-            <Text style={styles.payoutTitle}>Total Estimated Payout</Text>
-            <ShieldCheck size={20} color="#3B7A1E" />
+        {/* Live MSP Calculation Banner */}
+        <View style={styles.mspCalcCard}>
+          <View style={styles.mspRowTop}>
+            <View>
+              <Text style={styles.mspTag}>GOVT MSP VALUATION</Text>
+              <Text style={styles.mspRateText}>₹{effectiveMspRate} / Quintal (Grade {grade})</Text>
+            </View>
+            <Text style={styles.mspFormulaText}>{netQuintals} Qtl × ₹{effectiveMspRate}</Text>
           </View>
-          <Text style={styles.payoutAmount}>₹{totalAmount.toLocaleString('en-IN')}</Text>
-          <Text style={styles.payoutNote}>
-            Calculated as {netQuintals} Qtl × ₹{mspRate}/Qtl (Grade {qualityGrade})
-          </Text>
 
-          <TouchableOpacity
-            style={styles.generateBtn}
-            onPress={handleGenerateFormJ}
-            disabled={isSubmitting}
-          >
-            <FileText size={20} color="#FFFFFF" />
-            <Text style={styles.generateBtnText}>
-              {isSubmitting ? 'Generating...' : 'Generate Form J Receipt'}
-            </Text>
-            <ArrowRight size={18} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.mspTotalRow}>
+            <Text style={styles.totalLabel}>Total Farmer Payout:</Text>
+            <Text style={styles.totalAmountVal}>₹ {totalAmount.toLocaleString('en-IN')}</Text>
+          </View>
         </View>
+
+        {/* Action Button: Generate Form J */}
+        <TouchableOpacity
+          style={styles.generateBtn}
+          activeOpacity={0.85}
+          onPress={handleGenerateFormJ}
+        >
+          <FileText size={20} color="#FFFFFF" />
+          <Text style={styles.generateBtnText}>Complete & Generate Form J</Text>
+          <ArrowRight size={18} color="#FFFFFF" />
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Form J Receipt Modal */}
-      <Modal visible={showReceiptModal} animationType="slide" transparent>
+      {/* Official Form J Receipt Modal */}
+      <Modal visible={showReceiptModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <FileText size={24} color="#3B7A1E" />
-                <Text style={styles.modalTitle}>Official Form J Issued</Text>
+          <View style={styles.receiptModalContent}>
+            <View style={styles.receiptHeader}>
+              <View style={styles.govSeal}>
+                <Text style={styles.govSealText}>FORM J</Text>
+              </View>
+              <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={styles.receiptTitle}>PUNJAB STATE APMC MANDI</Text>
+                <Text style={styles.receiptSub}>Official Procurement & Weighment Voucher</Text>
               </View>
               <TouchableOpacity onPress={() => setShowReceiptModal(false)}>
-                <Text style={{ fontSize: 18, color: '#666', fontWeight: 'bold' }}>✕</Text>
+                <X size={20} color="#666666" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ maxHeight: 350 }}>
-              <View style={styles.receiptPaper}>
-                <Text style={styles.receiptTitle}>GOVT OF MADHYA PRADESH</Text>
-                <Text style={styles.receiptSub}>APMC Mandi Procurement Receipt (Form J)</Text>
-                <View style={styles.divider} />
-                <Text style={styles.receiptLine}>Token: {tokenInput}</Text>
-                <Text style={styles.receiptLine}>Farmer: {farmerName}</Text>
-                <Text style={styles.receiptLine}>Crop: {cropType}</Text>
-                <Text style={styles.receiptLine}>Grade: Grade {qualityGrade}</Text>
-                <Text style={styles.receiptLine}>Net Weight: {netQuintals} Quintals</Text>
-                <Text style={styles.receiptLine}>Rate: ₹{mspRate}/Qtl</Text>
-                <View style={styles.divider} />
-                <Text style={styles.receiptTotal}>Total Amount: ₹{totalAmount.toLocaleString('en-IN')}</Text>
-                <Text style={styles.receiptFooter}>Direct DBT credit queued to Aadhaar linked bank account.</Text>
+            <View style={styles.voucherDetailsBox}>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Voucher Number:</Text>
+                <Text style={styles.vValBold}>FORM-J-2026-98412</Text>
               </View>
-            </ScrollView>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Token & Gate:</Text>
+                <Text style={styles.vVal}>#{tokenInput} • Gate #2 Scale B</Text>
+              </View>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Farmer Name:</Text>
+                <Text style={styles.vVal}>{farmerName}</Text>
+              </View>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Crop & Grade:</Text>
+                <Text style={styles.vVal}>{cropType} • Grade {grade}</Text>
+              </View>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Gross / Tare:</Text>
+                <Text style={styles.vVal}>{gross} Kg / {tare} Kg</Text>
+              </View>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>Net Quantity:</Text>
+                <Text style={styles.vValBold}>{netQuintals} Quintals ({bagCount} Bags)</Text>
+              </View>
+              <View style={styles.voucherRow}>
+                <Text style={styles.vLabel}>MSP Rate Applied:</Text>
+                <Text style={styles.vVal}>₹{effectiveMspRate} / Qtl</Text>
+              </View>
+              <View style={[styles.voucherRow, styles.voucherTotalRow]}>
+                <Text style={styles.vTotalLabel}>Total Amount (DBT):</Text>
+                <Text style={styles.vTotalVal}>₹ {totalAmount.toLocaleString('en-IN')}</Text>
+              </View>
+            </View>
 
-            <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-              <TouchableOpacity style={styles.printBtn} onPress={() => Alert.alert('Printed', 'Receipt sent to thermal printer.')}>
-                <Printer size={18} color="#12160F" />
-                <Text style={styles.printBtnText}>Print Thermal</Text>
-              </TouchableOpacity>
+            <View style={styles.verifiedRow}>
+              <ShieldCheck size={16} color="#16A34A" />
+              <Text style={styles.verifiedText}>Weighbridge Digital Certificate Signed</Text>
+            </View>
+
+            <View style={styles.receiptActionsRow}>
               <TouchableOpacity
-                style={[styles.printBtn, { backgroundColor: '#3B7A1E' }]}
-                onPress={() => setShowReceiptModal(false)}
+                style={styles.printBtn}
+                onPress={() => Toast.show({ type: 'success', text1: 'Form J Printed via Bluetooth! 🖨️' })}
               >
-                <CheckCircle2 size={18} color="#FFFFFF" />
-                <Text style={[styles.printBtnText, { color: '#FFFFFF' }]}>Done</Text>
+                <Printer size={16} color="#141713" />
+                <Text style={styles.printBtnText}>Print</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.processNextBtn} onPress={handleProcessNext}>
+                <Text style={styles.processNextBtnText}>Process Next Farmer</Text>
+                <ArrowRight size={16} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
@@ -255,298 +375,451 @@ export default function OperatorIntakeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F6F0',
+    backgroundColor: '#FFFBEF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E8E4D8',
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#12160F',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#141713',
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
+    fontSize: 11,
+    color: '#667064',
     marginTop: 2,
   },
-  badge: {
+  liveScaleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFF4EC',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD6BE',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#E66919',
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#16A34A',
+  },
+  liveScaleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#16A34A',
+    letterSpacing: 0.5,
   },
   scrollContent: {
-    padding: 16,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 120,
+    gap: 14,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
     borderColor: '#E8E4D8',
+    gap: 12,
   },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#12160F',
-    marginBottom: 12,
-  },
-  inputGroup: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.light.textMuted,
-    marginBottom: 6,
-  },
-  inputRow: {
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9F8F3',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E2DEC9',
+    justifyContent: 'space-between',
   },
-  input: {
-    flex: 1,
+  cardSectionTag: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#888888',
+    letterSpacing: 0.8,
+  },
+  tokenPill: {
+    backgroundColor: '#1C1E1B',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  tokenPillText: {
+    color: '#F59E0B',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  farmerInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  farmerAvatar: {
+    width: 44,
     height: 44,
-    fontSize: 14,
-    color: '#12160F',
-    fontWeight: '600',
+    borderRadius: 22,
+    backgroundColor: '#E66919',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  inputBold: {
-    height: 44,
-    backgroundColor: '#F9F8F3',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#12160F',
-    borderWidth: 1,
-    borderColor: '#E2DEC9',
+  farmerNameText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#141713',
   },
-  farmerDetailBox: {
-    backgroundColor: '#F4F8EE',
-    borderRadius: 10,
-    padding: 12,
+  farmerSubText: {
+    fontSize: 12,
+    color: '#667064',
+    marginTop: 1,
+  },
+  vehicleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     marginTop: 4,
   },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  vehicleText: {
+    fontSize: 11,
+    color: '#667064',
+    fontWeight: '600',
   },
-  detailLabel: {
-    fontSize: 12,
-    color: Colors.light.textMuted,
+  quotaTag: {
+    backgroundColor: '#F3EFE6',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
   },
-  detailValue: {
-    fontSize: 13,
+  quotaTagText: {
+    fontSize: 9,
     fontWeight: '700',
-    color: '#12160F',
+    color: '#555555',
   },
-  detailValueHighlight: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#3B7A1E',
-  },
-  twoColumn: {
+  twoColumnInputs: {
     flexDirection: 'row',
     gap: 12,
   },
-  netWeightBox: {
+  inputGroup: {
+    gap: 4,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#141713',
+  },
+  weightInput: {
+    backgroundColor: '#FAF9F5',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E8E4D8',
+    paddingHorizontal: 14,
+    height: 48,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#141713',
+  },
+  regularInput: {
+    backgroundColor: '#FAF9F5',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E8E4D8',
+    paddingHorizontal: 14,
+    height: 44,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#141713',
+  },
+  netWeightResultBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#EBF4E5',
+    backgroundColor: '#FFF4EC',
+    borderRadius: 14,
     padding: 14,
-    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#FED7AA',
     marginTop: 4,
   },
-  netLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#285413',
-  },
-  netSub: {
-    fontSize: 12,
-    color: '#3B7A1E',
-  },
-  netValue: {
-    fontSize: 20,
+  netWeightLabel: {
+    fontSize: 9,
     fontWeight: '800',
-    color: '#285413',
+    color: '#E66919',
+    letterSpacing: 0.5,
   },
-  gradeRow: {
+  netWeightKg: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#141713',
+    marginTop: 2,
+  },
+  netQuintalsVal: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#E66919',
+  },
+  netQuintalsSub: {
+    fontSize: 10,
+    color: '#888888',
+    fontWeight: '600',
+  },
+  gradeButtonsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
   },
-  gradePill: {
+  gradeBtn: {
     flex: 1,
+    backgroundColor: '#FAF9F5',
+    borderRadius: 12,
     paddingVertical: 10,
+    paddingHorizontal: 6,
     alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: '#F4F4F0',
-    borderWidth: 1,
-    borderColor: '#E0E0D8',
+    borderWidth: 1.5,
+    borderColor: '#E8E4D8',
+    gap: 2,
   },
-  gradePillActive: {
-    backgroundColor: '#3B7A1E',
+  gradeBtnActive: {
     borderColor: '#3B7A1E',
+    backgroundColor: '#F0FDF4',
   },
-  gradePillText: {
+  gradeLetter: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#141713',
+  },
+  gradeLetterActive: {
+    color: '#3B7A1E',
+  },
+  gradeSub: {
+    fontSize: 9,
+    color: '#888888',
+    fontWeight: '600',
+  },
+  gradeSubActive: {
+    color: '#16A34A',
+  },
+  threeColumnInputs: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  paramLabel: {
     fontSize: 11,
     fontWeight: '700',
     color: '#555555',
   },
-  gradePillTextActive: {
-    color: '#FFFFFF',
+  paramInput: {
+    backgroundColor: '#FAF9F5',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+    paddingHorizontal: 10,
+    height: 38,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#141713',
+    textAlign: 'center',
   },
-  payoutCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 2,
-    borderColor: '#3B7A1E',
-    marginBottom: 20,
+  paramHint: {
+    fontSize: 9,
+    color: '#888888',
+    textAlign: 'center',
   },
-  payoutHeader: {
+  mspCalcCard: {
+    backgroundColor: '#1C1E1B',
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+  },
+  mspRowTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C3028',
+    paddingBottom: 10,
   },
-  payoutTitle: {
+  mspTag: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#F59E0B',
+    letterSpacing: 0.8,
+  },
+  mspRateText: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.light.textMuted,
-    textTransform: 'uppercase',
+    color: '#FFFFFF',
+    marginTop: 2,
   },
-  payoutAmount: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#3B7A1E',
-    marginVertical: 4,
-  },
-  payoutNote: {
+  mspFormulaText: {
     fontSize: 12,
-    color: Colors.light.textMuted,
-    marginBottom: 16,
+    color: '#A0AAB0',
+    fontWeight: '600',
+  },
+  mspTotalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  totalLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  totalAmountVal: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#F59E0B',
   },
   generateBtn: {
-    backgroundColor: '#3B7A1E',
-    height: 50,
-    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#16A34A',
+    borderRadius: 16,
+    paddingVertical: 16,
     gap: 10,
+    elevation: 2,
   },
   generateBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 18,
   },
-  modalContent: {
+  receiptModalContent: {
     width: '100%',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 22,
     padding: 20,
+    gap: 14,
   },
-  modalHeader: {
+  receiptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E4D8',
+    paddingBottom: 12,
+  },
+  govSeal: {
+    backgroundColor: '#1C1E1B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  govSealText: {
+    color: '#F59E0B',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  receiptTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#141713',
+    letterSpacing: 0.5,
+  },
+  receiptSub: {
+    fontSize: 10,
+    color: '#667064',
+  },
+  voucherDetailsBox: {
+    backgroundColor: '#FAF9F5',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+    gap: 8,
+  },
+  voucherRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#12160F',
+  vLabel: {
+    fontSize: 12,
+    color: '#666666',
   },
-  receiptPaper: {
-    backgroundColor: '#FFFDF5',
-    borderWidth: 1,
-    borderColor: '#E2DEC9',
-    borderRadius: 12,
-    padding: 16,
-    borderStyle: 'dashed',
+  vVal: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#141713',
   },
-  receiptTitle: {
-    textAlign: 'center',
-    fontWeight: '800',
-    fontSize: 14,
-    color: '#12160F',
-  },
-  receiptSub: {
-    textAlign: 'center',
-    fontSize: 11,
-    color: Colors.light.textMuted,
-    marginBottom: 10,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E2DEC9',
-    marginVertical: 8,
-  },
-  receiptLine: {
+  vValBold: {
     fontSize: 13,
-    color: '#333333',
-    marginVertical: 3,
-  },
-  receiptTotal: {
-    fontSize: 18,
     fontWeight: '800',
-    color: '#3B7A1E',
-    marginVertical: 6,
+    color: '#141713',
   },
-  receiptFooter: {
-    fontSize: 11,
-    color: Colors.light.textMuted,
-    fontStyle: 'italic',
+  voucherTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: '#E8E4D8',
+    paddingTop: 8,
     marginTop: 4,
   },
-  printBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F0EFE9',
+  vTotalLabel: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#141713',
+  },
+  vTotalVal: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#16A34A',
+  },
+  verifiedRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
+  },
+  verifiedText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#16A34A',
+  },
+  receiptActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 6,
+  },
+  printBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3EFE6',
+    borderRadius: 14,
+    paddingVertical: 14,
+    gap: 6,
   },
   printBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#141713',
+  },
+  processNextBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#16A34A',
+    borderRadius: 14,
+    paddingVertical: 14,
+    gap: 6,
+  },
+  processNextBtnText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#12160F',
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
