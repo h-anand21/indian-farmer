@@ -54,14 +54,14 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             });
           };
 
-          // Render Icon matching the exact reference screenshot
+          // Render Icon matching the exact reference screenshot (compact & proportional)
           const renderIcon = (focused: boolean) => {
             const iconColor = focused ? '#FFFFFF' : '#141713';
 
             if (route.name === 'dashboard') {
               // 1. Home - Solid House silhouette
               return (
-                <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill={iconColor}>
                   <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
                 </Svg>
               );
@@ -69,13 +69,13 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
 
             if (route.name === 'bookings' || route.name === 'bookings/index') {
               // 2. Booking - Calendar icon
-              return <Calendar size={22} color={iconColor} strokeWidth={2.4} />;
+              return <Calendar size={19} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'queue') {
               // 3. Live - Two-leaf Sprout silhouette from screenshot
               return (
-                <Svg width={23} height={23} viewBox="0 0 24 24">
+                <Svg width={20} height={20} viewBox="0 0 24 24">
                   <Path
                     d="M12 19 C 13.5 12.5 17.5 7.5 21 6.5 C 21 11.5 18 17 12 19 Z"
                     fill={iconColor}
@@ -91,7 +91,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             if (route.name === 'profile') {
               // 4. Profile - Person silhouette (avatar)
               return (
-                <Svg width={23} height={23} viewBox="0 0 24 24" fill={iconColor}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill={iconColor}>
                   <Circle cx="12" cy="7.5" r="4.2" />
                   <Path d="M4.5 19.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5v0.5H4.5v-0.5z" />
                 </Svg>
@@ -140,7 +140,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
 const styles = StyleSheet.create({
   outerContainer: {
     position: 'absolute',
-    bottom: 22,
+    bottom: 16,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -152,55 +152,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     backgroundColor: '#FAF7F0', // Warm ivory cream marble tone from screenshot
-    borderRadius: 48,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    width: '92%',
-    maxWidth: 390,
+    borderRadius: 40,
+    paddingVertical: 7,
+    paddingHorizontal: 6,
+    width: '88%',
+    maxWidth: 345,
     borderWidth: 1.5,
     borderColor: 'rgba(235, 229, 217, 0.9)',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 16,
+    elevation: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 2,
+    paddingVertical: 1,
   },
   circleWrapper: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
   },
   haloOuterGlow: {
     position: 'absolute',
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: 'rgba(245, 158, 11, 0.22)',
   },
   haloMiddleGlow: {
     position: 'absolute',
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(245, 158, 11, 0.50)',
   },
   circle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
   },
   circleInactive: {
-    backgroundColor: '#EDE7DA', // Warm light cream circle, distinct from pill
+    backgroundColor: '#EDE7DA', // Warm light cream circle
   },
   circleActive: {
     backgroundColor: '#0A0D08', // Solid deep black circle
@@ -209,14 +209,14 @@ const styles = StyleSheet.create({
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.95,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 6,
   },
   tabLabel: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#656A60',
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 3,
     textAlign: 'center',
   },
   tabLabelActive: {
