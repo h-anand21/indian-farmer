@@ -46,7 +46,11 @@ const TIME_SLOTS = [
   { id: 'slot-6', window: '4:00 PM - 6:00 PM', status: '22 slots available', type: 'AVAILABLE' },
 ];
 
+import { useAuth } from '../../src/context/AuthContext';
+import { createBooking } from '../../src/lib/bookingStore';
+
 export default function BookSlotScreen() {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
 
   // Form State
@@ -64,13 +68,31 @@ export default function BookSlotScreen() {
 
   const router = useRouter();
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!agreed) {
       Toast.show({ type: 'error', text1: 'Terms Required', text2: 'Please accept Terms & Conditions.' });
       return;
     }
-    setGeneratedToken(`KQ-${Math.floor(1000 + Math.random() * 9000)}`);
+
+    const created = await createBooking({
+      mandi: selectedMandi.name,
+      mandiId: selectedMandi.id,
+      date: selectedDate,
+      time: selectedSlot.window,
+      crop: cropType,
+      quantity: `${quantity} Qt`,
+      vehicle: vehicleNo || 'Tractor Trolley',
+      farmerName: user?.name || 'Sardar Gurdeep Singh',
+      farmerPhone: user?.phone || '+91 98140 12345',
+    });
+
+    setGeneratedToken(created.token);
     setShowSuccessModal(true);
+    Toast.show({
+      type: 'success',
+      text1: 'Booking Slot Generated! 🎟️',
+      text2: `Token #${created.token} created for ${selectedMandi.name}`,
+    });
   };
 
   return (

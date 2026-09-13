@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import {
   ArrowLeft,
   Calendar,
@@ -24,50 +24,38 @@ import Colors from '../../../src/theme/colors';
 import { useAuth } from '../../../src/context/AuthContext';
 import GateScanScreen from '../../(operator)/scan';
 import AdminCentresListScreen from '../../(admin)/centres/index';
-
-const BOOKINGS_DATA = [
-  {
-    id: 'KQ-1048',
-    token: 'Token #KQ-1048',
-    mandi: 'Azadpur Mandi, Delhi',
-    date: '15 Sep 2025',
-    time: 'Mon, 6:00 - 8:00 AM',
-    crop: 'Wheat',
-    quantity: '50 Qt',
-    status: 'BOOKED',
-    badgeColor: '#E6A219',
-    badgeBg: '#FFF8E6',
-  },
-  {
-    id: 'KQ-1047',
-    token: 'Token #KQ-1047',
-    mandi: 'Ghazipur Mandi, Delhi',
-    date: '14 Sep 2025',
-    time: 'Sun, 8:00 - 10:00 AM',
-    crop: 'Rice',
-    quantity: '32 Qt',
-    status: 'COMPLETED',
-    badgeColor: '#2D8A39',
-    badgeBg: '#EBF4E5',
-  },
-  {
-    id: 'KQ-1046',
-    token: 'Token #KQ-1046',
-    mandi: 'Narela Mandi, Delhi',
-    date: '10 Sep 2025',
-    time: 'Sat, 10:00 AM - 12:00 PM',
-    crop: 'Maize',
-    quantity: '40 Qt',
-    status: 'WEIGHING',
-    badgeColor: '#E66919',
-    badgeBg: '#FFF2EB',
-  },
-];
+import { getBookings, BookingRecord } from '../../../src/lib/bookingStore';
 
 export default function MyBookingsScreen() {
   const { role } = useAuth();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PAST' | 'CANCELLED'>('ACTIVE');
+  const [bookingsList, setBookingsList] = useState<BookingRecord[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+
+  const loadBookings = useCallback(async () => {
+    const data = await getBookings();
+    setBookingsList(data);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadBookings();
+    }, [loadBookings])
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadBookings();
+    setRefreshing(false);
+  };
+
+  // Filter lists based on tab
+  const activeBookings = bookingsList.filter(
+    (b) => b.status === 'BOOKED' || b.status === 'CHECKED_IN' || b.status === 'WEIGHING'
+  );
+  const pastBookings = bookingsList.filter((b) => b.status === 'COMPLETED');
+  const cancelledBookings = bookingsList.filter((b) => b.status === 'CANCELLED');
 
   // If Operator is active, show Gate QR Scanner & Intake!
   if (role === 'OPERATOR') {
@@ -78,6 +66,13 @@ export default function MyBookingsScreen() {
   if (role === 'ADMIN') {
     return <AdminCentresListScreen />;
   }
+
+  const displayedList =
+    activeTab === 'ACTIVE'
+      ? activeBookings
+      : activeTab === 'PAST'
+      ? pastBookings
+      : cancelledBookings;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -99,7 +94,13 @@ export default function MyBookingsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.light.primary} />
+        }
+      >
         {/* Title */}
         <Text style={styles.title}>
           My <Text style={styles.titleHighlight}>Bookings</Text>
@@ -113,7 +114,7 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('ACTIVE')}
           >
             <Text style={[styles.tabText, activeTab === 'ACTIVE' && styles.tabTextActive]}>
-              📅 Active (3)
+              📅 Active ({activeBookings.length})
             </Text>
           </TouchableOpacity>
 
@@ -122,7 +123,7 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('PAST')}
           >
             <Text style={[styles.tabText, activeTab === 'PAST' && styles.tabTextActive]}>
-              🕒 Past (8)
+              🕒 Past ({pastBookings.length})
             </Text>
           </TouchableOpacity>
 
@@ -131,22 +132,22 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('CANCELLED')}
           >
             <Text style={[styles.tabText, activeTab === 'CANCELLED' && styles.tabTextActive]}>
-              ❌ Cancelled (2)
+              ❌ Cancelled ({cancelledBookings.length})
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Booking Cards List */}
-        {activeTab === 'ACTIVE' && (
+        {displayedList.length > 0 ? (
           <View style={styles.cardsList}>
-            {BOOKINGS_DATA.map((b) => (
+            {displayedList.map((b) => (
               <View key={b.id} style={styles.bookingCard}>
                 <View style={styles.cardHeader}>
                   <View style={styles.cardThumb}>
                     <Text style={{ fontSize: 22 }}>🏢</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTokenText}>{b.token}</Text>
+                    <Text style={styles.cardTokenText}>Token #{b.token}</Text>
                     <Text style={styles.cardMandiText}>📍 {b.mandi}</Text>
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: b.badgeBg }]}>
@@ -157,7 +158,7 @@ export default function MyBookingsScreen() {
                 <View style={styles.cardBodyRow}>
                   <View style={styles.infoBox}>
                     <Calendar size={14} color={Colors.light.textSecondary} />
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.infoTitle}>{b.date}</Text>
                       <Text style={styles.infoSub}>{b.time}</Text>
                     </View>
@@ -165,7 +166,7 @@ export default function MyBookingsScreen() {
 
                   <View style={styles.infoBox}>
                     <Wheat size={14} color={Colors.light.textSecondary} />
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <Text style={styles.infoTitle}>{b.crop}</Text>
                       <Text style={styles.infoSub}>{b.quantity}</Text>
                     </View>
@@ -185,30 +186,35 @@ export default function MyBookingsScreen() {
                   <TouchableOpacity
                     style={styles.actionRightBtn}
                     onPress={() =>
-                      b.status === 'CHECKED IN'
+                      b.status === 'CHECKED_IN'
                         ? router.push('/(farmer)/queue')
                         : router.push(`/(farmer)/bookings/${b.id}`)
                     }
                   >
-                    {b.status === 'CHECKED IN' ? (
+                    {b.status === 'CHECKED_IN' ? (
                       <LineChart size={14} color={Colors.light.primary} />
                     ) : (
                       <QrCode size={14} color={Colors.light.primary} />
                     )}
                     <Text style={styles.actionRightText}>
-                      {b.status === 'CHECKED IN' ? 'Live Queue' : 'Show QR Code'}
+                      {b.status === 'CHECKED_IN' ? 'Live Queue' : 'Show QR Code'}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
+          </View>
+        ) : (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>📅</Text>
+            <Text style={styles.emptyTitle}>No bookings found</Text>
+            <Text style={styles.emptySub}>
+              {activeTab === 'ACTIVE'
+                ? "You don't have any upcoming bookings. Book a new slot to sell your produce."
+                : 'No records found under this filter.'}
+            </Text>
 
-            {/* End of List Banner */}
-            <View style={styles.emptyCard}>
-              <Text style={styles.emptyEmoji}>📅</Text>
-              <Text style={styles.emptyTitle}>No more active bookings</Text>
-              <Text style={styles.emptySub}>You don't have any upcoming bookings. Book a new slot to sell your produce.</Text>
-
+            {activeTab === 'ACTIVE' && (
               <TouchableOpacity
                 style={styles.bookNewBtn}
                 onPress={() => router.push('/(farmer)/book-slot')}
@@ -216,15 +222,7 @@ export default function MyBookingsScreen() {
                 <Text style={styles.bookNewText}>Book New Slot</Text>
                 <ArrowRight size={16} color="#FFFFFF" />
               </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {activeTab !== 'ACTIVE' && (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyEmoji}>📦</Text>
-            <Text style={styles.emptyTitle}>History Recorded</Text>
-            <Text style={styles.emptySub}>Showing past procurement records from your history.</Text>
+            )}
           </View>
         )}
       </ScrollView>

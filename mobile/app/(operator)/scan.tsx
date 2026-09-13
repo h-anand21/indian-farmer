@@ -35,6 +35,7 @@ import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
 import { operatorGateCheckIn } from '../../src/services/operatorService';
+import { getBookingByToken, updateBookingStatus } from '../../src/lib/bookingStore';
 
 interface ScannedFarmer {
   token: string;
@@ -142,6 +143,29 @@ export default function GateScanScreen() {
       }
 
       if (!fetchedFarmer) {
+        // First check local AsyncStorage bookingStore
+        const localBooking = await getBookingByToken(tokenId);
+        if (localBooking) {
+          fetchedFarmer = {
+            token: localBooking.token,
+            name: localBooking.farmerName,
+            phone: localBooking.farmerPhone,
+            aadhaar: 'XXXX-XXXX-9102 (DigiLocker Verified)',
+            crop: localBooking.crop,
+            quantity: localBooking.quantity,
+            slot: `${localBooking.date}, ${localBooking.time} (ACTIVE)`,
+            vehicle: localBooking.vehicle,
+            quotaRemaining: 'MSP Quota Verified & Allocated',
+          };
+          Toast.show({
+            type: 'success',
+            text1: 'QR Gate Pass Verified! ✅',
+            text2: `Farmer: ${fetchedFarmer.name} (Token #${fetchedFarmer.token})`,
+          });
+        }
+      }
+
+      if (!fetchedFarmer) {
         fetchedFarmer = SAMPLE_FARMERS[tokenId] || {
           token: tokenId,
           name: 'Gurdeep Singh',
@@ -210,8 +234,9 @@ export default function GateScanScreen() {
     setIsScanningActive(true);
   };
 
-  const handleConfirmCheckIn = () => {
+  const handleConfirmCheckIn = async () => {
     if (!scannedResult) return;
+    await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
     const newPos = Math.floor(Math.random() * 5) + 7;
     setAssignedQueueNo(newPos);
     setShowSuccessModal(true);

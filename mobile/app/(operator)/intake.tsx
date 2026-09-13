@@ -29,6 +29,7 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { updateBookingStatus } from '../../src/lib/bookingStore';
 
 export default function OperatorIntakeScreen() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function OperatorIntakeScreen() {
   const effectiveMspRate = Math.round(baseMspRate * gradeMultiplier);
   const totalAmount = Math.round((parseFloat(netQuintals) || 0) * effectiveMspRate);
 
-  const handleGenerateFormJ = () => {
+  const handleGenerateFormJ = async () => {
     if (!tokenInput || gross <= 0 || tare >= gross) {
       Toast.show({
         type: 'error',
@@ -80,13 +81,15 @@ export default function OperatorIntakeScreen() {
     }
 
     setIsSubmitting(true);
+    await updateBookingStatus(tokenInput, 'COMPLETED');
     setTimeout(() => {
       setIsSubmitting(false);
       setShowReceiptModal(true);
     }, 500);
   };
 
-  const handleProcessNext = () => {
+  const handleProcessNext = async () => {
+    await updateBookingStatus(tokenInput, 'COMPLETED');
     setShowReceiptModal(false);
     Toast.show({
       type: 'success',

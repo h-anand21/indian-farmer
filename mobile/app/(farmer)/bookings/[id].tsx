@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -25,13 +25,28 @@ import {
 import QRCode from 'react-native-qrcode-svg';
 import Toast from 'react-native-toast-message';
 import Colors from '../../../src/theme/colors';
+import { getBookingByToken, BookingRecord } from '../../../src/lib/bookingStore';
 
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [booking, setBooking] = useState<BookingRecord | null>(null);
   const router = useRouter();
 
   const bookingId = id || 'KQ-1048';
+
+  useEffect(() => {
+    async function loadData() {
+      const b = await getBookingByToken(bookingId);
+      if (b) {
+        setBooking(b);
+      }
+    }
+    loadData();
+  }, [bookingId]);
+
+  const currentStatus = booking?.status || 'BOOKED';
+  const displayToken = booking?.token || bookingId;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,11 +58,13 @@ export default function BookingDetailScreen() {
 
         <View style={styles.headerTitleGroup}>
           <Text style={styles.headerTitle}>Booking Details</Text>
-          <Text style={styles.headerSub}>Live status of your mandi slot</Text>
+          <Text style={styles.headerSub}>{booking ? `${booking.mandi} • ${booking.crop}` : 'Live status of your mandi slot'}</Text>
         </View>
 
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusBadgeText}>✓ COMPLETED</Text>
+        <View style={[styles.statusBadge, { backgroundColor: booking?.badgeBg || '#FFF8E6' }]}>
+          <Text style={[styles.statusBadgeText, { color: booking?.badgeColor || '#E6A219' }]}>
+            {currentStatus === 'CHECKED_IN' ? '✓ CHECKED IN' : `✓ ${currentStatus}`}
+          </Text>
         </View>
       </View>
 
@@ -56,11 +73,11 @@ export default function BookingDetailScreen() {
         <View style={styles.qrCard}>
           <View style={styles.qrHeader}>
             <View style={styles.qrBox}>
-              <QRCode value={`KQ-BOOKING-${bookingId}`} size={120} />
+              <QRCode value={`KQ-BOOKING-${displayToken}`} size={120} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.tokenLabel}>Token Number</Text>
-              <Text style={styles.tokenVal}>#{bookingId}</Text>
+              <Text style={styles.tokenVal}>#{displayToken}</Text>
               <Text style={styles.qrSub}>Scan this QR code at mandi entry</Text>
             </View>
           </View>
