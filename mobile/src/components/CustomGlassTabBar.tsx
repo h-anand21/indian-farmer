@@ -15,8 +15,6 @@ const ALLOWED_ROUTES = [
   'scan',
   'daily-report',
   'stats',
-  'payments',
-  'payments/index',
   'profile',
 ];
 

@@ -70,7 +70,7 @@ export default function BookSlotScreen() {
 
   const router = useRouter();
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadCentres() {
       try {
         const liveCentres = await fetchCentres();
