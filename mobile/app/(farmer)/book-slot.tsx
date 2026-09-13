@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,12 +29,16 @@ import QRCode from 'react-native-qrcode-svg';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 
-const MANDI_LIST = [
-  { id: 'mandi-1', name: 'Azadpur Mandi', location: 'Delhi, 2.5 km', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 42 },
-  { id: 'mandi-2', name: 'Ghazipur Mandi', location: 'Delhi, 8.3 km', congestion: 'Medium Congestion', congestionColor: '#E6A219', slots: 18 },
-  { id: 'mandi-3', name: 'Narela Mandi', location: 'Delhi, 12.6 km', congestion: 'High Congestion', congestionColor: '#D93838', slots: 6 },
-  { id: 'mandi-4', name: 'Alipur Mandi', location: 'Delhi, 15.4 km', congestion: 'Medium Congestion', congestionColor: '#E6A219', slots: 24 },
-  { id: 'mandi-5', name: 'Shahdara Mandi', location: 'Delhi, 18.1 km', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 31 },
+import { useAuth } from '../../src/context/AuthContext';
+import { createBooking } from '../../src/lib/bookingStore';
+import { fetchCentres } from '../../src/services/bookingService';
+
+const DEFAULT_MANDIS = [
+  { id: 'PB-KHN-01', name: 'Khanna Main Grain Market (Yard #1)', location: 'Ludhiana, Punjab', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 42 },
+  { id: 'PB-RJP-02', name: 'Rajpura APMC Grain Procurement Complex', location: 'Patiala, Punjab', congestion: 'Medium Congestion', congestionColor: '#E6A219', slots: 18 },
+  { id: 'HR-KRN-04', name: 'Karnal Anaj Mandi Complex Gate #2', location: 'Karnal, Haryana', congestion: 'High Congestion', congestionColor: '#D93838', slots: 6 },
+  { id: 'HR-AMB-05', name: 'Ambala City Grain Market Yard', location: 'Ambala, Haryana', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 24 },
+  { id: 'PB-SRH-03', name: 'Sirhind Grain Market Yard', location: 'Fatehgarh Sahib, Punjab', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 31 },
 ];
 
 const TIME_SLOTS = [
@@ -46,20 +50,18 @@ const TIME_SLOTS = [
   { id: 'slot-6', window: '4:00 PM - 6:00 PM', status: '22 slots available', type: 'AVAILABLE' },
 ];
 
-import { useAuth } from '../../src/context/AuthContext';
-import { createBooking } from '../../src/lib/bookingStore';
-
 export default function BookSlotScreen() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
 
   // Form State
-  const [selectedMandi, setSelectedMandi] = useState(MANDI_LIST[0]);
-  const [selectedDate, setSelectedDate] = useState('Mon, 15 Sep 2025');
+  const [mandiList, setMandiList] = useState(DEFAULT_MANDIS);
+  const [selectedMandi, setSelectedMandi] = useState(DEFAULT_MANDIS[0]);
+  const [selectedDate, setSelectedDate] = useState('Mon, 15 Sep 2026');
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [cropType, setCropType] = useState('Wheat');
   const [quantity, setQuantity] = useState('50');
-  const [vehicleNo, setVehicleNo] = useState('DL 01 AB 1234');
+  const [vehicleNo, setVehicleNo] = useState('PB 10 AB 1234');
   const [agreed, setAgreed] = useState(true);
 
   // Success Modal
@@ -67,6 +69,29 @@ export default function BookSlotScreen() {
   const [generatedToken, setGeneratedToken] = useState('KQ-1049');
 
   const router = useRouter();
+
+  useEffect(() => {
+    async function loadCentres() {
+      try {
+        const liveCentres = await fetchCentres();
+        if (Array.isArray(liveCentres) && liveCentres.length > 0) {
+          const mapped = liveCentres.map((c) => ({
+            id: c.id || c.code || `mandi-${c.name}`,
+            name: c.name,
+            location: `${c.district || c.state || 'Grain Market'}, ${c.state || ''}`,
+            congestion: c.congestion ? `${c.congestion} Congestion` : 'Low Congestion',
+            congestionColor: c.congestion === 'HIGH' ? '#D93838' : c.congestion === 'MODERATE' ? '#E6A219' : '#2D8A39',
+            slots: c.totalCounters ? c.totalCounters * 8 : 30,
+          }));
+          setMandiList(mapped);
+          setSelectedMandi(mapped[0]);
+        }
+      } catch (e) {
+        console.log('Using default database mandi list for offline mode');
+      }
+    }
+    loadCentres();
+  }, []);
 
   const handleConfirmBooking = async () => {
     if (!agreed) {
@@ -133,7 +158,7 @@ export default function BookSlotScreen() {
             </View>
 
             {/* Mandi Cards List */}
-            {MANDI_LIST.map((mandiItem) => {
+            {mandiList.map((mandiItem) => {
               const isSelected = selectedMandi.id === mandiItem.id;
               return (
                 <TouchableOpacity
