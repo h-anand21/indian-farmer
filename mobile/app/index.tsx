@@ -34,7 +34,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.logoBadge}>
-        <Text style={styles.logoIcon}>🌱</Text>
+        <Image source={require('../assets/image.png')} style={styles.logoImage} resizeMode="contain" />
       </View>
       <Text style={styles.title}>KisanQueue</Text>
       <Text style={styles.subtitle}>Smart Farming | Fair Prices | Better Tomorrow</Text>
@@ -52,18 +52,21 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   logoBadge: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#EBF4E5',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
     borderWidth: 2,
     borderColor: Colors.light.primary,
+    overflow: 'hidden',
+    padding: 8,
   },
-  logoIcon: {
-    fontSize: 44,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 32,

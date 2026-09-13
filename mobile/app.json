@@ -5,13 +5,13 @@
     "version": "1.0.0",
     "scheme": "kisanqueue",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/image.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/image.png",
       "resizeMode": "contain",
-      "backgroundColor": "#3B7A1E"
+      "backgroundColor": "#FFFBEF"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,8 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#3B7A1E",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#FFFBEF",
+        "foregroundImage": "./assets/image.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
@@ -28,7 +28,7 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "favicon": "./assets/favicon.png",
+      "favicon": "./assets/image.png",
       "bundler": "metro"
     },
     "plugins": [
