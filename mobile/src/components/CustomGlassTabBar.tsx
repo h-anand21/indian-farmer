@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3 } from 'lucide-react-native';
+import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3, IndianRupee, FileText } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 const ALLOWED_ROUTES = [
@@ -12,6 +12,11 @@ const ALLOWED_ROUTES = [
   'bookings/index',
   'book-slot',
   'queue',
+  'scan',
+  'daily-report',
+  'stats',
+  'payments',
+  'payments/index',
   'profile',
 ];
 
@@ -34,7 +39,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           const { options } = descriptors[route.key];
           const routeIndex = state.routes.findIndex((r) => r.key === route.key);
           const isFocused = state.index === routeIndex;
-          const isCenterFab = route.name === 'book-slot';
+          const isCenterFab = route.name === 'book-slot' || route.name === 'scan';
 
           let label =
             options.tabBarLabel !== undefined
@@ -49,8 +54,14 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Bookings';
           } else if (route.name === 'book-slot') {
             label = 'Book Slot';
+          } else if (route.name === 'scan') {
+            label = 'Scan QR';
           } else if (route.name === 'queue') {
-            label = role === 'OPERATOR' ? 'Queue' : role === 'ADMIN' ? 'Analytics' : 'Live Queue';
+            label = 'Live Queue';
+          } else if (route.name === 'daily-report') {
+            label = 'Reports';
+          } else if (route.name === 'payments' || route.name === 'payments/index') {
+            label = 'Payments';
           } else if (route.name === 'profile') {
             label = 'Profile';
           }
@@ -74,8 +85,9 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             });
           };
 
-          // Render Center FAB for Book Slot
+          // Render Center FAB for Book Slot or Scan QR
           if (isCenterFab) {
+            const isScan = route.name === 'scan';
             return (
               <TouchableOpacity
                 key={route.key}
@@ -89,17 +101,21 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                 {/* Elevated Outer Glow */}
                 <View style={styles.centerFabGlowHalo} />
                 <View style={[styles.centerFabCircle, isFocused && styles.centerFabCircleFocused]}>
-                  {/* Calendar with Sprout/Leaf Icon */}
                   <View style={styles.fabIconContainer}>
-                    <Calendar size={24} color="#FFFFFF" strokeWidth={2.4} />
+                    {isScan ? (
+                      <QrCode size={26} color="#FFFFFF" strokeWidth={2.4} />
+                    ) : (
+                      <Calendar size={24} color="#FFFFFF" strokeWidth={2.4} />
+                    )}
                     <View style={styles.sproutBadge}>
                       <Text style={{ fontSize: 10 }}>🌱</Text>
                     </View>
                   </View>
                 </View>
                 <Text style={[styles.tabLabel, styles.centerFabLabel, isFocused && styles.tabLabelActive]}>
-                  Book Slot
+                  {String(label)}
                 </Text>
+                {isFocused && <View style={styles.activeDot} />}
               </TouchableOpacity>
             );
           }
@@ -127,12 +143,6 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
 
             if (route.name === 'queue') {
-              if (role === 'OPERATOR') {
-                return <Users size={16} color={iconColor} strokeWidth={2.4} />;
-              }
-              if (role === 'ADMIN') {
-                return <BarChart3 size={16} color={iconColor} strokeWidth={2.4} />;
-              }
               return (
                 <Svg width={16} height={16} viewBox="0 0 24 24">
                   <Path
@@ -147,12 +157,21 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               );
             }
 
+            if (route.name === 'daily-report') {
+              return <FileText size={16} color={iconColor} strokeWidth={2.4} />;
+            }
+
+            if (route.name === 'payments' || route.name === 'payments/index') {
+              return <IndianRupee size={16} color={iconColor} strokeWidth={2.4} />;
+            }
+
             if (route.name === 'profile') {
               return (
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill={iconColor}>
                   <Circle cx="12" cy="7.5" r="4.2" />
                   <Path d="M4.5 19.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5v0.5H4.5v-0.5z" />
                 </Svg>
+
               );
             }
 
@@ -185,6 +204,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]} numberOfLines={1}>
                 {String(label)}
               </Text>
+              {isFocused && <View style={styles.activeDot} />}
             </TouchableOpacity>
           );
         })}
@@ -330,4 +350,12 @@ const styles = StyleSheet.create({
     color: '#134E23',
     marginTop: 3,
   },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#134E23',
+    marginTop: 2,
+  },
 });
+
