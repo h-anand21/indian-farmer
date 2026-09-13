@@ -59,6 +59,13 @@ export default function ProfileScreen() {
     try {
       await switchRole(newRole);
       Toast.show({ type: 'success', text1: `Switched to ${newRole} mode!` });
+      if (newRole === 'ADMIN') {
+        router.replace('/(admin)/dashboard');
+      } else if (newRole === 'OPERATOR') {
+        router.replace('/(operator)/dashboard');
+      } else {
+        router.replace('/(farmer)/dashboard');
+      }
     } catch (e: any) {
       Alert.alert('Role Switch Error', e?.message || 'Could not switch role');
     }

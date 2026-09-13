@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
-import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3, IndianRupee, FileText } from 'lucide-react-native';
+import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3, IndianRupee, FileText, Wheat } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 const ALLOWED_ROUTES = [
@@ -14,6 +14,10 @@ const ALLOWED_ROUTES = [
   'queue',
   'scan',
   'daily-report',
+  'analytics',
+  'centres',
+  'centres/index',
+  'crops',
   'profile',
 ];
 
@@ -36,7 +40,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           const { options } = descriptors[route.key];
           const routeIndex = state.routes.findIndex((r) => r.key === route.key);
           const isFocused = state.index === routeIndex;
-          const isCenterFab = route.name === 'book-slot' || route.name === 'scan';
+          const isCenterFab = route.name === 'book-slot' || route.name === 'scan' || route.name === 'centres' || route.name === 'centres/index';
 
           let label =
             options.tabBarLabel !== undefined
@@ -57,6 +61,12 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             label = 'Live Queue';
           } else if (route.name === 'daily-report') {
             label = 'Reports';
+          } else if (route.name === 'analytics') {
+            label = 'Analytics';
+          } else if (route.name === 'centres' || route.name === 'centres/index') {
+            label = 'Mandi Hubs';
+          } else if (route.name === 'crops') {
+            label = 'MSP Master';
           } else if (route.name === 'payments' || route.name === 'payments/index') {
             label = 'Payments';
           } else if (route.name === 'profile') {
@@ -82,9 +92,10 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             });
           };
 
-          // Render Center FAB for Book Slot or Scan QR
+          // Render Center FAB for Book Slot, Scan QR, or Mandi Hubs (Admin)
           if (isCenterFab) {
             const isScan = route.name === 'scan';
+            const isCentres = route.name === 'centres' || route.name === 'centres/index';
             return (
               <TouchableOpacity
                 key={route.key}
@@ -101,6 +112,8 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   <View style={styles.fabIconContainer}>
                     {isScan ? (
                       <QrCode size={26} color="#FFFFFF" strokeWidth={2.4} />
+                    ) : isCentres ? (
+                      <Building2 size={24} color="#FFFFFF" strokeWidth={2.4} />
                     ) : (
                       <Calendar size={24} color="#FFFFFF" strokeWidth={2.4} />
                     )}
@@ -127,6 +140,14 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
                 </Svg>
               );
+            }
+
+            if (route.name === 'analytics') {
+              return <BarChart3 size={16} color={iconColor} strokeWidth={2.4} />;
+            }
+
+            if (route.name === 'crops') {
+              return <Wheat size={16} color={iconColor} strokeWidth={2.4} />;
             }
 
             if (route.name === 'bookings' || route.name === 'bookings/index') {
@@ -168,6 +189,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   <Circle cx="12" cy="7.5" r="4.2" />
                   <Path d="M4.5 19.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5v0.5H4.5v-0.5z" />
                 </Svg>
+
 
               );
             }
