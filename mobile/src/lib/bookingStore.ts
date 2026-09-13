@@ -164,3 +164,125 @@ export async function updateBookingStatus(token: string, newStatus: BookingRecor
   }
 }
 
+export interface FarmerPaymentItem {
+  id: string;
+  date: string;
+  mandi: string;
+  crop: string;
+  msp: string;
+  amount: string;
+  status: 'COMPLETED' | 'PENDING' | 'FAILED';
+  bankRef: string;
+  color: string;
+  bg: string;
+  token: string;
+  rawAmount: number;
+}
+
+export async function getFarmerPayments(): Promise<FarmerPaymentItem[]> {
+  const bookings = await getBookings();
+
+  return bookings.map((b) => {
+    const qtyNum = parseFloat(b.quantity) || 40;
+    let rate = 2425;
+    let emoji = '🌾';
+
+    if (b.crop.toLowerCase().includes('rice') || b.crop.toLowerCase().includes('paddy')) {
+      rate = 2300;
+    } else if (b.crop.toLowerCase().includes('mustard') || b.crop.toLowerCase().includes('sarson')) {
+      rate = 5950;
+      emoji = '🌱';
+    } else if (b.crop.toLowerCase().includes('maize')) {
+      rate = 2225;
+      emoji = '🌽';
+    } else if (b.crop.toLowerCase().includes('chana') || b.crop.toLowerCase().includes('gram')) {
+      rate = 5650;
+      emoji = '🫘';
+    }
+
+    const totalVal = Math.round(qtyNum * rate);
+    const payStatus: 'COMPLETED' | 'PENDING' | 'FAILED' =
+      b.status === 'COMPLETED' ? 'COMPLETED' : 'PENDING';
+
+    return {
+      id: `pay-${b.token}`,
+      date: b.date || b.createdAt,
+      mandi: b.mandi,
+      crop: `${b.crop} (${b.quantity})`,
+      msp: `₹ ${rate.toLocaleString('en-IN')}/Qt`,
+      amount: `₹ ${totalVal.toLocaleString('en-IN')}`,
+      status: payStatus,
+      bankRef: `SBI-DBT-${Math.floor(10000000 + Math.random() * 90000000)}`,
+      color: payStatus === 'COMPLETED' ? '#2D8A39' : payStatus === 'PENDING' ? '#2B70C9' : '#D93838',
+      bg: payStatus === 'COMPLETED' ? '#ECF8EE' : payStatus === 'PENDING' ? '#EDF4FC' : '#FFF2F2',
+      token: `#${b.token}`,
+      rawAmount: totalVal,
+    };
+  });
+}
+
+export interface FarmerProcurementItem {
+  id: string;
+  date: string;
+  mandi: string;
+  crop: string;
+  cropEmoji: string;
+  netWeight: string;
+  grade: string;
+  mspRate: string;
+  amount: string;
+  formJ: string;
+  token: string;
+  grossKg: string;
+  tareKg: string;
+  netKg: string;
+  moisture: string;
+  foreignMatter: string;
+  impurities: string;
+}
+
+export async function getFarmerProcurements(): Promise<FarmerProcurementItem[]> {
+  const bookings = await getBookings();
+
+  return bookings.map((b) => {
+    const qtyNum = parseFloat(b.quantity) || 40;
+    let rate = 2425;
+    let emoji = '🌾';
+
+    if (b.crop.toLowerCase().includes('rice') || b.crop.toLowerCase().includes('paddy')) {
+      rate = 2300;
+    } else if (b.crop.toLowerCase().includes('mustard') || b.crop.toLowerCase().includes('sarson')) {
+      rate = 5950;
+      emoji = '🌱';
+    } else if (b.crop.toLowerCase().includes('maize')) {
+      rate = 2225;
+      emoji = '🌽';
+    }
+
+    const totalVal = Math.round(qtyNum * rate);
+    const grossKgNum = Math.round(qtyNum * 100 + 450);
+    const tareKgNum = 450;
+    const netKgNum = Math.round(qtyNum * 100);
+
+    return {
+      id: `proc-${b.token}`,
+      date: b.date || b.createdAt,
+      mandi: b.mandi,
+      crop: b.crop,
+      cropEmoji: emoji,
+      netWeight: `${qtyNum} Qt`,
+      grade: 'A Grade',
+      mspRate: `₹ ${rate.toLocaleString('en-IN')}/Qt`,
+      amount: `₹ ${totalVal.toLocaleString('en-IN')}`,
+      formJ: `FJ/2026/${b.token.replace('KQ-', '')}`,
+      token: `#${b.token}`,
+      grossKg: `${grossKgNum.toLocaleString('en-IN')} kg`,
+      tareKg: `${tareKgNum} kg`,
+      netKg: `${netKgNum.toLocaleString('en-IN')} kg`,
+      moisture: '11.5%',
+      foreignMatter: '0.4%',
+      impurities: '0.2%',
+    };
+  });
+}
+

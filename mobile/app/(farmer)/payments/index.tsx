@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import {
   IndianRupee,
   Calendar,
@@ -26,70 +26,42 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../../src/theme/colors';
-
-const PAYMENTS_DATA = [
-  {
-    id: 'pay-1',
-    date: '12 Sep 2026',
-    mandi: 'Azadpur Mandi, Delhi',
-    crop: 'Wheat (45.5 Qt)',
-    msp: '₹ 2,275/Qt',
-    amount: '₹ 1,03,513',
-    status: 'COMPLETED',
-    bankRef: 'SBI-DBT-98412034',
-    color: '#2D8A39',
-    bg: '#ECF8EE',
-    token: '#KQ-1048',
-  },
-  {
-    id: 'pay-2',
-    date: '28 Aug 2026',
-    mandi: 'Ghazipur Mandi, Delhi',
-    crop: 'Rice (32 Qt)',
-    msp: '₹ 2,183/Qt',
-    amount: '₹ 69,856',
-    status: 'PENDING',
-    bankRef: 'PNB-DBT-88123049',
-    color: '#2B70C9',
-    bg: '#EDF4FC',
-    token: '#KQ-1047',
-  },
-  {
-    id: 'pay-3',
-    date: '15 Aug 2026',
-    mandi: 'Narela Mandi, Delhi',
-    crop: 'Maize (50 Qt)',
-    msp: '₹ 2,090/Qt',
-    amount: '₹ 1,04,500',
-    status: 'COMPLETED',
-    bankRef: 'HDFC-DBT-77410293',
-    color: '#2D8A39',
-    bg: '#ECF8EE',
-    token: '#KQ-1045',
-  },
-  {
-    id: 'pay-4',
-    date: '02 Aug 2026',
-    mandi: 'Shahdara Mandi, Delhi',
-    crop: 'Soybean (30 Qt)',
-    msp: '₹ 4,600/Qt',
-    amount: '₹ 1,38,000',
-    status: 'FAILED',
-    bankRef: 'ICIC-DBT-00098765',
-    color: '#D93838',
-    bg: '#FFF2F2',
-    token: '#KQ-1042',
-  },
-];
+import { getFarmerPayments, FarmerPaymentItem } from '../../../src/lib/bookingStore';
 
 export default function PaymentsScreen() {
   const [filter, setFilter] = useState<'ALL' | 'PENDING' | 'COMPLETED' | 'FAILED'>('ALL');
+  const [payments, setPayments] = useState<FarmerPaymentItem[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
-  const filteredData = PAYMENTS_DATA.filter((p) => {
+  const loadData = useCallback(async () => {
+    const list = await getFarmerPayments();
+    setPayments(list);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const filteredData = payments.filter((p) => {
     if (filter === 'ALL') return true;
     return p.status === filter;
   });
+
+  const totalEarningsVal = payments
+    .filter((p) => p.status === 'COMPLETED')
+    .reduce((sum, p) => sum + p.rawAmount, 0);
+
+  const lastPayment = payments.find((p) => p.status === 'COMPLETED') || payments[0];
+  const formattedTotal = `₹ ${totalEarningsVal.toLocaleString('en-IN')}`;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -109,7 +81,13 @@ export default function PaymentsScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.light.primary} />
+        }
+      >
         {/* Title */}
         <View style={styles.titleRow}>
           <View>
@@ -125,17 +103,17 @@ export default function PaymentsScreen() {
         <View style={styles.summaryGrid}>
           <View style={[styles.summaryCard, { backgroundColor: Colors.light.primary }]}>
             <Text style={styles.sumLabel}>Total Earnings (This Season)</Text>
-            <Text style={styles.sumValue}>₹ 4,52,300</Text>
+            <Text style={styles.sumValue}>{formattedTotal}</Text>
             <View style={styles.growthBadge}>
               <TrendingUp size={12} color="#F3CF65" />
-              <Text style={styles.growthText}>+12% from last season</Text>
+              <Text style={styles.growthText}>DBT Direct to Bank</Text>
             </View>
           </View>
 
           <View style={[styles.summaryCard, { backgroundColor: '#D4A836' }]}>
             <Text style={styles.sumLabel}>Last Payment Received</Text>
-            <Text style={styles.sumValue}>₹ 1,03,513</Text>
-            <Text style={styles.lastDateText}>on 12 Sep 2025</Text>
+            <Text style={styles.sumValue}>{lastPayment ? lastPayment.amount : '₹ 0'}</Text>
+            <Text style={styles.lastDateText}>{lastPayment ? `on ${lastPayment.date}` : 'No payments yet'}</Text>
           </View>
         </View>
 

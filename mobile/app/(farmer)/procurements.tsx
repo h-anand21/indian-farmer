@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import {
   ArrowLeft,
   Wheat,
@@ -21,71 +22,36 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
-
-const PROCUREMENTS = [
-  {
-    id: 'proc-1',
-    date: '12 Sep 2026',
-    mandi: 'Azadpur Mandi, Delhi',
-    crop: 'Wheat',
-    cropEmoji: '🌾',
-    netWeight: '45.5 Qt',
-    grade: 'A Grade',
-    mspRate: '₹ 2,275/Qt',
-    amount: '₹ 1,03,513',
-    formJ: 'FJ/2026/091048',
-    token: '#KQ-1048',
-    grossKg: '48,200 kg (482 Qt)',
-    tareKg: '2,700 kg (27 Qt)',
-    netKg: '45,500 kg (455 Qt)',
-    moisture: '12.5%',
-    foreignMatter: '0.8%',
-    impurities: '0.5%',
-  },
-  {
-    id: 'proc-2',
-    date: '28 Aug 2026',
-    mandi: 'Ghazipur Mandi, Delhi',
-    crop: 'Rice',
-    cropEmoji: '🌾',
-    netWeight: '32.0 Qt',
-    grade: 'A Grade',
-    mspRate: '₹ 2,183/Qt',
-    amount: '₹ 69,856',
-    formJ: 'FJ/2026/082347',
-    token: '#KQ-1047',
-  },
-  {
-    id: 'proc-3',
-    date: '15 Aug 2026',
-    mandi: 'Narela Mandi, Delhi',
-    crop: 'Maize',
-    cropEmoji: '🌽',
-    netWeight: '50.0 Qt',
-    grade: 'B Grade',
-    mspRate: '₹ 2,090/Qt',
-    amount: '₹ 1,04,500',
-    formJ: 'FJ/2026/071156',
-    token: '#KQ-1045',
-  },
-  {
-    id: 'proc-4',
-    date: '02 Aug 2026',
-    mandi: 'Shahdara Mandi, Delhi',
-    crop: 'Soybean',
-    cropEmoji: '🫛',
-    netWeight: '54.5 Qt',
-    grade: 'A Grade',
-    mspRate: '₹ 4,600/Qt',
-    amount: '₹ 2,50,700',
-    formJ: 'FJ/2026/061023',
-    token: '#KQ-1042',
-  },
-];
+import { getFarmerProcurements, FarmerProcurementItem } from '../../src/lib/bookingStore';
 
 export default function ProcurementsScreen() {
   const [selectedProc, setSelectedProc] = useState<any>(null);
+  const [procurements, setProcurements] = useState<FarmerProcurementItem[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+
+  const loadData = useCallback(async () => {
+    const list = await getFarmerProcurements();
+    setProcurements(list);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const totalQty = procurements.reduce((sum, p) => sum + (parseFloat(p.netWeight) || 0), 0);
+  const totalValNum = procurements.reduce((sum, p) => {
+    const val = parseFloat(p.amount.replace(/[^0-9]/g, '')) || 0;
+    return sum + val;
+  }, 0);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -107,7 +73,13 @@ export default function ProcurementsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.light.primary} />
+        }
+      >
         {/* Title */}
         <Text style={styles.title}>
           Procurement <Text style={styles.titleHighlight}>History</Text>
@@ -119,25 +91,25 @@ export default function ProcurementsScreen() {
           <View style={styles.seasonHeader}>
             <View style={styles.seasonBadge}>
               <Wheat size={16} color={Colors.light.primary} />
-              <Text style={styles.seasonBadgeText}>Kharif 2026</Text>
+              <Text style={styles.seasonBadgeText}>Season 2026-27</Text>
             </View>
-            <Text style={styles.procCountText}>4 procurements • 182 Qt total</Text>
+            <Text style={styles.procCountText}>{procurements.length} procurements • {totalQty} Qt total</Text>
           </View>
 
           <View style={styles.seasonStatsGrid}>
             <View style={styles.seasonStatItem}>
               <Text style={styles.statLabel}>Total Value</Text>
-              <Text style={styles.statVal}>₹ 4,52,300</Text>
+              <Text style={styles.statVal}>₹ {totalValNum.toLocaleString('en-IN')}</Text>
             </View>
 
             <View style={styles.seasonStatItem}>
               <Text style={styles.statLabel}>Total Quantity</Text>
-              <Text style={styles.statVal}>182 Qt</Text>
+              <Text style={styles.statVal}>{totalQty} Qt</Text>
             </View>
 
             <View style={styles.seasonStatItem}>
-              <Text style={styles.statLabel}>Avg. MSP Rate</Text>
-              <Text style={styles.statVal}>₹ 2,485/Qt</Text>
+              <Text style={styles.statLabel}>MSP Rate</Text>
+              <Text style={styles.statVal}>Govt MSP</Text>
             </View>
           </View>
         </View>
@@ -159,7 +131,7 @@ export default function ProcurementsScreen() {
 
         {/* Procurements List */}
         <View style={styles.list}>
-          {PROCUREMENTS.map((item) => (
+          {procurements.map((item: FarmerProcurementItem) => (
             <TouchableOpacity
               key={item.id}
               style={styles.card}
