@@ -212,6 +212,20 @@ export default function ProfileScreen() {
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => router.push('/(operator)/stats')}
+            >
+              <View style={[styles.iconCircle, { backgroundColor: '#E0F2FE' }]}>
+                <BarChart3 size={18} color="#0284C7" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Operator Stats & Performance</Text>
+                <Text style={styles.settingSub}>View weighbridge speed, efficiency & officer rank</Text>
+              </View>
+              <ChevronRight size={18} color={Colors.light.textMuted} />
+            </TouchableOpacity>
           </View>
         )}
 

@@ -14,7 +14,6 @@ const ALLOWED_ROUTES = [
   'queue',
   'scan',
   'daily-report',
-  'stats',
   'profile',
 ];
 

@@ -21,9 +21,15 @@ export default function Index() {
       return;
     }
 
-    // Navigate directly to the main 4-tab shell (Home, Booking, Live, Profile)
-    router.replace('/(farmer)/dashboard');
-  }, [isLoading, isAuthenticated, isRegistered]);
+    // Navigate directly based on role
+    if (role === 'OPERATOR') {
+      router.replace('/(operator)/dashboard');
+    } else if (role === 'ADMIN') {
+      router.replace('/(admin)/dashboard');
+    } else {
+      router.replace('/(farmer)/dashboard');
+    }
+  }, [isLoading, isAuthenticated, isRegistered, role]);
 
   return (
     <View style={styles.container}>
