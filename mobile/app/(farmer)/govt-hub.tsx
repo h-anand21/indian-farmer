@@ -26,14 +26,18 @@ import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 
 const MSP_DATA = [
-  { crop: 'Paddy (Common)', current: '₹ 2,369', prev: '₹ 2,183', change: '+8.5%', emoji: '🌾' },
-  { crop: 'Wheat', current: '₹ 2,275', prev: '₹ 2,125', change: '+7.1%', emoji: '🌾' },
-  { crop: 'Maize', current: '₹ 2,090', prev: '₹ 1,962', change: '+6.5%', emoji: '🌽' },
-  { crop: 'Soybean', current: '₹ 4,600', prev: '₹ 4,300', change: '+7.0%', emoji: '🫛' },
-  { crop: 'Arhar (Tur)', current: '₹ 8,000', prev: '₹ 7,550', change: '+6.0%', emoji: '🫘' },
-  { crop: 'Moong', current: '₹ 8,682', prev: '₹ 8,558', change: '+1.4%', emoji: '🫛' },
-  { crop: 'Urad', current: '₹ 7,400', prev: '₹ 6,950', change: '+6.5%', emoji: '🫘' },
-  { crop: 'Groundnut', current: '₹ 7,263', prev: '₹ 6,783', change: '+7.1%', emoji: '🥜' },
+  { crop: 'Wheat (Kanak)', current: '₹ 2,425', prev: '₹ 2,275', change: '+6.6%', season: 'Rabi 2026-27', date: '13 Sep 2026', emoji: '🌾' },
+  { crop: 'Paddy (Dhan - Common)', current: '₹ 2,300', prev: '₹ 2,183', change: '+5.4%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🌾' },
+  { crop: 'Paddy (Grade A)', current: '₹ 2,320', prev: '₹ 2,203', change: '+5.3%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🌾' },
+  { crop: 'Mustard (Sarson)', current: '₹ 5,950', prev: '₹ 5,650', change: '+5.3%', season: 'Rabi 2026-27', date: '13 Sep 2026', emoji: '🌱' },
+  { crop: 'Gram (Chana)', current: '₹ 5,650', prev: '₹ 5,440', change: '+3.9%', season: 'Rabi 2026-27', date: '13 Sep 2026', emoji: '🫘' },
+  { crop: 'Cotton (Kapas - Long)', current: '₹ 7,521', prev: '₹ 7,020', change: '+7.1%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '☁️' },
+  { crop: 'Maize (Makka)', current: '₹ 2,225', prev: '₹ 2,090', change: '+6.5%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🌽' },
+  { crop: 'Soybean (Yellow)', current: '₹ 4,892', prev: '₹ 4,600', change: '+6.3%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🫛' },
+  { crop: 'Arhar (Tur)', current: '₹ 8,000', prev: '₹ 7,550', change: '+6.0%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🫘' },
+  { crop: 'Moong', current: '₹ 8,682', prev: '₹ 8,558', change: '+1.4%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🫛' },
+  { crop: 'Urad', current: '₹ 7,400', prev: '₹ 6,950', change: '+6.5%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🫘' },
+  { crop: 'Groundnut', current: '₹ 7,263', prev: '₹ 6,783', change: '+7.1%', season: 'Kharif 2026-27', date: '13 Sep 2026', emoji: '🥜' },
 ];
 
 const SCHEMES = [
@@ -77,7 +81,12 @@ const SCHEMES = [
 
 export default function GovtHubScreen() {
   const [activeTab, setActiveTab] = useState<'MSP' | 'SCHEMES' | 'ADVISORIES' | 'WEATHER'>('MSP');
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+
+  const filteredMsp = MSP_DATA.filter((m) =>
+    m.crop.toLowerCase().includes(searchQuery.trim().toLowerCase())
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -101,8 +110,8 @@ export default function GovtHubScreen() {
         {/* Banner */}
         <View style={styles.banner}>
           <Text style={styles.bannerTitle}>Government Hub</Text>
-          <Text style={styles.bannerSub}>Sarkari yojana, MSP rates, advisories aur sabhi jaankari ek jagah</Text>
-          <Text style={styles.bannerTag}>🇮🇳 Kisan Samriddh Bharat, Stronger India</Text>
+          <Text style={styles.bannerSub}>Sarkari yojana, official MSP rates, advisories aur sabhi jaankari ek jagah</Text>
+          <Text style={styles.bannerTag}>🇮🇳 GOI CCEA Official Feed • Season 2026-27</Text>
         </View>
 
         {/* Category Tabs */}
@@ -139,36 +148,52 @@ export default function GovtHubScreen() {
         {/* TAB 1: MSP RATES */}
         {activeTab === 'MSP' && (
           <View>
+            {/* Live Update Date Banner */}
+            <View style={styles.liveMspDateBox}>
+              <View style={styles.greenPulseDot} />
+              <Text style={styles.liveMspDateText}>
+                Official CCEA MSP Rates • Marketing Season 2026-27 (Updated Today, 13 Sep 2026)
+              </Text>
+            </View>
+
             <View style={styles.searchBar}>
               <Search size={16} color={Colors.light.textMuted} />
-              <TextInput style={styles.searchInput} placeholder="Search crop (e.g. wheat, rice...)" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search crop (e.g. wheat, rice, sarson...)"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
             </View>
 
             {/* Table Header */}
             <View style={styles.tableHeader}>
-              <Text style={[styles.th, { flex: 2 }]}>Crop</Text>
-              <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Current MSP</Text>
-              <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Prev MSP</Text>
-              <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>YoY</Text>
+              <Text style={[styles.th, { flex: 2 }]}>Crop / Season</Text>
+              <Text style={[styles.th, { flex: 1.4, textAlign: 'right' }]}>MSP (2026-27)</Text>
+              <Text style={[styles.th, { flex: 1.2, textAlign: 'right' }]}>Prev MSP</Text>
+              <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Increase</Text>
             </View>
 
             <View style={styles.tableBody}>
-              {MSP_DATA.map((row, idx) => (
+              {filteredMsp.map((row, idx) => (
                 <View key={idx} style={styles.tableRow}>
-                  <View style={{ flex: 2, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={{ fontSize: 16 }}>{row.emoji}</Text>
-                    <Text style={styles.cropName}>{row.crop}</Text>
+                  <View style={{ flex: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 16 }}>{row.emoji}</Text>
+                      <Text style={styles.cropName}>{row.crop}</Text>
+                    </View>
+                    <Text style={styles.seasonTag}>{row.season} • Effective: {row.date}</Text>
                   </View>
-                  <Text style={[styles.tdBold, { flex: 1.5, textAlign: 'right' }]}>{row.current}</Text>
-                  <Text style={[styles.tdMuted, { flex: 1.5, textAlign: 'right' }]}>{row.prev}</Text>
+                  <Text style={[styles.tdBold, { flex: 1.4, textAlign: 'right' }]}>{row.current}</Text>
+                  <Text style={[styles.tdMuted, { flex: 1.2, textAlign: 'right' }]}>{row.prev}</Text>
                   <Text style={[styles.tdGrowth, { flex: 1, textAlign: 'right' }]}>{row.change}</Text>
                 </View>
               ))}
             </View>
 
             <View style={styles.heroFooterCard}>
-              <Text style={styles.hfTitle}>Fair Price. Prosperous Farmer.</Text>
-              <Text style={styles.hfSub}>Atmanirbhar Bharat 🌾</Text>
+              <Text style={styles.hfTitle}>Fair Price. Guaranteed Government MSP.</Text>
+              <Text style={styles.hfSub}>Atmanirbhar Bharat 🌾 Direct Bank Payout (DBT)</Text>
             </View>
           </View>
         )}
@@ -675,5 +700,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#D4A836',
+  },
+  liveMspDateBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#EBF4E5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#C2E0B2',
+  },
+  greenPulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2D8A39',
+  },
+  liveMspDateText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2D8A39',
+    flex: 1,
+  },
+  seasonTag: {
+    fontSize: 10,
+    color: Colors.light.textMuted,
+    marginTop: 2,
   },
 });

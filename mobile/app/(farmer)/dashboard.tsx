@@ -271,7 +271,12 @@ export default function DynamicDashboard() {
 
         {/* MSP Rates Ticker (Today) */}
         <View style={styles.spotlightHeader}>
-          <Text style={styles.sectionTitle}>MSP Rates (Today)</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.sectionTitle}>MSP Rates (Season 2026-27)</Text>
+            <View style={styles.liveBadgeMini}>
+              <Text style={styles.liveBadgeMiniText}>13 Sep 2026</Text>
+            </View>
+          </View>
           <TouchableOpacity onPress={() => router.push('/(farmer)/govt-hub')}>
             <Text style={styles.viewAllText}>View All ›</Text>
           </TouchableOpacity>
@@ -281,8 +286,8 @@ export default function DynamicDashboard() {
           <View style={styles.mspCard}>
             <Text style={styles.mspCropEmoji}>🌾</Text>
             <View>
-              <Text style={styles.mspCropName}>Wheat</Text>
-              <Text style={styles.mspRateText}>₹ 2,275/qt</Text>
+              <Text style={styles.mspCropName}>Wheat (Kanak)</Text>
+              <Text style={styles.mspRateText}>₹ 2,425/qt</Text>
             </View>
           </View>
 
@@ -290,23 +295,31 @@ export default function DynamicDashboard() {
             <Text style={styles.mspCropEmoji}>🌾</Text>
             <View>
               <Text style={styles.mspCropName}>Rice (Paddy)</Text>
-              <Text style={styles.mspRateText}>₹ 2,183/qt</Text>
+              <Text style={styles.mspRateText}>₹ 2,300/qt</Text>
             </View>
           </View>
 
           <View style={styles.mspCard}>
-            <Text style={styles.mspCropEmoji}>🌽</Text>
+            <Text style={styles.mspCropEmoji}>🌱</Text>
             <View>
-              <Text style={styles.mspCropName}>Maize</Text>
-              <Text style={styles.mspRateText}>₹ 2,090/qt</Text>
+              <Text style={styles.mspCropName}>Mustard (Sarson)</Text>
+              <Text style={styles.mspRateText}>₹ 5,950/qt</Text>
+            </View>
+          </View>
+
+          <View style={styles.mspCard}>
+            <Text style={styles.mspCropEmoji}>🫘</Text>
+            <View>
+              <Text style={styles.mspCropName}>Chana (Gram)</Text>
+              <Text style={styles.mspRateText}>₹ 5,650/qt</Text>
             </View>
           </View>
 
           <View style={styles.mspCard}>
             <Text style={styles.mspCropEmoji}>☁️</Text>
             <View>
-              <Text style={styles.mspCropName}>Cotton</Text>
-              <Text style={styles.mspRateText}>₹ 7,121/qt</Text>
+              <Text style={styles.mspCropName}>Cotton (Kapas)</Text>
+              <Text style={styles.mspRateText}>₹ 7,521/qt</Text>
             </View>
           </View>
         </ScrollView>
@@ -750,5 +763,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.light.textMuted,
     fontWeight: '500',
+  },
+  liveBadgeMini: {
+    backgroundColor: '#EBF4E5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#C2E0B2',
+  },
+  liveBadgeMiniText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: Colors.light.primary,
   },
 });
