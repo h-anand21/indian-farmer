@@ -2,19 +2,25 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path, Circle } from 'react-native-svg';
-import { Calendar, QrCode, Building2, Users, BarChart3, IndianRupee } from 'lucide-react-native';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
-const ALLOWED_ROUTES = ['dashboard', 'queue', 'payments', 'payments/index', 'bookings', 'bookings/index', 'profile'];
+const ALLOWED_ROUTES = [
+  'dashboard',
+  'bookings',
+  'bookings/index',
+  'book-slot',
+  'queue',
+  'profile',
+];
 
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { role } = useAuth();
-  // Ensure the navbar stays well above the Android / iOS system navigation bar
-  const bottomOffset = Math.max(insets.bottom + 12, 28);
+  const bottomOffset = Math.max(insets.bottom + 10, 24);
 
-  // Strictly filter only the 4 core tabs: Home, Booking, Live, Profile
+  // Filter allowed visible routes
   const visibleRoutes = state.routes.filter((route) => {
     const { options } = descriptors[route.key];
     const isAllowed = ALLOWED_ROUTES.includes(route.name);
@@ -28,6 +34,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           const { options } = descriptors[route.key];
           const routeIndex = state.routes.findIndex((r) => r.key === route.key);
           const isFocused = state.index === routeIndex;
+          const isCenterFab = route.name === 'book-slot';
 
           let label =
             options.tabBarLabel !== undefined
@@ -36,15 +43,14 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               ? options.title
               : route.name;
 
-          // Standardize exact 4 tab labels dynamically per role
           if (route.name === 'dashboard') {
             label = 'Home';
+          } else if (route.name === 'bookings' || route.name === 'bookings/index') {
+            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Bookings';
+          } else if (route.name === 'book-slot') {
+            label = 'Book Slot';
           } else if (route.name === 'queue') {
             label = role === 'OPERATOR' ? 'Queue' : role === 'ADMIN' ? 'Analytics' : 'Live Queue';
-          } else if (route.name === 'payments' || route.name === 'payments/index') {
-            label = 'Payments';
-          } else if (route.name === 'bookings' || route.name === 'bookings/index') {
-            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Booking';
           } else if (route.name === 'profile') {
             label = 'Profile';
           }
@@ -68,12 +74,41 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             });
           };
 
-          // Render Icon matching reference screenshot (ultra-compact & sharp)
+          // Render Center FAB for Book Slot
+          if (isCenterFab) {
+            return (
+              <TouchableOpacity
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                style={styles.centerFabItem}
+                activeOpacity={0.85}
+              >
+                {/* Elevated Outer Glow */}
+                <View style={styles.centerFabGlowHalo} />
+                <View style={[styles.centerFabCircle, isFocused && styles.centerFabCircleFocused]}>
+                  {/* Calendar with Sprout/Leaf Icon */}
+                  <View style={styles.fabIconContainer}>
+                    <Calendar size={24} color="#FFFFFF" strokeWidth={2.4} />
+                    <View style={styles.sproutBadge}>
+                      <Text style={{ fontSize: 10 }}>🌱</Text>
+                    </View>
+                  </View>
+                </View>
+                <Text style={[styles.tabLabel, styles.centerFabLabel, isFocused && styles.tabLabelActive]}>
+                  Book Slot
+                </Text>
+              </TouchableOpacity>
+            );
+          }
+
+          // Standard Tab Icon
           const renderIcon = (focused: boolean) => {
             const iconColor = focused ? '#FFFFFF' : '#141713';
 
             if (route.name === 'dashboard') {
-              // 1. Home - Solid House silhouette
               return (
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill={iconColor}>
                   <Path d="M12 3L2 12h3v8a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-8h3L12 3z" />
@@ -82,7 +117,6 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
 
             if (route.name === 'bookings' || route.name === 'bookings/index') {
-              // 2. Booking / Scan / Centres icon
               if (role === 'OPERATOR') {
                 return <QrCode size={16} color={iconColor} strokeWidth={2.4} />;
               }
@@ -93,7 +127,6 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
             }
 
             if (route.name === 'queue') {
-              // 3. Live / Queue / Analytics icon
               if (role === 'OPERATOR') {
                 return <Users size={16} color={iconColor} strokeWidth={2.4} />;
               }
@@ -114,13 +147,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               );
             }
 
-            if (route.name === 'payments' || route.name === 'payments/index') {
-              // Payments - Indian Rupee Icon
-              return <IndianRupee size={16} color={iconColor} strokeWidth={2.4} />;
-            }
-
             if (route.name === 'profile') {
-              // 4. Profile - Person silhouette (avatar)
               return (
                 <Svg width={16} height={16} viewBox="0 0 24 24" fill={iconColor}>
                   <Circle cx="12" cy="7.5" r="4.2" />
@@ -137,14 +164,12 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
               onPress={onPress}
               onLongPress={onLongPress}
               style={styles.tabItem}
               activeOpacity={0.8}
             >
               <View style={styles.circleWrapper}>
-                {/* Radiant Golden Glow Halo when focused */}
                 {isFocused && (
                   <>
                     <View style={styles.haloOuterGlow} />
@@ -183,50 +208,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     backgroundColor: '#FAF7F0',
-    borderRadius: 32,
-    paddingVertical: 5,
-    paddingHorizontal: 6,
-    width: '80%',
-    maxWidth: 305,
+    borderRadius: 36,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    width: '92%',
+    maxWidth: 360,
     borderWidth: 1.5,
-    borderColor: 'rgba(235, 229, 217, 0.9)',
+    borderColor: 'rgba(235, 229, 217, 0.95)',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    elevation: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 1,
+    paddingVertical: 2,
   },
   circleWrapper: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
   },
   haloOuterGlow: {
     position: 'absolute',
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(245, 158, 11, 0.22)',
   },
   haloMiddleGlow: {
     position: 'absolute',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: 'rgba(245, 158, 11, 0.50)',
   },
   circle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -243,6 +268,51 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
+  centerFabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -22,
+    paddingHorizontal: 4,
+    zIndex: 100,
+  },
+  centerFabGlowHalo: {
+    position: 'absolute',
+    top: -2,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  centerFabCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: '#134E23',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2.5,
+    borderColor: '#F59E0B',
+    shadowColor: '#134E23',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  centerFabCircleFocused: {
+    backgroundColor: '#0D3818',
+    borderColor: '#FBBF24',
+    transform: [{ scale: 1.05 }],
+  },
+  fabIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sproutBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -6,
+  },
   tabLabel: {
     fontSize: 9.5,
     color: '#656A60',
@@ -253,5 +323,11 @@ const styles = StyleSheet.create({
   tabLabelActive: {
     color: '#0A0D08',
     fontWeight: '800',
+  },
+  centerFabLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#134E23',
+    marginTop: 3,
   },
 });

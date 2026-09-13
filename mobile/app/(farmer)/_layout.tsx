@@ -24,7 +24,23 @@ export default function FarmerTabsLayout() {
         }}
       />
 
-      {/* 2. Live Queue */}
+      {/* 2. Bookings */}
+      <Tabs.Screen
+        name="bookings/index"
+        options={{
+          title: 'Bookings',
+        }}
+      />
+
+      {/* 3. Book Slot (Center Floating Action Tab with Cutout Style) */}
+      <Tabs.Screen
+        name="book-slot"
+        options={{
+          title: 'Book Slot',
+        }}
+      />
+
+      {/* 4. Live Queue */}
       <Tabs.Screen
         name="queue"
         options={{
@@ -32,15 +48,7 @@ export default function FarmerTabsLayout() {
         }}
       />
 
-      {/* 3. Payments */}
-      <Tabs.Screen
-        name="payments/index"
-        options={{
-          title: 'Payments',
-        }}
-      />
-
-      {/* 4. Profile */}
+      {/* 5. Profile */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -48,11 +56,10 @@ export default function FarmerTabsLayout() {
         }}
       />
 
-      {/* Hidden Screens (Accessible via Dashboard & Profile/Settings) */}
-      <Tabs.Screen name="bookings/index" options={{ href: null }} />
+      {/* Hidden Screens (Accessible via Dashboard, Profile & Action Buttons) */}
       <Tabs.Screen name="bookings/[id]" options={{ href: null }} />
+      <Tabs.Screen name="payments/index" options={{ href: null }} />
       <Tabs.Screen name="payments/[id]" options={{ href: null }} />
-      <Tabs.Screen name="book-slot" options={{ href: null }} />
       <Tabs.Screen name="procurements" options={{ href: null }} />
       <Tabs.Screen name="govt-hub" options={{ href: null }} />
     </Tabs>
