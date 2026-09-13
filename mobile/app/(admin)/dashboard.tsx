@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 125,
   },
   heroBanner: {
     backgroundColor: '#1A2016',

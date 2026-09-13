@@ -72,10 +72,7 @@ export default function AdminDrawer({ visible, onClose, currentRoute }: AdminDra
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        {/* Backdrop Tap */}
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-
-        {/* Drawer Sheet Content */}
+        {/* Drawer Sheet Content (Left Side Opening) */}
         <View style={styles.drawerContent}>
           {/* Header */}
           <View style={styles.drawerHeader}>
@@ -164,6 +161,9 @@ export default function AdminDrawer({ visible, onClose, currentRoute }: AdminDra
             <Text style={styles.footerSub}>National Agritech Portal • Govt of India</Text>
           </View>
         </View>
+
+        {/* Backdrop Tap */}
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
       </View>
     </Modal>
   );
