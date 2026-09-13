@@ -105,7 +105,11 @@ export default function AdminDrawer({ visible, onClose, currentRoute }: AdminDra
           </View>
 
           {/* Navigation Items List */}
-          <ScrollView style={styles.menuScroll} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.menuScroll}
+            contentContainerStyle={styles.menuScrollContent}
+            showsVerticalScrollIndicator={true}
+          >
             <Text style={styles.sectionHeaderTitle}>🏛️ ADMIN NAVIGATION</Text>
 
             <View style={styles.menuGroup}>
@@ -272,8 +276,11 @@ const styles = StyleSheet.create({
   },
   menuScroll: {
     flex: 1,
+  },
+  menuScrollContent: {
     paddingHorizontal: 14,
     paddingTop: 16,
+    paddingBottom: 50,
   },
   sectionHeaderTitle: {
     fontSize: 10,
@@ -327,13 +334,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
     borderRadius: 12,
-    marginTop: 4,
-    backgroundColor: '#291414',
-    borderWidth: 1,
-    borderColor: '#7F1D1D',
+    marginTop: 12,
+    backgroundColor: '#3B1A1A',
+    borderWidth: 1.5,
+    borderColor: '#991B1B',
   },
   logoutLabel: {
     flex: 1,

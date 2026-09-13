@@ -141,48 +141,62 @@ export default function AdminCentresListScreen() {
       {/* Header Bar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <ArrowLeft size={20} color="#1F291E" />
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
+            <ArrowLeft size={18} color="#1F291E" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.headerTitle}>Mandi Centres Management</Text>
-            <Text style={styles.headerSubtitle}>{centres.length} Procurement Hubs Registered</Text>
+            <View style={styles.titleBadgeRow}>
+              <Text style={styles.headerTitle}>Mandi Hub Centres</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countBadgeText}>{centres.length} Active</Text>
+              </View>
+            </View>
+            <Text style={styles.headerSubtitle}>APMC Procurement & Capacity Management</Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.addHeaderBtn} onPress={() => setIsAddModalOpen(true)}>
-          <Plus size={18} color="#FFFFFF" />
-          <Text style={styles.addHeaderBtnText}>Add Centre</Text>
+        <TouchableOpacity style={styles.addHeaderBtn} onPress={() => setIsAddModalOpen(true)} activeOpacity={0.85}>
+          <Plus size={16} color="#FFFFFF" strokeWidth={2.5} />
+          <Text style={styles.addHeaderBtnText}>Add Mandi</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View style={styles.searchBar}>
-          <Search size={18} color="#8E9B8C" />
+          <Search size={18} color="#134E23" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by centre name, code, district..."
+            placeholder="Search by Mandi name, code (e.g. MP-BPL-01)..."
             placeholderTextColor="#8E9B8C"
             value={search}
             onChangeText={setSearch}
           />
+          {search ? (
+            <TouchableOpacity onPress={() => setSearch('')}>
+              <X size={16} color="#8E9B8C" />
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         {/* State Filter Pills */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-          {['ALL', 'Madhya Pradesh', 'Punjab', 'Haryana', 'Delhi'].map((st) => (
-            <TouchableOpacity
-              key={st}
-              style={[styles.filterChip, selectedState === st && styles.filterChipActive]}
-              onPress={() => setSelectedState(st)}
-            >
-              <Text style={[styles.filterChipText, selectedState === st && styles.filterChipTextActive]}>
-                {st === 'ALL' ? 'All States' : st}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <View style={styles.filterSection}>
+          <Text style={styles.filterLabel}>REGION FILTER:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {['ALL', 'Madhya Pradesh', 'Punjab', 'Haryana', 'Delhi'].map((st) => (
+              <TouchableOpacity
+                key={st}
+                style={[styles.filterChip, selectedState === st && styles.filterChipActive]}
+                onPress={() => setSelectedState(st)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.filterChipText, selectedState === st && styles.filterChipTextActive]}>
+                  {st === 'ALL' ? '🌐 All States' : st}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
         {/* Status Filter Tabs */}
         <View style={styles.statusTabRow}>
@@ -190,7 +204,9 @@ export default function AdminCentresListScreen() {
             style={[styles.statusTab, selectedStatus === 'ALL' && styles.statusTabActive]}
             onPress={() => setSelectedStatus('ALL')}
           >
-            <Text style={[styles.statusTabText, selectedStatus === 'ALL' && styles.statusTabTextActive]}>All ({centres.length})</Text>
+            <Text style={[styles.statusTabText, selectedStatus === 'ALL' && styles.statusTabTextActive]}>
+              All Mandis ({centres.length})
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -198,7 +214,7 @@ export default function AdminCentresListScreen() {
             onPress={() => setSelectedStatus('ACTIVE')}
           >
             <Text style={[styles.statusTabText, selectedStatus === 'ACTIVE' && styles.statusTabTextActive]}>
-              Active ({centres.filter(c => c.status === 'ACTIVE').length})
+              🟢 Active ({centres.filter((c) => c.status === 'ACTIVE').length})
             </Text>
           </TouchableOpacity>
 
@@ -207,77 +223,120 @@ export default function AdminCentresListScreen() {
             onPress={() => setSelectedStatus('INACTIVE')}
           >
             <Text style={[styles.statusTabText, selectedStatus === 'INACTIVE' && styles.statusTabTextActive]}>
-              Inactive ({centres.filter(c => c.status === 'INACTIVE').length})
+              🔴 Inactive ({centres.filter((c) => c.status === 'INACTIVE').length})
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* List of Mandi Centres */}
-        {filtered.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={styles.centreCard}
-            onPress={() => router.push(`/(admin)/centres/${item.id}` as any)}
-          >
-            <View style={styles.centreHeader}>
-              <View style={styles.centreIcon}>
-                <Building2 size={22} color="#3B7A1E" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <View style={styles.titleCodeRow}>
-                  <Text style={styles.centreName}>{item.name}</Text>
-                  <View style={styles.codeBadge}>
-                    <Text style={styles.codeBadgeText}>{item.code}</Text>
+        {filtered.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Building2 size={44} color="#A0AEC0" />
+            <Text style={styles.emptyTitle}>No Mandi Hubs Found</Text>
+            <Text style={styles.emptySub}>No procurement hubs match your search or filter criteria.</Text>
+            <TouchableOpacity style={styles.resetBtn} onPress={() => { setSearch(''); setSelectedState('ALL'); setSelectedStatus('ALL'); }}>
+              <Text style={styles.resetBtnText}>Reset All Filters</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          filtered.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[styles.centreCard, item.status === 'INACTIVE' && styles.centreCardInactive]}
+              activeOpacity={0.9}
+              onPress={() => router.push(`/(admin)/centres/${item.id}` as any)}
+            >
+              {/* Card Header: Icon + Title + Status Pill */}
+              <View style={styles.centreHeader}>
+                <View style={styles.centreIconBox}>
+                  <Building2 size={22} color="#134E23" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.titleCodeRow}>
+                    <Text style={styles.centreName} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <View style={styles.codeBadge}>
+                      <Text style={styles.codeBadgeText}>{item.code}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.locationRow}>
+                    <MapPin size={12} color="#656A60" />
+                    <Text style={styles.locationText}>
+                      {item.district}, {item.state}
+                    </Text>
                   </View>
                 </View>
-                <View style={styles.locationRow}>
-                  <MapPin size={13} color="#8E9B8C" />
-                  <Text style={styles.locationText}>{item.district}, {item.state}</Text>
+
+                <View
+                  style={[
+                    styles.statusTag,
+                    item.status === 'ACTIVE' ? styles.statusActiveBg : styles.statusInactiveBg,
+                  ]}
+                >
+                  <View style={[styles.statusDot, item.status === 'ACTIVE' ? styles.dotGreen : styles.dotRed]} />
+                  <Text
+                    style={[
+                      styles.statusTagText,
+                      item.status === 'ACTIVE' ? styles.statusActiveText : styles.statusInactiveText,
+                    ]}
+                  >
+                    {item.status === 'ACTIVE' ? 'Active APMC' : 'Offline'}
+                  </Text>
                 </View>
               </View>
 
-              <View style={[
-                styles.statusTag,
-                item.status === 'ACTIVE' ? styles.statusActiveBg : styles.statusInactiveBg,
-              ]}>
-                <Text style={[
-                  styles.statusTagText,
-                  item.status === 'ACTIVE' ? styles.statusActiveText : styles.statusInactiveText,
-                ]}>
-                  {item.status === 'ACTIVE' ? 'Active' : 'Inactive'}
-                </Text>
+              {/* 3 Metric Cards Grid */}
+              <View style={styles.centreStatsRow}>
+                <View style={styles.statBox}>
+                  <Text style={styles.statLabel}>Gates & Counters</Text>
+                  <Text style={styles.statValue}>🚪 {item.gatesCount} Gates</Text>
+                </View>
+                <View style={styles.vDivider} />
+                <View style={styles.statBox}>
+                  <Text style={styles.statLabel}>Weighbridges</Text>
+                  <Text style={styles.statValue}>⚖️ {item.weighbridges} Units</Text>
+                </View>
+                <View style={styles.vDivider} />
+                <View style={styles.statBox}>
+                  <Text style={styles.statLabel}>Daily Capacity</Text>
+                  <Text style={styles.statValueHighlight}>{item.capacity}</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.centreStatsRow}>
-              <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Gates Count</Text>
-                <Text style={styles.statValue}>🚪 {item.gatesCount} Gates</Text>
+              {/* Progress Utilization Strip */}
+              <View style={styles.capacityProgressRow}>
+                <View style={styles.capacityHeader}>
+                  <Text style={styles.capacityTextLabel}>Procured Total: <Text style={{ fontWeight: '800', color: '#134E23' }}>{item.totalProcured}</Text></Text>
+                  <Text style={styles.capacityTextPct}>Active Slots: {item.activeSlots}</Text>
+                </View>
+                <View style={styles.progressBarTrack}>
+                  <View style={[styles.progressBarFill, { width: `${Math.min(item.activeSlots * 0.9 + 20, 95)}%` }]} />
+                </View>
               </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Weighbridges</Text>
-                <Text style={styles.statValue}>⚖️ {item.weighbridges} Units</Text>
-              </View>
-              <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Daily Capacity</Text>
-                <Text style={styles.statValueHighlight}>{item.capacity}</Text>
-              </View>
-            </View>
 
-            <View style={styles.cardFooter}>
-              <Text style={styles.procuredMeta}>Procured to date: {item.totalProcured}</Text>
-              <View style={styles.editLinkRow}>
-                <Text style={styles.configLink}>Edit Centre</Text>
-                <ArrowRight size={14} color="#3B7A1E" />
+              {/* Card Footer Action */}
+              <View style={styles.cardFooter}>
+                <View style={styles.govTag}>
+                  <CheckCircle2 size={12} color="#134E23" />
+                  <Text style={styles.govTagText}>Govt Certified Mandi Yard</Text>
+                </View>
+                <View style={styles.editLinkRow}>
+                  <Text style={styles.configLink}>Manage Hub</Text>
+                  <ArrowRight size={14} color="#134E23" strokeWidth={2.2} />
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
 
-      {/* Floating Action Button for Add New Centre */}
-      <TouchableOpacity style={styles.fabBtn} onPress={() => setIsAddModalOpen(true)}>
-        <Plus size={24} color="#FFFFFF" />
+      {/* Elevated Floating Action Button */}
+      <TouchableOpacity style={styles.fabBtn} activeOpacity={0.85} onPress={() => setIsAddModalOpen(true)}>
+        <View style={styles.fabGlowHalo} />
+        <View style={styles.fabCircle}>
+          <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
+        </View>
       </TouchableOpacity>
 
       {/* Add New Centre Modal */}
@@ -285,25 +344,32 @@ export default function AdminCentresListScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add New Mandi Centre</Text>
-              <TouchableOpacity onPress={() => setIsAddModalOpen(false)}>
-                <X size={20} color="#1F291E" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={styles.modalHeaderIcon}>
+                  <Building2 size={20} color="#134E23" />
+                </View>
+                <Text style={styles.modalTitle}>Register Mandi Hub</Text>
+              </View>
+              <TouchableOpacity onPress={() => setIsAddModalOpen(false)} style={styles.modalCloseBtn}>
+                <X size={18} color="#1F291E" />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Mandi Centre Name *</Text>
+              <Text style={styles.inputLabel}>Mandi Hub Name *</Text>
               <TextInput
                 style={styles.textInput}
-                placeholder="e.g. Ujjain Grain Mandi Yard"
+                placeholder="e.g. Ujjain APMC Grain Market"
+                placeholderTextColor="#A0AEC0"
                 value={newCentreName}
                 onChangeText={setNewCentreName}
               />
 
-              <Text style={styles.inputLabel}>Centre Unique Code *</Text>
+              <Text style={styles.inputLabel}>Unique Mandi Code *</Text>
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. MP-UJN-01"
+                placeholderTextColor="#A0AEC0"
                 value={newCentreCode}
                 onChangeText={setNewCentreCode}
               />
@@ -321,7 +387,8 @@ export default function AdminCentresListScreen() {
                   <Text style={styles.inputLabel}>District *</Text>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="e.g. Ujjain"
+                    placeholder="District Name"
+                    placeholderTextColor="#A0AEC0"
                     value={newCentreDistrict}
                     onChangeText={setNewCentreDistrict}
                   />
@@ -338,10 +405,10 @@ export default function AdminCentresListScreen() {
 
               <View style={styles.twoColRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Number of Gates</Text>
+                  <Text style={styles.inputLabel}>Entry Gates Count</Text>
                   <TextInput
                     style={styles.textInput}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     value={newGatesCount}
                     onChangeText={setNewGatesCount}
                   />
@@ -350,15 +417,15 @@ export default function AdminCentresListScreen() {
                   <Text style={styles.inputLabel}>Weighbridges</Text>
                   <TextInput
                     style={styles.textInput}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     value={newWeighbridges}
                     onChangeText={setNewWeighbridges}
                   />
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.submitModalBtn} onPress={handleAddCentreSubmit}>
-                <Text style={styles.submitModalBtnText}>Create Mandi Centre</Text>
+              <TouchableOpacity style={styles.submitModalBtn} activeOpacity={0.85} onPress={handleAddCentreSubmit}>
+                <Text style={styles.submitModalBtnText}>Register New Centre</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -377,220 +444,360 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E3DFD4',
+    borderBottomColor: 'rgba(235, 229, 217, 0.9)',
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: '#F7F3E9',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#FAF7F0',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+  },
+  titleBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1F291E',
+    fontWeight: '800',
+    color: '#12160F',
+  },
+  countBadge: {
+    backgroundColor: '#EBF4E5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  countBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#134E23',
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#5A6658',
+    color: '#656A60',
+    marginTop: 1,
   },
   addHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#3B7A1E',
+    backgroundColor: '#134E23',
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 7,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
   },
   addHeaderBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     color: '#FFFFFF',
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 125,
+    paddingBottom: 130,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 16,
     paddingHorizontal: 14,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#E3DFD4',
-    marginBottom: 12,
+    height: 46,
+    borderWidth: 1.5,
+    borderColor: 'rgba(235, 229, 217, 0.95)',
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
-    color: '#1F291E',
+    fontSize: 13.5,
+    color: '#12160F',
+    fontWeight: '500',
   },
-  filterScroll: {
+  filterSection: {
     marginBottom: 12,
   },
+  filterLabel: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#656A60',
+    letterSpacing: 0.8,
+    marginBottom: 6,
+  },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 13,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E3DFD4',
-    marginRight: 8,
+    borderColor: '#E8E4D8',
   },
   filterChipActive: {
-    backgroundColor: '#3B7A1E',
-    borderColor: '#3B7A1E',
+    backgroundColor: '#134E23',
+    borderColor: '#F59E0B',
   },
   filterChipText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600',
-    color: '#5A6658',
+    color: '#656A60',
   },
   filterChipTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   statusTabRow: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 4,
+    backgroundColor: '#FAF7F0',
+    borderRadius: 14,
+    padding: 3,
     borderWidth: 1,
-    borderColor: '#E3DFD4',
+    borderColor: '#E8E4D8',
     marginBottom: 16,
   },
   statusTab: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 7,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 11,
   },
   statusTabActive: {
-    backgroundColor: '#EBF4E5',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   statusTabText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600',
-    color: '#5A6658',
+    color: '#656A60',
   },
   statusTabTextActive: {
-    color: '#3B7A1E',
-    fontWeight: '700',
+    color: '#134E23',
+    fontWeight: '800',
+  },
+  emptyState: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+    marginTop: 10,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#12160F',
+    marginTop: 10,
+  },
+  emptySub: {
+    fontSize: 12,
+    color: '#656A60',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  resetBtn: {
+    backgroundColor: '#EBF4E5',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 14,
+  },
+  resetBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#134E23',
   },
   centreCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#E3DFD4',
+    borderWidth: 1.5,
+    borderColor: 'rgba(235, 229, 217, 0.95)',
     marginBottom: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  centreCardInactive: {
+    opacity: 0.75,
+    borderColor: '#E2E8F0',
   },
   centreHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  centreIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+  centreIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     backgroundColor: '#EBF4E5',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 122, 30, 0.2)',
   },
   titleCodeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   centreName: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1F291E',
+    fontWeight: '800',
+    color: '#12160F',
+    maxWidth: 160,
   },
   codeBadge: {
-    backgroundColor: '#F7F3E9',
+    backgroundColor: '#FAF7F0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
   },
   codeBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#5A6658',
+    fontWeight: '800',
+    color: '#134E23',
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 3,
+    marginTop: 2,
   },
   locationText: {
-    fontSize: 12,
-    color: '#5A6658',
+    fontSize: 11.5,
+    color: '#656A60',
+    fontWeight: '500',
   },
   statusTag: {
-    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   statusActiveBg: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#EBF4E5',
   },
   statusInactiveBg: {
-    backgroundColor: '#FDF2F2',
+    backgroundColor: '#FFEBEE',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dotGreen: {
+    backgroundColor: '#2E7D32',
+  },
+  dotRed: {
+    backgroundColor: '#DC2626',
   },
   statusTagText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10.5,
+    fontWeight: '800',
   },
   statusActiveText: {
-    color: '#2E7D32',
+    color: '#134E23',
   },
   statusInactiveText: {
-    color: '#DC2626',
+    color: '#C62828',
   },
   centreStatsRow: {
     flexDirection: 'row',
-    backgroundColor: '#F7F3E9',
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 14,
+    backgroundColor: '#FAF7F0',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    marginTop: 12,
+    alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(235, 229, 217, 0.8)',
   },
   statBox: {
+    flex: 1,
     alignItems: 'center',
   },
+  vDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#E8E4D8',
+  },
   statLabel: {
-    fontSize: 10,
-    color: '#8E9B8C',
+    fontSize: 9.5,
+    color: '#656A60',
+    fontWeight: '600',
   },
   statValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1F291E',
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#12160F',
     marginTop: 2,
   },
   statValueHighlight: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#3B7A1E',
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#134E23',
     marginTop: 2,
+  },
+  capacityProgressRow: {
+    marginTop: 12,
+  },
+  capacityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  capacityTextLabel: {
+    fontSize: 11,
+    color: '#656A60',
+  },
+  capacityTextPct: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#134E23',
+  },
+  progressBarTrack: {
+    height: 6,
+    backgroundColor: '#EDE7DA',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#134E23',
+    borderRadius: 3,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -599,11 +806,17 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F7F3E9',
+    borderTopColor: '#FAF7F0',
   },
-  procuredMeta: {
-    fontSize: 11,
-    color: '#5A6658',
+  govTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  govTagText: {
+    fontSize: 10.5,
+    color: '#656A60',
+    fontWeight: '600',
   },
   editLinkRow: {
     flexDirection: 'row',
@@ -612,24 +825,38 @@ const styles = StyleSheet.create({
   },
   configLink: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#3B7A1E',
+    fontWeight: '800',
+    color: '#134E23',
   },
   fabBtn: {
     position: 'absolute',
     bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#3B7A1E',
-    justifyContent: 'center',
+    right: 20,
     alignItems: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    justifyContent: 'center',
+    zIndex: 9999,
+  },
+  fabGlowHalo: {
+    position: 'absolute',
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  fabCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#134E23',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    shadowColor: '#134E23',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -649,49 +876,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#E3DFD4',
+    borderBottomColor: '#E8E4D8',
+  },
+  modalHeaderIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EBF4E5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1F291E',
+    fontWeight: '800',
+    color: '#12160F',
+  },
+  modalCloseBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FAF7F0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalBody: {
     paddingVertical: 14,
   },
   inputLabel: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#1F291E',
+    fontWeight: '800',
+    color: '#12160F',
     marginBottom: 6,
     marginTop: 10,
   },
   textInput: {
-    backgroundColor: '#F7F3E9',
-    borderRadius: 10,
+    backgroundColor: '#FAF7F0',
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
-    fontSize: 14,
-    color: '#1F291E',
+    fontSize: 13.5,
+    color: '#12160F',
     borderWidth: 1,
-    borderColor: '#E3DFD4',
+    borderColor: '#E8E4D8',
   },
   twoColRow: {
     flexDirection: 'row',
     gap: 12,
   },
   submitModalBtn: {
-    backgroundColor: '#3B7A1E',
-    borderRadius: 12,
+    backgroundColor: '#134E23',
+    borderRadius: 14,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
   },
   submitModalBtnText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#FFFFFF',
   },
 });
