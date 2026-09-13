@@ -29,32 +29,20 @@ import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
 export default function LiveQueueScreen() {
   const { role, user } = useAuth();
   const [showTurnAlert, setShowTurnAlert] = useState(false);
-  const [activeBooking, setActiveBooking] = useState<BookingRecord | null>(null);
+  const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchActive() {
-      const all = await getBookings();
-      const active = all.find((b) => b.status === 'CHECKED_IN' || b.status === 'BOOKED');
-      if (active) {
-        setActiveBooking(active);
-      }
+    async function fetchRealQueue() {
+      const farmerId = user?.phone || user?.name || '+91 98140 12345';
+      const all = await getBookings(farmerId);
+      const active = all.filter(
+        (b) => b.status === 'BOOKED' || b.status === 'CHECKED_IN' || b.status === 'WEIGHING'
+      );
+      setMyBookings(active);
     }
-    fetchActive();
-  }, []);
-
-  const myToken = activeBooking ? `#${activeBooking.token}` : '#KQ-1048';
-  const myCrop = activeBooking ? activeBooking.crop : 'Wheat';
-  const myName = activeBooking?.farmerName || user?.name || 'Gurdeep Singh';
-
-  const QUEUE_LIST = [
-    { id: '1', token: '#KQ-1043', name: 'Ramesh Singh', crop: 'Wheat', time: '~2 min', isNowServing: true },
-    { id: '2', token: '#KQ-1044', name: 'Suresh Yadav', crop: 'Rice', time: '~5 min' },
-    { id: '3', token: '#KQ-1045', name: 'Mahesh Kumar', crop: 'Wheat', time: '~12 min' },
-    { id: '4', token: '#KQ-1046', name: 'Amit Verma', crop: 'Maize', time: '~18 min' },
-    { id: '5', token: '#KQ-1047', name: 'Sunil Patel', crop: 'Soybean', time: '~22 min' },
-    { id: '6', token: myToken, name: `You (${myName.split(' ')[0]})`, crop: myCrop, time: '~25 min', isYou: true },
-  ];
+    fetchRealQueue();
+  }, [user]);
 
   // If Operator is active, show the Operator Queue Controller!
   if (role === 'OPERATOR') {
@@ -65,6 +53,9 @@ export default function LiveQueueScreen() {
   if (role === 'ADMIN') {
     return <AdminAnalyticsScreen />;
   }
+
+  const primaryBooking = myBookings[0] || null;
+  const myToken = primaryBooking ? `#${primaryBooking.token}` : '#KQ-1048';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -92,7 +83,9 @@ export default function LiveQueueScreen() {
         <Text style={styles.title}>
           Live <Text style={styles.titleHighlight}>Queue</Text>
         </Text>
-        <Text style={styles.subtitle}>Real-time updates from Azadpur Mandi, Delhi ▾</Text>
+        <Text style={styles.subtitle}>
+          {primaryBooking ? `Live status for ${primaryBooking.mandi}` : 'Real-time mandi queue updates'}
+        </Text>
 
         {/* Mandi Gate & Weighbridge Status Row */}
         <View style={styles.mandiStatusRow}>
@@ -112,85 +105,94 @@ export default function LiveQueueScreen() {
           </View>
         </View>
 
-        {/* Big Position Indicator Card */}
-        <View style={styles.positionCard}>
-          <View style={styles.posContentLeft}>
-            <Text style={styles.posLabel}>Aapki Position</Text>
-            <Text style={styles.posNumber}>#5</Text>
-            <View style={styles.waitRow}>
-              <Clock size={16} color="#FFFFFF" />
-              <Text style={styles.waitText}>Estimated wait: ~ 25 min</Text>
-            </View>
-          </View>
-
-          <View style={styles.posGaugeRight}>
-            <View style={styles.gaugeCircle}>
-              <Text style={styles.gaugeNum}>5</Text>
-              <Text style={styles.gaugeSub}>of 28 in queue</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Test Alert Button */}
-        <TouchableOpacity style={styles.testAlertPill} onPress={() => setShowTurnAlert(true)}>
-          <Bell size={16} color="#FFFFFF" />
-          <Text style={styles.testAlertText}>Simulate "Aapki Baari Aa Gayi!" Alert</Text>
-        </TouchableOpacity>
-
-        {/* Now Serving Banner */}
-        <View style={styles.nowServingBanner}>
-          <View style={styles.megaphoneCircle}>
-            <Megaphone size={20} color={Colors.light.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.nowServingLabel}>Now Serving</Text>
-            <Text style={styles.nowServingToken}>Token #KQ-1043 (Ramesh Singh)</Text>
-            <Text style={styles.nowServingSub}>Wheat • Counter #1</Text>
-          </View>
-          <View style={styles.servingTimeBadge}>
-            <Text style={styles.servingTimeText}>~ 2 min</Text>
-          </View>
-        </View>
-
-        {/* Queue Ahead List */}
-        <Text style={styles.sectionTitle}>Queue Ahead (5 people)</Text>
-        <View style={styles.queueList}>
-          {QUEUE_LIST.map((q) => (
-            <View
-              key={q.id}
-              style={[
-                styles.queueItem,
-                q.isNowServing && styles.nowServingItem,
-                q.isYou && styles.youItem,
-              ]}
-            >
-              <View style={[styles.posBadge, q.isYou && styles.youPosBadge]}>
-                <Text style={[styles.posBadgeText, q.isYou && styles.youPosText]}>{q.id}</Text>
+        {myBookings.length > 0 ? (
+          <>
+            {/* Position Indicator Card */}
+            <View style={styles.positionCard}>
+              <View style={styles.posContentLeft}>
+                <Text style={styles.posLabel}>Aapki Live Position</Text>
+                <Text style={styles.posNumber}>Token #{primaryBooking.token}</Text>
+                <View style={styles.waitRow}>
+                  <Clock size={16} color="#FFFFFF" />
+                  <Text style={styles.waitText}>{primaryBooking.time} • {primaryBooking.crop}</Text>
+                </View>
               </View>
 
+              <View style={styles.posGaugeRight}>
+                <View style={styles.gaugeCircle}>
+                  <Text style={styles.gaugeNum}>#1</Text>
+                  <Text style={styles.gaugeSub}>{myBookings.length} Active</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Test Alert Button */}
+            <TouchableOpacity style={styles.testAlertPill} onPress={() => setShowTurnAlert(true)}>
+              <Bell size={16} color="#FFFFFF" />
+              <Text style={styles.testAlertText}>Simulate "Aapki Baari Aa Gayi!" Alert</Text>
+            </TouchableOpacity>
+
+            {/* Now Serving Banner */}
+            <View style={styles.nowServingBanner}>
+              <View style={styles.megaphoneCircle}>
+                <Megaphone size={20} color={Colors.light.primary} />
+              </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.qToken, q.isYou && styles.youText]}>
-                  {q.token} <Text style={styles.qName}>({q.name})</Text>
-                </Text>
-                <Text style={styles.qCrop}>{q.crop}</Text>
+                <Text style={styles.nowServingLabel}>Currently In Queue</Text>
+                <Text style={styles.nowServingToken}>Token #{primaryBooking.token} ({user?.name || primaryBooking.farmerName})</Text>
+                <Text style={styles.nowServingSub}>{primaryBooking.crop} • {primaryBooking.mandi}</Text>
               </View>
-
-              {q.isNowServing && (
-                <View style={styles.servingBadge}>
-                  <Text style={styles.servingText}>Now Serving</Text>
-                </View>
-              )}
-
-              {q.isYou && (
-                <View style={styles.youTag}>
-                  <Text style={styles.youTagText}>YOU</Text>
-                </View>
-              )}
-
-              <Text style={styles.qTime}>{q.time}</Text>
+              <View style={styles.servingTimeBadge}>
+                <Text style={styles.servingTimeText}>{primaryBooking.status}</Text>
+              </View>
             </View>
-          ))}
-        </View>
+
+            {/* Queue List of Farmer's Real Bookings */}
+            <Text style={styles.sectionTitle}>My Queued Passes ({myBookings.length})</Text>
+            <View style={styles.queueList}>
+              {myBookings.map((b, idx) => (
+                <View
+                  key={b.id}
+                  style={[
+                    styles.queueItem,
+                    styles.youItem,
+                  ]}
+                >
+                  <View style={[styles.posBadge, styles.youPosBadge]}>
+                    <Text style={[styles.posBadgeText, styles.youPosText]}>#{idx + 1}</Text>
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.qToken, styles.youText]}>
+                      Token #{b.token} <Text style={styles.qName}>({b.mandi})</Text>
+                    </Text>
+                    <Text style={styles.qCrop}>{b.crop} • {b.quantity}</Text>
+                  </View>
+
+                  <View style={styles.youTag}>
+                    <Text style={styles.youTagText}>{b.status}</Text>
+                  </View>
+
+                  <Text style={styles.qTime}>{b.time}</Text>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : (
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#E8E4D8', marginTop: 10 }}>
+            <Text style={{ fontSize: 44, marginBottom: 10 }}>⏳</Text>
+            <Text style={{ fontSize: 18, fontWeight: '800', color: Colors.light.textPrimary, marginBottom: 4 }}>No Active Queue Passes</Text>
+            <Text style={{ fontSize: 13, color: Colors.light.textSecondary, textAlign: 'center', marginBottom: 16 }}>
+              Aapne abhi koi mandi slot book nahi kiya hai. Apni fasal bechne ke liye naya slot book karein.
+            </Text>
+            <TouchableOpacity
+              style={{ backgroundColor: Colors.light.primary, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 30 }}
+              onPress={() => router.push('/(farmer)/book-slot')}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF' }}>🌱 Book New Slot</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.infoAlertBox}>
           <Bell size={16} color="#2B70C9" />

@@ -46,7 +46,7 @@ export default function DynamicDashboard() {
     return <AdminDashboardScreen />;
   }
 
-  const farmerName = user?.name || 'Ramesh Ji';
+  const farmerName = user?.name || 'Sardar Gurdeep Singh';
 
   const onRefresh = () => {
     setRefreshing(true);

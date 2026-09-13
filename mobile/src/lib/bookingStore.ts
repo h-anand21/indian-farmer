@@ -21,78 +21,46 @@ export interface BookingRecord {
 
 const BOOKINGS_STORAGE_KEY = '@kisanqueue_bookings';
 
-export const DEFAULT_BOOKINGS: BookingRecord[] = [
-  {
-    id: 'KQ-1048',
-    token: 'KQ-1048',
-    qrData: 'KQ-BOOKING-KQ-1048',
-    mandi: 'Khanna Main Grain Market (Yard #1)',
-    mandiId: 'PB-KHN-01',
-    date: '15 Sep 2026',
-    time: 'Mon, 6:00 - 8:00 AM',
-    crop: 'Wheat (Sharbati)',
-    quantity: '50 Qt',
-    vehicle: 'PB 10 AB 1234',
-    farmerName: 'Ram Singh Gurjar',
-    farmerPhone: '+91 98765 43210',
-    status: 'BOOKED',
-    badgeColor: '#E6A219',
-    badgeBg: '#FFF8E6',
-    createdAt: '12 Sep 2026',
-  },
-  {
-    id: 'KQ-1047',
-    token: 'KQ-1047',
-    qrData: 'KQ-BOOKING-KQ-1047',
-    mandi: 'Rajpura APMC Grain Procurement Complex',
-    mandiId: 'PB-RJP-02',
-    date: '14 Sep 2026',
-    time: 'Sun, 8:00 - 10:00 AM',
-    crop: 'Rice (Basmati)',
-    quantity: '32 Qt',
-    vehicle: 'PB 11 CD 5678',
-    farmerName: 'Sita Devi',
-    farmerPhone: '+91 98123 45678',
-    status: 'COMPLETED',
-    badgeColor: '#2D8A39',
-    badgeBg: '#EBF4E5',
-    createdAt: '11 Sep 2026',
-  },
-  {
-    id: 'KQ-1046',
-    token: 'KQ-1046',
-    qrData: 'KQ-BOOKING-KQ-1046',
-    mandi: 'Karnal Anaj Mandi Complex Gate #2',
-    mandiId: 'HR-KRN-04',
-    date: '10 Sep 2026',
-    time: 'Sat, 10:00 AM - 12:00 PM',
-    crop: 'Maize',
-    quantity: '40 Qt',
-    vehicle: 'HR 05 EF 9012',
-    farmerName: 'Gurdeep Singh',
-    farmerPhone: '+91 98140 55432',
-    status: 'WEIGHING',
-    badgeColor: '#E66919',
-    badgeBg: '#FFF2EB',
-    createdAt: '10 Sep 2026',
-  },
-];
+export const DEFAULT_BOOKINGS: BookingRecord[] = [];
 
-export async function getBookings(): Promise<BookingRecord[]> {
+export async function getBookings(farmerIdentifier?: string): Promise<BookingRecord[]> {
   try {
     const json = await AsyncStorage.getItem(BOOKINGS_STORAGE_KEY);
+    let list: BookingRecord[] = [];
     if (json) {
       const parsed = JSON.parse(json);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        list = parsed;
       }
     }
-    // Initialize default bookings if empty
-    await AsyncStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(DEFAULT_BOOKINGS));
+
+    // Filter out old dummy mock bookings ('KQ-1048', 'KQ-1047', 'KQ-1046') if present
+    const cleaned = list.filter((b) => b.id !== 'KQ-1048' && b.id !== 'KQ-1047' && b.id !== 'KQ-1046');
+    if (cleaned.length !== list.length) {
+      list = cleaned;
+      await AsyncStorage.setItem(BOOKINGS_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    if (farmerIdentifier && list.length > 0) {
+      const cleanTarget = farmerIdentifier.replace(/\s+/g, '').toLowerCase();
+      const filtered = list.filter((b) => {
+        const cleanPhone = (b.farmerPhone || '').replace(/\s+/g, '').toLowerCase();
+        const cleanName = (b.farmerName || '').replace(/\s+/g, '').toLowerCase();
+        return (
+          cleanPhone.includes(cleanTarget) ||
+          cleanTarget.includes(cleanPhone) ||
+          cleanName.includes(cleanTarget) ||
+          cleanTarget.includes(cleanName)
+        );
+      });
+      return filtered;
+    }
+
+    return list;
   } catch (e) {
     console.log('Error reading bookings from AsyncStorage:', e);
   }
-  return DEFAULT_BOOKINGS;
+  return [];
 }
 
 export async function getBookingByToken(tokenOrCode: string): Promise<BookingRecord | null> {

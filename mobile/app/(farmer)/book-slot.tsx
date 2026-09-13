@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   Modal,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -24,6 +25,9 @@ import {
   Copy,
   X,
   ChevronRight,
+  Download,
+  PlusCircle,
+  RefreshCw,
 } from 'lucide-react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Toast from 'react-native-toast-message';
@@ -32,6 +36,7 @@ import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
 import { createBooking } from '../../src/lib/bookingStore';
 import { fetchCentres } from '../../src/services/bookingService';
+import { downloadOrShareQrPass } from '../../src/services/qrPassService';
 
 const DEFAULT_MANDIS = [
   { id: 'PB-KHN-01', name: 'Khanna Main Grain Market (Yard #1)', location: 'Ludhiana, Punjab', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 42 },
@@ -50,14 +55,43 @@ const TIME_SLOTS = [
   { id: 'slot-6', window: '4:00 PM - 6:00 PM', status: '22 slots available', type: 'AVAILABLE' },
 ];
 
+// Helper to generate dynamic 7-day calendar dates
+const getAvailableDates = () => {
+  const dates = [];
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const dayNum = d.getDate().toString().padStart(2, '0');
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthName = d.toLocaleDateString('en-US', { month: 'short' });
+    const formattedDate = `${dayName}, ${dayNum} ${monthName} ${d.getFullYear()}`;
+    const relativeLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayName;
+    dates.push({
+      id: formattedDate,
+      dayNum,
+      dayName,
+      monthName,
+      formattedDate,
+      relativeLabel,
+      slots: i % 2 === 0 ? '28 slots' : '15 slots',
+    });
+  }
+  return dates;
+};
+
 export default function BookSlotScreen() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
 
+  // Dynamic Date List & State
+  const [availableDates] = useState(getAvailableDates());
+  const [selectedDateObj, setSelectedDateObj] = useState(availableDates[1] || availableDates[0]);
+
   // Form State
   const [mandiList, setMandiList] = useState(DEFAULT_MANDIS);
   const [selectedMandi, setSelectedMandi] = useState(DEFAULT_MANDIS[0]);
-  const [selectedDate, setSelectedDate] = useState('Mon, 15 Sep 2026');
+  const [selectedDate, setSelectedDate] = useState(selectedDateObj.formattedDate);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [cropType, setCropType] = useState('Wheat');
   const [quantity, setQuantity] = useState('50');
@@ -118,6 +152,57 @@ export default function BookSlotScreen() {
       text1: 'Booking Slot Generated! 🎟️',
       text2: `Token #${created.token} created for ${selectedMandi.name}`,
     });
+  };
+
+  // Reset form for a new booking
+  const handleNewBooking = () => {
+    setShowSuccessModal(false);
+    setStep(1);
+    setSelectedMandi(mandiList[0] || DEFAULT_MANDIS[0]);
+    const freshDates = getAvailableDates();
+    setSelectedDateObj(freshDates[1] || freshDates[0]);
+    setSelectedDate((freshDates[1] || freshDates[0]).formattedDate);
+    setSelectedSlot(TIME_SLOTS[0]);
+    setCropType('Wheat');
+    setQuantity('50');
+    setVehicleNo('PB 10 AB 1234');
+    setAgreed(true);
+    Toast.show({
+      type: 'info',
+      text1: 'Form Reset for New Booking 🌱',
+      text2: 'Select Mandi and slot to book another pass.',
+    });
+  };
+
+  // Download QR Code PDF Pass
+  const handleDownloadQR = async (token: string) => {
+    await downloadOrShareQrPass({
+      token,
+      mandi: selectedMandi.name,
+      date: selectedDate,
+      time: selectedSlot.window,
+      crop: cropType,
+      quantity: `${quantity} Quintals`,
+      farmerName: user?.name || 'Sardar Gurdeep Singh',
+      farmerPhone: user?.phone || '+91 98140 12345',
+      vehicle: vehicleNo || 'Tractor Trolley',
+    });
+  };
+
+  // Share Pass via native Share API
+  const handleSharePass = async (token: string, mandiName: string, dateStr: string, slotStr: string) => {
+    try {
+      await Share.share({
+        title: `KisanQueue Pass #${token}`,
+        message: `🌾 KisanQueue Mandi Entry Pass #${token}\n🏢 Mandi: ${mandiName}\n📅 Date: ${dateStr}\n⏰ Slot: ${slotStr}\n\nPresent this QR Code at the mandi entry gate.`,
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'info',
+        text1: 'Pass Details Copied! 📋',
+        text2: `Token pass #${token} details ready to share.`,
+      });
+    }
   };
 
   return (
@@ -201,38 +286,54 @@ export default function BookSlotScreen() {
           </View>
         )}
 
-        {/* STEP 2: SELECT DATE */}
+        {/* STEP 2: SELECT DATE (DYNAMICALLY SELECTABLE) */}
         {step === 2 && (
           <View>
             <Text style={styles.stepTitle}>Select Date</Text>
-            <Text style={styles.stepSubtitle}>Choose a convenient date (Next 7 days)</Text>
+            <Text style={styles.stepSubtitle}>Choose a convenient date for arrival</Text>
 
-            {/* Date Grid */}
-            <View style={styles.dateGrid}>
-              {['14', '15', '16', '17', '18', '19', '20'].map((day, idx) => {
-                const isSel = day === '15';
-                return (
-                  <TouchableOpacity
-                    key={day}
-                    style={[styles.dateCard, isSel && styles.dateCardSelected]}
-                    onPress={() => setSelectedDate(`Mon, ${day} Sep 2025`)}
-                  >
-                    <Text style={[styles.dateNum, isSel && styles.dateNumSelected]}>{day}</Text>
-                    <Text style={[styles.dateSub, isSel && styles.dateSubSelected]}>
-                      {idx % 2 === 0 ? '12 slots' : '28 slots'}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            {/* Date Selection Horizontal Scroll / Grid */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                {availableDates.map((dateItem) => {
+                  const isSel = dateItem.id === selectedDateObj.id;
+                  return (
+                    <TouchableOpacity
+                      key={dateItem.id}
+                      style={[styles.dateCardCustom, isSel && styles.dateCardCustomSelected]}
+                      onPress={() => {
+                        setSelectedDateObj(dateItem);
+                        setSelectedDate(dateItem.formattedDate);
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.dateRelText, isSel && styles.textWhite]}>
+                        {dateItem.relativeLabel}
+                      </Text>
+                      <Text style={[styles.dateNumCustom, isSel && styles.textWhite]}>
+                        {dateItem.dayNum}
+                      </Text>
+                      <Text style={[styles.dateMonthCustom, isSel && styles.textGold]}>
+                        {dateItem.monthName}
+                      </Text>
+                      <View style={[styles.dateSlotPill, isSel && styles.dateSlotPillActive]}>
+                        <Text style={[styles.dateSlotPillText, isSel && styles.textWhite]}>
+                          {dateItem.slots}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
 
             {/* Selected Date Spotlight */}
             <View style={styles.selectedDateCard}>
               <Calendar size={24} color={Colors.light.primary} />
-              <View>
-                <Text style={styles.selectedDateTitle}>Selected Date</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.selectedDateTitle}>Selected Arrival Date</Text>
                 <Text style={styles.selectedDateVal}>{selectedDate}</Text>
-                <Text style={styles.selectedDateSub}>28 slots available</Text>
+                <Text style={styles.selectedDateSub}>28 counters open at {selectedMandi.name}</Text>
               </View>
             </View>
 
@@ -393,7 +494,7 @@ export default function BookSlotScreen() {
         )}
       </ScrollView>
 
-      {/* STEP 6: BOOKING SUCCESS MODAL */}
+      {/* STEP 6: BOOKING SUCCESS MODAL WITH QR ACTIONS & NEW BOOKING BUTTON */}
       <Modal visible={showSuccessModal} animationType="slide" transparent>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContent}>
@@ -402,35 +503,68 @@ export default function BookSlotScreen() {
             </TouchableOpacity>
 
             <View style={styles.modalCheckCircle}>
-              <CheckCircle2 size={48} color="#FFFFFF" />
+              <CheckCircle2 size={44} color="#FFFFFF" />
             </View>
 
-            <Text style={styles.modalTitle}>Booking Confirmed!</Text>
-            <Text style={styles.modalSub}>Your mandi slot has been successfully booked.</Text>
+            <Text style={styles.modalTitle}>Booking Confirmed! 🎉</Text>
+            <Text style={styles.modalSub}>Your mandi slot pass has been generated successfully.</Text>
 
             {/* Token Badge */}
             <View style={styles.tokenBox}>
-              <Text style={styles.tokenLabel}>Token Number</Text>
+              <Text style={styles.tokenLabel}>Token Pass Number</Text>
               <Text style={styles.tokenVal}>#{generatedToken}</Text>
             </View>
 
             {/* Generated QR Code */}
             <View style={styles.qrContainer}>
-              <QRCode value={`KQ-BOOKING-${generatedToken}`} size={160} />
+              <QRCode value={`KQ-BOOKING-${generatedToken}`} size={150} />
             </View>
-            <Text style={styles.qrInstruction}>Show this QR code at the mandi entry</Text>
+            <Text style={styles.qrInstruction}>Show this QR code at the Mandi entry gate counter</Text>
 
-            {/* Modal Actions */}
-            <TouchableOpacity
-              style={styles.modalActionBtn}
-              onPress={() => {
-                setShowSuccessModal(false);
-                router.replace('/(farmer)/bookings');
-              }}
-            >
-              <Text style={styles.modalActionText}>View Booking Details</Text>
-              <ChevronRight size={18} color="#FFFFFF" />
-            </TouchableOpacity>
+            {/* QR Actions: Download & Share Buttons */}
+            <View style={styles.qrActionRow}>
+              <TouchableOpacity
+                style={styles.qrSaveBtn}
+                activeOpacity={0.8}
+                onPress={() => handleDownloadQR(generatedToken)}
+              >
+                <Download size={16} color="#12160F" />
+                <Text style={styles.qrSaveText}>Save QR</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.qrShareBtn}
+                activeOpacity={0.8}
+                onPress={() => handleSharePass(generatedToken, selectedMandi.name, selectedDate, selectedSlot.window)}
+              >
+                <Share2 size={16} color="#FFFFFF" />
+                <Text style={styles.qrShareText}>Share Pass</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Action Buttons: 1. Book Another Slot (New Booking), 2. View All Bookings */}
+            <View style={styles.modalNavButtons}>
+              <TouchableOpacity
+                style={styles.newBookingModalBtn}
+                activeOpacity={0.85}
+                onPress={handleNewBooking}
+              >
+                <PlusCircle size={18} color="#134E23" />
+                <Text style={styles.newBookingModalText}>🌱 Book Another Slot (New Booking)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalActionBtn}
+                activeOpacity={0.85}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  router.replace('/(farmer)/bookings');
+                }}
+              >
+                <Text style={styles.modalActionText}>📋 View All My Bookings</Text>
+                <ChevronRight size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -905,7 +1039,66 @@ const styles = StyleSheet.create({
   qrInstruction: {
     fontSize: 12,
     color: Colors.light.textMuted,
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  qrActionRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    marginBottom: 16,
+  },
+  qrSaveBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#E8F5E9',
+    borderRadius: 24,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#C8E6C9',
+  },
+  qrSaveText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1B5E20',
+  },
+  qrShareBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 24,
+    paddingVertical: 10,
+  },
+  qrShareText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  modalNavButtons: {
+    width: '100%',
+    gap: 10,
+  },
+  newBookingModalBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EBF4E5',
+    borderRadius: 30,
+    paddingVertical: 14,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#2D8A39',
+  },
+  newBookingModalText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#134E23',
   },
   modalActionBtn: {
     width: '100%',
@@ -921,5 +1114,56 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  dateCardCustom: {
+    width: 86,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
+  },
+  dateCardCustomSelected: {
+    backgroundColor: Colors.light.primary,
+    borderColor: Colors.light.primary,
+  },
+  dateRelText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.light.textMuted,
+    marginBottom: 4,
+  },
+  dateNumCustom: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.light.textPrimary,
+  },
+  dateMonthCustom: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.light.primary,
+    marginBottom: 6,
+  },
+  dateSlotPill: {
+    backgroundColor: '#F3F9EE',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  dateSlotPillActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  dateSlotPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.light.primary,
+  },
+  textWhite: {
+    color: '#FFFFFF',
+  },
+  textGold: {
+    color: '#F3CF65',
   },
 });

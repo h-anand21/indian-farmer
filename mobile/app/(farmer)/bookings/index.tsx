@@ -27,16 +27,17 @@ import AdminCentresListScreen from '../../(admin)/centres/index';
 import { getBookings, BookingRecord } from '../../../src/lib/bookingStore';
 
 export default function MyBookingsScreen() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PAST' | 'CANCELLED'>('ACTIVE');
   const [bookingsList, setBookingsList] = useState<BookingRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
   const loadBookings = useCallback(async () => {
-    const data = await getBookings();
+    const farmerId = user?.phone || user?.name || '+91 98140 12345';
+    const data = await getBookings(farmerId);
     setBookingsList(data);
-  }, []);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -25,9 +26,12 @@ import {
 import QRCode from 'react-native-qrcode-svg';
 import Toast from 'react-native-toast-message';
 import Colors from '../../../src/theme/colors';
+import { useAuth } from '../../../src/context/AuthContext';
 import { getBookingByToken, BookingRecord } from '../../../src/lib/bookingStore';
+import { downloadOrShareQrPass } from '../../../src/services/qrPassService';
 
 export default function BookingDetailScreen() {
+  const { user } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [booking, setBooking] = useState<BookingRecord | null>(null);
@@ -47,6 +51,31 @@ export default function BookingDetailScreen() {
 
   const currentStatus = booking?.status || 'BOOKED';
   const displayToken = booking?.token || bookingId;
+
+  const handleSaveQR = async () => {
+    await downloadOrShareQrPass({
+      token: displayToken,
+      mandi: booking?.mandi || 'Khanna Main Grain Market',
+      date: booking?.date || '15 Sep 2026',
+      time: booking?.time || '6:00 AM - 8:00 AM',
+      crop: booking?.crop || 'Wheat',
+      quantity: booking?.quantity || '50 Qt',
+      farmerName: booking?.farmerName || user?.name || 'Sardar Gurdeep Singh',
+      farmerPhone: booking?.farmerPhone || user?.phone || '+91 98140 12345',
+      vehicle: booking?.vehicle || 'Tractor Trolley',
+    });
+  };
+
+  const handleSharePass = async () => {
+    try {
+      await Share.share({
+        title: `KisanQueue Pass #${displayToken}`,
+        message: `🌾 KisanQueue Mandi Entry Pass #${displayToken}\n🏢 Mandi: ${booking?.mandi || 'Khanna Mandi'}\n📅 Date: ${booking?.date || '15 Sep'}\n⏰ Slot: ${booking?.time || '6:00 AM'}\n\nPresent this QR Code at the mandi entry gate.`,
+      });
+    } catch (error) {
+      Toast.show({ type: 'info', text1: 'Pass Copied to Clipboard!' });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,14 +112,14 @@ export default function BookingDetailScreen() {
           </View>
 
           <View style={styles.qrBtnRow}>
-            <TouchableOpacity style={styles.saveQrBtn} onPress={() => Toast.show({ type: 'success', text1: 'QR Code Saved to Gallery' })}>
+            <TouchableOpacity style={styles.saveQrBtn} onPress={handleSaveQR}>
               <Download size={14} color={Colors.light.textPrimary} />
-              <Text style={styles.saveQrText}>Save QR</Text>
+              <Text style={styles.saveQrText}>Save QR Pass PDF</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.shareBtn} onPress={() => Toast.show({ type: 'info', text1: 'Sharing via WhatsApp...' })}>
+            <TouchableOpacity style={styles.shareBtn} onPress={handleSharePass}>
               <Share2 size={14} color="#FFFFFF" />
-              <Text style={styles.shareBtnText}>Share on WhatsApp</Text>
+              <Text style={styles.shareBtnText}>Share Pass</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -244,13 +273,13 @@ export default function BookingDetailScreen() {
                   <Text style={styles.rVal}>15 Sep 2025, 08:10 AM</Text>
 
                   <Text style={styles.rLabel}>Farmer Name:</Text>
-                  <Text style={styles.rVal}>Ramesh Kumar</Text>
+                  <Text style={styles.rVal}>{booking?.farmerName || 'Sardar Gurdeep Singh'}</Text>
 
                   <Text style={styles.rLabel}>Mobile:</Text>
-                  <Text style={styles.rVal}>+91 98765 43210</Text>
+                  <Text style={styles.rVal}>{booking?.farmerPhone || '+91 98140 12345'}</Text>
 
                   <Text style={styles.rLabel}>Token No:</Text>
-                  <Text style={styles.rVal}>KQ-1048</Text>
+                  <Text style={styles.rVal}>#{displayToken}</Text>
 
                   <Text style={styles.rLabel}>Crop / Grade:</Text>
                   <Text style={styles.rVal}>Wheat (A Grade)</Text>
