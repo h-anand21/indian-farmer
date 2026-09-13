@@ -150,34 +150,52 @@ export default function NotificationsScreen() {
         )}
       </View>
 
-      {/* Category Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsContainer}
-      >
-        {[
-          { key: 'ALL', label: 'All Alerts' },
-          { key: 'QUEUE', label: 'Queue 📊' },
-          { key: 'PAYMENT', label: 'Payment 💰' },
-          { key: 'SLOT', label: 'Bookings 📅' },
-          { key: 'WEATHER', label: 'Weather 🌦️' },
-          { key: 'ADMIN', label: 'Admin 📢' },
-        ].map((tab) => {
-          const isActive = activeTab === tab.key;
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tabBtn, isActive && styles.activeTabBtn]}
-              onPress={() => setActiveTab(tab.key as any)}
-            >
-              <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {/* Category Filter Bar */}
+      <View style={styles.filterSection}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsContainer}
+        >
+          {[
+            { key: 'ALL', label: 'All Alerts', icon: Bell, iconColor: '#3B7A1E' },
+            { key: 'QUEUE', label: 'Queue', icon: Scale, iconColor: '#E66919' },
+            { key: 'PAYMENT', label: 'Payments', icon: DollarSign, iconColor: '#2E7D32' },
+            { key: 'SLOT', label: 'Bookings', icon: Calendar, iconColor: '#1565C0' },
+            { key: 'WEATHER', label: 'Weather', icon: CloudSun, iconColor: '#B58A00' },
+            { key: 'ADMIN', label: 'Broadcast', icon: Megaphone, iconColor: '#7C3AED' },
+          ].map((tab) => {
+            const isActive = activeTab === tab.key;
+            const IconComp = tab.icon;
+            const count = notifications.filter((n) => tab.key === 'ALL' || n.type === tab.key).length;
+
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tabPill, isActive && styles.activeTabPill]}
+                onPress={() => setActiveTab(tab.key as any)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.tabIconBadge, isActive ? { backgroundColor: 'rgba(255,255,255,0.2)' } : { backgroundColor: '#FAF9F5' }]}>
+                  <IconComp size={14} color={isActive ? '#FFFFFF' : tab.iconColor} />
+                </View>
+
+                <Text style={[styles.tabText, isActive && styles.activeTabText]}>
+                  {tab.label}
+                </Text>
+
+                {count > 0 && (
+                  <View style={[styles.countBadge, isActive ? { backgroundColor: '#F3CF65' } : { backgroundColor: '#EBF4E5' }]}>
+                    <Text style={[styles.countText, isActive ? { color: '#12160F' } : { color: '#3B7A1E' }]}>
+                      {count}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       {/* List */}
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -310,30 +328,62 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#3B7A1E',
   },
+  filterSection: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E4D8',
+  },
   tabsContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 10,
+    gap: 10,
   },
-  tabBtn: {
-    paddingHorizontal: 14,
+  tabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF9F5',
     borderWidth: 1,
-    borderColor: '#E8E4D8',
+    borderColor: '#E3DFD4',
   },
-  activeTabBtn: {
+  activeTabPill: {
     backgroundColor: '#3B7A1E',
     borderColor: '#3B7A1E',
+    shadowColor: '#3B7A1E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabIconBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tabText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#555555',
+    fontWeight: '700',
+    color: '#334155',
   },
   activeTabText: {
     color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  countBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countText: {
+    fontSize: 10,
     fontWeight: '800',
   },
   scrollContent: {
