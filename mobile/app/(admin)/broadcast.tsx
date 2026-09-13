@@ -21,8 +21,9 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { addNotification } from '../../src/lib/notificationStore';
 
-const PAST_BROADCASTS = [
+const INITIAL_PAST_BROADCASTS = [
   {
     id: 'b-1',
     title: '🌾 Wheat MSP Rate Revised to ₹2,275/Qt',
@@ -47,14 +48,34 @@ export default function AdminBroadcastScreen() {
   const [sendSMS, setSendSMS] = useState(true);
   const [sendPush, setSendPush] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [pastBroadcasts, setPastBroadcasts] = useState(INITIAL_PAST_BROADCASTS);
 
-  const handleSendBroadcast = () => {
+  const handleSendBroadcast = async () => {
     if (!title.trim() || !message.trim()) {
       Toast.show({ type: 'error', text1: 'Title & Message Required', text2: 'Please fill out broadcast content.' });
       return;
     }
 
     setIsSending(true);
+
+    // Save notification to shared notification store
+    await addNotification({
+      title: title.trim(),
+      message: message.trim(),
+      type: 'ADMIN',
+      route: '/(farmer)/dashboard',
+    });
+
+    const newPastItem = {
+      id: `b-${Date.now()}`,
+      title: title.trim(),
+      target: targetGroup === 'ALL_FARMERS' ? 'All Registered Farmers' : targetGroup === 'OPERATORS' ? 'Mandi Operators' : 'Specific Mandi',
+      sentAt: 'Just now',
+      reach: '12,450 Push / 10,800 SMS',
+    };
+
+    setPastBroadcasts((prev) => [newPastItem, ...prev]);
+
     setTimeout(() => {
       setIsSending(false);
       setTitle('');
@@ -62,9 +83,9 @@ export default function AdminBroadcastScreen() {
       Toast.show({
         type: 'success',
         text1: 'Broadcast Notification Dispatched! 📢',
-        text2: 'Sent to 12,450 active users across state mandis.',
+        text2: 'Live alert delivered to Notifications Center & User Apps.',
       });
-    }, 1500);
+    }, 800);
   };
 
   return (
@@ -163,7 +184,7 @@ export default function AdminBroadcastScreen() {
         <View style={styles.sectionCard}>
           <Text style={styles.sectionTitle}>Recent Dispatched Broadcasts</Text>
 
-          {PAST_BROADCASTS.map((b) => (
+          {pastBroadcasts.map((b) => (
             <View key={b.id} style={styles.historyCard}>
               <Text style={styles.historyTitle}>{b.title}</Text>
               <Text style={styles.historyTarget}>Target: {b.target}</Text>

@@ -42,6 +42,8 @@ const MOCK_PAYMENTS = [
   { id: 'p2', utr: 'SBIN00291011928', amount: '₹2,54,250', crop: 'Mustard (45 Qtl)', date: '29 Mar 2026', status: 'CREDITED' },
 ];
 
+import { addNotification } from '../../../src/lib/notificationStore';
+
 export default function AdminUserDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
@@ -53,11 +55,19 @@ export default function AdminUserDetailScreen() {
   const [notifTitle, setNotifTitle] = useState('');
   const [notifBody, setNotifBody] = useState('');
 
-  const handleSendNotification = () => {
+  const handleSendNotification = async () => {
     if (!notifTitle || !notifBody) {
       Alert.alert('Validation Error', 'Please enter notification title and message.');
       return;
     }
+
+    await addNotification({
+      title: notifTitle.trim(),
+      message: notifBody.trim(),
+      type: 'ADMIN',
+      route: '/(farmer)/dashboard',
+    });
+
     setIsNotifyModalOpen(false);
     setNotifTitle('');
     setNotifBody('');

@@ -84,10 +84,23 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
+import { useEffect } from 'react';
+import { getNotifications, saveNotifications } from '../../src/lib/notificationStore';
+
 export default function NotificationsScreen() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [activeTab, setActiveTab] = useState<'ALL' | 'QUEUE' | 'PAYMENT' | 'SLOT' | 'WEATHER' | 'ADMIN'>('ALL');
+
+  useEffect(() => {
+    async function loadStoredNotifications() {
+      const data = await getNotifications();
+      if (data && data.length > 0) {
+        setNotifications(data);
+      }
+    }
+    loadStoredNotifications();
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -97,7 +110,9 @@ export default function NotificationsScreen() {
   });
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    const updated = notifications.map((n) => ({ ...n, read: true }));
+    setNotifications(updated);
+    saveNotifications(updated);
     Toast.show({
       type: 'success',
       text1: 'All Notifications Marked Read ✔️',
@@ -105,7 +120,9 @@ export default function NotificationsScreen() {
   };
 
   const handleDelete = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const updated = notifications.filter((n) => n.id !== id);
+    setNotifications(updated);
+    saveNotifications(updated);
     Toast.show({
       type: 'info',
       text1: 'Notification Removed',
@@ -114,9 +131,9 @@ export default function NotificationsScreen() {
 
   const handleNotificationPress = (item: NotificationItem) => {
     // Mark as read
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === item.id ? { ...n, read: true } : n))
-    );
+    const updated = notifications.map((n) => (n.id === item.id ? { ...n, read: true } : n));
+    setNotifications(updated);
+    saveNotifications(updated);
 
     if (item.route) {
       router.push(item.route as any);
