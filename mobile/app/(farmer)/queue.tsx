@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,20 +24,37 @@ import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
 import OperatorQueueScreen from '../(operator)/queue';
 import AdminAnalyticsScreen from '../(admin)/analytics';
-
-const QUEUE_LIST = [
-  { id: '1', token: '#KQ-1043', name: 'Ramesh Singh', crop: 'Wheat', time: '~2 min', isNowServing: true },
-  { id: '2', token: '#KQ-1044', name: 'Suresh Yadav', crop: 'Rice', time: '~5 min' },
-  { id: '3', token: '#KQ-1045', name: 'Mahesh Kumar', crop: 'Wheat', time: '~12 min' },
-  { id: '4', token: '#KQ-1046', name: 'Amit Verma', crop: 'Maize', time: '~18 min' },
-  { id: '5', token: '#KQ-1047', name: 'Sunil Patel', crop: 'Soybean', time: '~22 min' },
-  { id: '6', token: '#KQ-1048', name: 'You (Gurdeep)', crop: 'Wheat', time: '~25 min', isYou: true },
-];
+import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
 
 export default function LiveQueueScreen() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const [showTurnAlert, setShowTurnAlert] = useState(false);
+  const [activeBooking, setActiveBooking] = useState<BookingRecord | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    async function fetchActive() {
+      const all = await getBookings();
+      const active = all.find((b) => b.status === 'CHECKED_IN' || b.status === 'BOOKED');
+      if (active) {
+        setActiveBooking(active);
+      }
+    }
+    fetchActive();
+  }, []);
+
+  const myToken = activeBooking ? `#${activeBooking.token}` : '#KQ-1048';
+  const myCrop = activeBooking ? activeBooking.crop : 'Wheat';
+  const myName = activeBooking?.farmerName || user?.name || 'Gurdeep Singh';
+
+  const QUEUE_LIST = [
+    { id: '1', token: '#KQ-1043', name: 'Ramesh Singh', crop: 'Wheat', time: '~2 min', isNowServing: true },
+    { id: '2', token: '#KQ-1044', name: 'Suresh Yadav', crop: 'Rice', time: '~5 min' },
+    { id: '3', token: '#KQ-1045', name: 'Mahesh Kumar', crop: 'Wheat', time: '~12 min' },
+    { id: '4', token: '#KQ-1046', name: 'Amit Verma', crop: 'Maize', time: '~18 min' },
+    { id: '5', token: '#KQ-1047', name: 'Sunil Patel', crop: 'Soybean', time: '~22 min' },
+    { id: '6', token: myToken, name: `You (${myName.split(' ')[0]})`, crop: myCrop, time: '~25 min', isYou: true },
+  ];
 
   // If Operator is active, show the Operator Queue Controller!
   if (role === 'OPERATOR') {
@@ -196,7 +213,7 @@ export default function LiveQueueScreen() {
             </View>
 
             <Text style={styles.alertTitle}>Aapki Baari Aa Gayi!</Text>
-            <Text style={styles.alertTokenText}>Token #KQ-1048</Text>
+            <Text style={styles.alertTokenText}>Token {myToken}</Text>
             <Text style={styles.alertGateSub}>Gate #2 par aayein</Text>
 
             <TouchableOpacity style={styles.directionsBtn} onPress={() => Toast.show({ type: 'info', text1: 'Opening Mandi Gate Map Directions...' })}>
