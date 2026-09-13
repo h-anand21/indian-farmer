@@ -23,6 +23,8 @@ import {
   ChevronRight,
   Landmark,
   ShieldCheck,
+  MapPin,
+  CloudSun,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
@@ -61,14 +63,22 @@ export default function DynamicDashboard() {
           </View>
           <View>
             <Text style={styles.logoText}>KisanQueue</Text>
-            <Text style={styles.logoTagline}>Smart Farming | Fair Prices | Better Tomorrow</Text>
+            {/* Live Weather & Location Badge Pill */}
+            <View style={styles.weatherLocationRow}>
+              <MapPin size={11} color="#3B7A1E" />
+              <Text style={styles.locationText}>Bhopal, MP</Text>
+              <Text style={styles.weatherDot}>•</Text>
+              <CloudSun size={12} color="#D4A836" />
+              <Text style={styles.weatherText}>28°C Sunny</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.headerRight}>
+          {/* Notification Bell Button -> Route to Notifications Center */}
           <TouchableOpacity
             style={styles.bellButton}
-            onPress={() => router.push('/(farmer)/govt-hub')}
+            onPress={() => router.push('/(shared)/notifications')}
           >
             <Bell size={20} color={Colors.light.textPrimary} />
             <View style={styles.badgeDot}>
@@ -76,7 +86,11 @@ export default function DynamicDashboard() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.avatarButton}>
+          {/* Profile Avatar Button -> Route to Settings & Profile */}
+          <TouchableOpacity
+            style={styles.avatarButton}
+            onPress={() => router.push('/(shared)/profile')}
+          >
             <Text style={styles.avatarEmoji}>👨‍🌾</Text>
           </TouchableOpacity>
         </View>
@@ -385,6 +399,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: Colors.light.primary,
+  },
+  weatherLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 1,
+  },
+  locationText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#3B7A1E',
+  },
+  weatherDot: {
+    fontSize: 10,
+    color: '#9CA3AF',
+  },
+  weatherText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#B58A00',
   },
   logoTagline: {
     fontSize: 9,
