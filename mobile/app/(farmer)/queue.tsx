@@ -55,7 +55,7 @@ export default function LiveQueueScreen() {
   }
 
   const primaryBooking = myBookings[0] || null;
-  const myToken = primaryBooking ? `#${primaryBooking.token}` : '#KQ-1048';
+  const myToken = primaryBooking ? `#${primaryBooking.token}` : 'N/A';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

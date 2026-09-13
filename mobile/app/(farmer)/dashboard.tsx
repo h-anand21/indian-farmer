@@ -30,11 +30,29 @@ import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
 import OperatorDashboard from '../(operator)/dashboard';
 import AdminDashboardScreen from '../(admin)/dashboard';
+import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
+import { useFocusEffect } from 'expo-router';
 
 export default function DynamicDashboard() {
   const { user, role } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
+
+  const loadData = React.useCallback(async () => {
+    const farmerId = user?.phone || user?.name || '+91 98140 12345';
+    const all = await getBookings(farmerId);
+    const active = all.filter(
+      (b) => b.status === 'BOOKED' || b.status === 'CHECKED_IN' || b.status === 'WEIGHING'
+    );
+    setMyBookings(active);
+  }, [user]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   // If active role is OPERATOR, render the dedicated Operator Mandi Desk Dashboard!
   if (role === 'OPERATOR') {
@@ -50,7 +68,7 @@ export default function DynamicDashboard() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    loadData().finally(() => setRefreshing(false));
   };
 
   return (
@@ -125,7 +143,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Active Bookings</Text>
-              <Text style={styles.statValue}>2</Text>
+              <Text style={styles.statValue}>{myBookings.length}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -139,7 +157,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Queue Position</Text>
-              <Text style={styles.statValue}>#5</Text>
+              <Text style={styles.statValue}>{myBookings.length > 0 ? '#1' : 'None'}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -153,7 +171,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Pending Payments</Text>
-              <Text style={styles.statValue}>₹ 45,000</Text>
+              <Text style={styles.statValue}>{myBookings.length > 0 ? '₹ 45,000' : '₹ 0'}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -167,7 +185,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Total Procured</Text>
-              <Text style={styles.statValue}>28.5 Qt</Text>
+              <Text style={styles.statValue}>{myBookings.length > 0 ? '28.5 Qt' : '0 Qt'}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -181,49 +199,65 @@ export default function DynamicDashboard() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.spotlightCard}>
-          <View style={styles.spotlightCardHeader}>
-            <View>
-              <Text style={styles.tokenNumberText}>Token #KQ-1048</Text>
-              <Text style={styles.mandiLocationText}>📍 Azadpur Mandi, Delhi</Text>
+        {myBookings.length > 0 ? (
+          <View style={styles.spotlightCard}>
+            <View style={styles.spotlightCardHeader}>
+              <View>
+                <Text style={styles.tokenNumberText}>Token #{myBookings[0].token}</Text>
+                <Text style={styles.mandiLocationText}>📍 {myBookings[0].mandi}</Text>
+              </View>
+              <View style={styles.confirmedBadge}>
+                <Text style={styles.confirmedBadgeText}>✓ {myBookings[0].status}</Text>
+              </View>
             </View>
-            <View style={styles.confirmedBadge}>
-              <Text style={styles.confirmedBadgeText}>✓ Confirmed</Text>
+
+            <View style={styles.spotlightDetailsRow}>
+              <View style={styles.detailChip}>
+                <Calendar size={14} color={Colors.light.textSecondary} />
+                <Text style={styles.chipText}>{myBookings[0].date}</Text>
+              </View>
+              <View style={styles.detailChip}>
+                <Clock size={14} color={Colors.light.textSecondary} />
+                <Text style={styles.chipText}>{myBookings[0].time}</Text>
+              </View>
+              <View style={styles.detailChip}>
+                <Wheat size={14} color={Colors.light.textSecondary} />
+                <Text style={styles.chipText}>{myBookings[0].crop}</Text>
+              </View>
+            </View>
+
+            <View style={styles.spotlightActionsRow}>
+              <TouchableOpacity
+                style={styles.qrButton}
+                onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
+              >
+                <QrCode size={16} color="#FFFFFF" />
+                <Text style={styles.qrButtonText}>View QR Code</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.manageButton}
+                onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
+              >
+                <Text style={styles.manageButtonText}>Manage</Text>
+              </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.spotlightDetailsRow}>
-            <View style={styles.detailChip}>
-              <Calendar size={14} color={Colors.light.textSecondary} />
-              <Text style={styles.chipText}>12 Sep 2025</Text>
-            </View>
-            <View style={styles.detailChip}>
-              <Clock size={14} color={Colors.light.textSecondary} />
-              <Text style={styles.chipText}>09:00 - 11:00 AM</Text>
-            </View>
-            <View style={styles.detailChip}>
-              <Wheat size={14} color={Colors.light.textSecondary} />
-              <Text style={styles.chipText}>Wheat</Text>
-            </View>
-          </View>
-
-          <View style={styles.spotlightActionsRow}>
+        ) : (
+          <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E8E4D8', marginBottom: 20 }}>
+            <Text style={{ fontSize: 32, marginBottom: 8 }}>🌱</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.light.textPrimary, marginBottom: 4 }}>No Active Bookings</Text>
+            <Text style={{ fontSize: 12, color: Colors.light.textSecondary, textAlign: 'center', marginBottom: 14 }}>
+              Aapne abhi koi mandi slot book nahi kiya hai. Fasal bechne ke liye naya slot book karein.
+            </Text>
             <TouchableOpacity
-              style={styles.qrButton}
-              onPress={() => router.push('/(farmer)/bookings/KQ-1048')}
+              style={{ backgroundColor: Colors.light.primary, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24 }}
+              onPress={() => router.push('/(farmer)/book-slot')}
             >
-              <QrCode size={16} color="#FFFFFF" />
-              <Text style={styles.qrButtonText}>View QR Code</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.manageButton}
-              onPress={() => router.push('/(farmer)/bookings/KQ-1048')}
-            >
-              <Text style={styles.manageButtonText}>Manage</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>🌱 Book New Slot</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        )}
 
         {/* Quick Actions (4 Colored Cards) */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
