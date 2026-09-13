@@ -419,9 +419,10 @@ export async function recordProcurementWeighment(payload: RecordWeighmentPayload
   const mspRate = matchedMsp ? matchedMsp.mspPrice : 2275;
   const totalAmount = Math.round(actualWeight * mspRate);
 
-  // Generate official receipt number
+  // Generate official receipt number with timestamp to guarantee uniqueness
   const prefix = booking.centre.code.split("-")[1] || "MND";
-  const receiptNumber = `PR-${prefix}-${Math.floor(10000 + Math.random() * 90000)}`;
+  const uniqueSuffix = `${Date.now().toString().slice(-5)}${Math.floor(100 + Math.random() * 900)}`;
+  const receiptNumber = `PR-${prefix}-${uniqueSuffix}`;
 
   // Ensure an operator record exists for this centre
   let operator = await prisma.operator.findFirst({
@@ -429,15 +430,19 @@ export async function recordProcurementWeighment(payload: RecordWeighmentPayload
   });
 
   if (!operator) {
-    // Check if operator user exists or create fallback
+    // Look for an operator user that is NOT already bound to an Operator record
     let opUser = await prisma.user.findFirst({
-      where: { role: "OPERATOR" },
+      where: {
+        role: "OPERATOR",
+        operators: { none: {} },
+      },
     });
+
     if (!opUser) {
       opUser = await prisma.user.create({
         data: {
-          firebaseUid: `operator-${booking.centreId.slice(0, 8)}`,
-          email: `operator.${prefix.toLowerCase()}@mandi.gov.in`,
+          firebaseUid: `op-${booking.centreId.slice(0, 8)}-${uniqueSuffix}`,
+          email: `op.${prefix.toLowerCase()}.${uniqueSuffix}@mandi.gov.in`,
           name: `${booking.centre.name} Operator Desk`,
           role: "OPERATOR",
         },
@@ -448,15 +453,16 @@ export async function recordProcurementWeighment(payload: RecordWeighmentPayload
       data: {
         userId: opUser.id,
         centreId: booking.centreId,
-        employeeId: `EMP-${prefix}-01`,
+        employeeId: `EMP-${prefix}-${uniqueSuffix}`,
       },
     });
   }
 
-  // Execute in atomic transaction
+  // Execute in atomic transaction using UPSERT to prevent unique constraint failures
   const [procurementRecord, paymentRecord] = await prisma.$transaction([
-    prisma.procurementRecord.create({
-      data: {
+    prisma.procurementRecord.upsert({
+      where: { bookingId: booking.id },
+      create: {
         bookingId: booking.id,
         operatorId: operator.id,
         receiptNumber,
@@ -468,14 +474,30 @@ export async function recordProcurementWeighment(payload: RecordWeighmentPayload
         totalAmount,
         remarks,
       },
+      update: {
+        operatorId: operator.id,
+        actualWeight,
+        qualityGrade,
+        moisturePercent,
+        foreignMatter,
+        mspRate,
+        totalAmount,
+        remarks,
+        completedAt: new Date(),
+      },
     }),
-    prisma.payment.create({
-      data: {
+    prisma.payment.upsert({
+      where: { bookingId: booking.id },
+      create: {
         farmerId: booking.farmerId,
         bookingId: booking.id,
         amount: totalAmount,
         status: "PENDING",
         bankAccount: "••••4821",
+      },
+      update: {
+        amount: totalAmount,
+        status: "PENDING",
       },
     }),
     prisma.booking.update({
