@@ -21,10 +21,10 @@ const weighmentSchema = z.object({
   actualWeight: z.coerce.number().positive("Actual weight must be greater than 0"),
   qualityGrade: z.preprocess((val) => {
     if (typeof val === "string") {
-      const upper = val.toUpperCase();
-      if (upper.includes("GRADE A") || upper.includes("PREMIUM")) return "GRADE_A";
-      if (upper.includes("GRADE B")) return "GRADE_B";
-      if (upper.includes("GRADE C")) return "GRADE_C";
+      const upper = val.toUpperCase().replace(/\s+/g, "_");
+      if (upper.includes("GRADE_A") || upper.includes("PREMIUM")) return "GRADE_A";
+      if (upper.includes("GRADE_B")) return "GRADE_B";
+      if (upper.includes("GRADE_C")) return "GRADE_C";
       if (upper.includes("FAQ")) return "FAQ_STANDARD";
     }
     return val || "GRADE_A";
