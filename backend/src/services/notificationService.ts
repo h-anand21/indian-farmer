@@ -292,11 +292,34 @@ export async function broadcastAdminNotification(payload: AdminBroadcastPayload)
 
   return {
     success: true,
-    message: `Broadcast successfully sent to ${targetFarmers.length} farmers!`,
-    broadcast: broadcastPacket,
-    farmersCount: targetFarmers.length,
-    centreName,
+    message: `Broadcast delivered to ${savedCount.length} farmers`,
+    targetCount: savedCount.length,
+    packet: broadcastPacket,
   };
+}
+
+/**
+ * Notify farmers when Admin releases new procurement slots for a Mandi
+ */
+export async function notifyNewSlotsReleased(payload: {
+  centreId: string;
+  centreName: string;
+  startDateStr: string;
+  daysCount: number;
+  capacityPerSlot: number;
+}) {
+  const { centreId, centreName, startDateStr, daysCount, capacityPerSlot } = payload;
+  const title = `🌾 New Mandi Slots Open at ${centreName}!`;
+  const message = `Mandi Administration has released ${daysCount} days of new procurement slots starting ${startDateStr} (Capacity: ${capacityPerSlot} trolleys/slot). Book your arrival slot now!`;
+
+  return broadcastAdminNotification({
+    title,
+    message,
+    priority: "HIGH",
+    targetType: "CENTRE",
+    centreId,
+    adminName: "Mandi Slot Manager",
+  });
 }
 
 /**

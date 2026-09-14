@@ -75,6 +75,29 @@ export async function getSlots(
   }
 }
 
+export async function getAvailableDates(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { centreId } = req.query;
+    if (!centreId) {
+      res.status(400).json({
+        success: false,
+        error: "Missing required query parameter: centreId",
+      });
+      return;
+    }
+
+    const { getAvailableDatesForCentre } = require("../services/bookingService");
+    const dates = await getAvailableDatesForCentre(centreId as string);
+    res.json({ success: true, data: dates });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function postBooking(
   req: Request,
   res: Response,

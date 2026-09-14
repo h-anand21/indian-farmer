@@ -95,7 +95,7 @@ export default function BookSlotScreen() {
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [cropType, setCropType] = useState('Wheat');
   const [quantity, setQuantity] = useState('50');
-  const [vehicleNo, setVehicleNo] = useState('PB 10 AB 1234');
+  const [vehicleNo, setVehicleNo] = useState('');
   const [agreed, setAgreed] = useState(true);
 
   // Success Modal

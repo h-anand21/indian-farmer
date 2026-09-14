@@ -4,6 +4,7 @@ import {
   getCentres,
   getCrops,
   getSlots,
+  getAvailableDates,
   postBooking,
   getMyBookings,
   getBooking,
@@ -16,6 +17,7 @@ const router = Router();
 router.get("/centres", getCentres);
 router.get("/crops", getCrops);
 router.get("/slots", getSlots);
+router.get("/available-dates", getAvailableDates);
 
 // Booking actions
 router.post("/book", authMiddleware, postBooking);

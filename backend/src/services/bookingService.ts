@@ -241,6 +241,78 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
 }
 
 /**
+ * Get all available dates for a centre (includes 7-day rolling window + any Admin generated future dates)
+ */
+export async function getAvailableDatesForCentre(centreId: string) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  // 1. Fetch all distinct active slot dates in DB for this centre starting from Today
+  const dbSlots = await prisma.slot.findMany({
+    where: {
+      centreId,
+      date: { gte: today },
+      isActive: true,
+    },
+    select: { date: true },
+    distinct: ["date"],
+    orderBy: { date: "asc" },
+  });
+
+  const datesMap = new Map<string, boolean>();
+
+  // Mark existing DB dates
+  for (const s of dbSlots) {
+    const dStr = s.date.toISOString().split("T")[0];
+    datesMap.set(dStr, true);
+  }
+
+  // 2. Ensure standard 7 days (Today + 6 days) are present
+  const standard7DaysEnd = new Date(today);
+  standard7DaysEnd.setUTCDate(standard7DaysEnd.getUTCDate() + 7);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setUTCDate(today.getUTCDate() + i);
+    const dStr = d.toISOString().split("T")[0];
+    if (!datesMap.has(dStr)) {
+      datesMap.set(dStr, false);
+    }
+  }
+
+  // Convert to sorted array of date objects
+  const sortedDateStrs = Array.from(datesMap.keys()).sort();
+
+  return sortedDateStrs.map((dStr, index) => {
+    const [y, m, d] = dStr.split("-").map(Number);
+    const dateObj = new Date(Date.UTC(y, (m || 1) - 1, d || 1));
+
+    const todayStr = today.toISOString().split("T")[0];
+    const isToday = dStr === todayStr;
+
+    const dayName = isToday
+      ? "Today"
+      : dateObj.toLocaleDateString("en-IN", { weekday: "short", timeZone: "UTC" });
+    const dayNum = dateObj.getUTCDate().toString().padStart(2, "0");
+    const monthStr = dateObj.toLocaleDateString("en-IN", { month: "short", timeZone: "UTC" });
+
+    // Is Admin Created: date is beyond standard 7-day window OR exists in DB
+    const isBeyond7Days = dateObj >= standard7DaysEnd;
+    const existsInDb = datesMap.get(dStr) === true;
+    const isNew = isBeyond7Days || (index >= 7 && existsInDb);
+
+    return {
+      dateStr: dStr,
+      dayName,
+      dayNum,
+      monthStr,
+      isNew,
+      badgeLabel: isNew ? "NEW ✨" : isToday ? "TODAY" : undefined,
+    };
+  });
+}
+
+/**
  * Create a new slot booking for a farmer
  */
 export interface CreateBookingInput {

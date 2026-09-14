@@ -333,8 +333,8 @@ export default function BookSlotPage() {
   const [selectedCrop, setSelectedCrop] = useState<CropData | null>(null);
   const [quantity, setQuantity] = useState<number>(50);
   const [vehicleType, setVehicleType] = useState<string>("TRACTOR_TROLLEY");
-  const [vehicleNumber, setVehicleNumber] = useState<string>("HR-01-AB-4821");
-  const [driverPhone, setDriverPhone] = useState<string>("9876543210");
+  const [vehicleNumber, setVehicleNumber] = useState<string>("");
+  const [driverPhone, setDriverPhone] = useState<string>("");
 
   // Dates
   const [availableDates, setAvailableDates] = useState<Array<{ dateStr: string; dayName: string; dayNum: string; monthStr: string }>>([]);
@@ -411,6 +411,24 @@ export default function BookSlotPage() {
     }
     init();
   }, []);
+
+  // Fetch real available dates (including Admin-published future dates) when centre changes
+  useEffect(() => {
+    if (!selectedCentre?.id) return;
+    async function loadDates() {
+      try {
+        const { fetchAvailableDates } = await import("@/services/bookingService");
+        const apiDates = await fetchAvailableDates(selectedCentre.id);
+        if (apiDates && apiDates.length > 0) {
+          setAvailableDates(apiDates as any);
+          setSelectedDate(apiDates[0].dateStr);
+        }
+      } catch (err) {
+        console.warn("Could not load dynamic dates, using default 7-day window:", err);
+      }
+    }
+    loadDates();
+  }, [selectedCentre]);
 
   // Fetch real slots on centre and date change
   useEffect(() => {
@@ -1376,14 +1394,34 @@ export default function BookSlotPage() {
 
           {/* Date Picker Strip */}
           <div className="date-pills">
-            {availableDates.map((d) => {
+            {availableDates.map((d: any) => {
               const isSelected = selectedDate === d.dateStr;
               return (
                 <div
                   key={d.dateStr}
                   className={`date-pill ${isSelected ? "selected" : ""}`}
                   onClick={() => setSelectedDate(d.dateStr)}
+                  style={{ position: "relative" }}
                 >
+                  {d.badgeLabel && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "-8px",
+                        right: "-4px",
+                        background: d.isNew ? "#ef4444" : "#10b981",
+                        color: "white",
+                        fontSize: "9px",
+                        fontWeight: 900,
+                        padding: "2px 6px",
+                        borderRadius: "10px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {d.badgeLabel}
+                    </span>
+                  )}
                   <span>{d.dayName}</span>
                   <strong>{d.dayNum}</strong>
                   <span>{d.monthStr}</span>

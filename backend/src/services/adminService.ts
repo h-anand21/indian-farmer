@@ -520,6 +520,17 @@ export async function generateSlotsForCentre(
       ? `✅ Successfully created ${createdCount} new slots (${totalProcessed} active operational windows) for ${centre.name} across ${daysCount} days (Capacity: ${capacityPerSlot} vehicles/window)`
       : `⚡ All ${updatedCount} operational slots for ${centre.name} are already active and up-to-date across ${daysCount} days (Capacity synced: ${capacityPerSlot} vehicles/window)`;
 
+  if (createdCount > 0) {
+    const { notifyNewSlotsReleased } = require("./notificationService");
+    notifyNewSlotsReleased({
+      centreId,
+      centreName: centre.name,
+      startDateStr,
+      daysCount,
+      capacityPerSlot,
+    }).catch((err: any) => console.warn("Failed to send slot notification:", err));
+  }
+
   return {
     success: true,
     message,
