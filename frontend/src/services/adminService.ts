@@ -167,6 +167,7 @@ export async function generateAdminSlots(payload: {
   startDate: string;
   daysCount: number;
   capacityPerSlot: number;
+  customWindows?: Array<{ start: string; end: string }>;
 }) {
   const res = await api.post("/admin/slots/generate", payload);
   return res.data;

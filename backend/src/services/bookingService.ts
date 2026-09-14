@@ -192,16 +192,35 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
     orderBy: { startTime: "asc" },
   });
 
-  // Auto-provision default 7-day slots ONLY if date is within next 7 days and unseeded
+  // Auto-provision 7-day slots ONLY if date is within next 7 days and unseeded
   if (slots.length === 0 && targetDate >= today && targetDate < max7DayLimit) {
-    const defaultSlots = [
-      { startTime: "08:00", endTime: "10:00", capacity: 35, booked: 0 },
-      { startTime: "10:00", endTime: "12:00", capacity: 35, booked: 0 },
-      { startTime: "12:30", endTime: "14:30", capacity: 35, booked: 0 },
-      { startTime: "14:30", endTime: "16:30", capacity: 35, booked: 0 },
+    const sampleSlot = await prisma.slot.findFirst({
+      where: { centreId, isActive: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    let windowsToUse = [
+      { startTime: "08:00", endTime: "10:00", capacity: 35 },
+      { startTime: "10:00", endTime: "12:00", capacity: 35 },
+      { startTime: "12:30", endTime: "14:30", capacity: 35 },
+      { startTime: "14:30", endTime: "16:30", capacity: 35 },
     ];
 
-    for (const ds of defaultSlots) {
+    if (sampleSlot) {
+      const existingCentreSlots = await prisma.slot.findMany({
+        where: { centreId, date: sampleSlot.date, isActive: true },
+        orderBy: { startTime: "asc" },
+      });
+      if (existingCentreSlots.length > 0) {
+        windowsToUse = existingCentreSlots.map((s) => ({
+          startTime: s.startTime,
+          endTime: s.endTime,
+          capacity: s.capacity,
+        }));
+      }
+    }
+
+    for (const ds of windowsToUse) {
       await prisma.slot.upsert({
         where: {
           centreId_date_startTime: {
@@ -216,10 +235,13 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
           startTime: ds.startTime,
           endTime: ds.endTime,
           capacity: ds.capacity,
-          booked: ds.booked,
+          booked: 0,
           isActive: true,
         },
-        update: {},
+        update: {
+          capacity: ds.capacity,
+          endTime: ds.endTime,
+        },
       });
     }
 

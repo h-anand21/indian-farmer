@@ -450,7 +450,8 @@ export async function generateSlotsForCentre(
   centreId: string,
   startDateStr: string,
   daysCount: number = 7,
-  capacityPerSlot: number = 35
+  capacityPerSlot: number = 35,
+  customWindows?: Array<{ start: string; end: string }>
 ) {
   const centre = await prisma.procurementCentre.findUnique({
     where: { id: centreId },
@@ -459,12 +460,14 @@ export async function generateSlotsForCentre(
     throw new Error("Procurement Centre not found");
   }
 
-  const windows = [
+  const defaultWindows = [
     { start: "08:00", end: "10:00" },
     { start: "10:00", end: "12:00" },
     { start: "12:30", end: "14:30" },
     { start: "14:30", end: "16:30" },
   ];
+
+  const windows = customWindows && customWindows.length > 0 ? customWindows : defaultWindows;
 
   // Parse date safely in UTC
   const [year, month, day] = (startDateStr || new Date().toISOString().split("T")[0])
@@ -505,6 +508,7 @@ export async function generateSlotsForCentre(
         await prisma.slot.update({
           where: { id: existing.id },
           data: {
+            endTime: win.end,
             capacity: capacityPerSlot,
             isActive: true,
           },

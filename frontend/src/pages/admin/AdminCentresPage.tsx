@@ -26,6 +26,7 @@ import {
   Loader2,
   Power,
   PowerOff,
+  Trash2,
 } from "lucide-react";
 import {
   fetchAdminCentres,
@@ -243,6 +244,13 @@ export default function AdminCentresPage() {
   const availableDistricts = getDistrictsForState(formData.state);
 
   // Slot Generator State
+  const [slotMode, setSlotMode] = useState<"auto" | "custom">("auto");
+  const [customWindows, setCustomWindows] = useState<Array<{ start: string; end: string }>>([
+    { start: "08:00", end: "10:00" },
+    { start: "10:00", end: "12:00" },
+    { start: "12:30", end: "14:30" },
+    { start: "14:30", end: "16:30" },
+  ]);
   const [slotGenData, setSlotGenData] = useState({
     startDate: new Date().toISOString().split("T")[0],
     daysCount: 7,
@@ -400,6 +408,7 @@ export default function AdminCentresPage() {
         startDate: slotGenData.startDate,
         daysCount: slotGenData.daysCount,
         capacityPerSlot: slotGenData.capacityPerSlot,
+        customWindows: slotMode === "custom" ? customWindows : undefined,
       });
 
       setNotification(res.message || `Slots successfully generated for ${selectedCentreForSlots.name}`);
@@ -1477,7 +1486,7 @@ export default function AdminCentresPage() {
       {/* ── MODAL: BATCH SLOT GENERATOR ── */}
       {showSlotModal && selectedCentreForSlots && (
         <div className="admin-modal-backdrop" onClick={() => setShowSlotModal(false)}>
-          <div className="admin-modal-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-modal-panel" style={{ maxWidth: "520px" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                 <CalendarPlus size={18} color="#16a34a" /> Generate Procurement Slots
@@ -1503,6 +1512,48 @@ export default function AdminCentresPage() {
               <div style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>
                 {selectedCentreForSlots.name} ({selectedCentreForSlots.code})
               </div>
+            </div>
+
+            {/* Mode Switcher Tabs */}
+            <div style={{ display: "flex", background: "#f1f5f9", padding: "4px", borderRadius: "10px", marginBottom: "16px" }}>
+              <button
+                type="button"
+                onClick={() => setSlotMode("auto")}
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: slotMode === "auto" ? "#ffffff" : "transparent",
+                  color: slotMode === "auto" ? "#0f172a" : "#64748b",
+                  fontWeight: slotMode === "auto" ? 700 : 500,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  boxShadow: slotMode === "auto" ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                ⚡ Auto (Standard 4 Slots)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSlotMode("custom")}
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: slotMode === "custom" ? "#ffffff" : "transparent",
+                  color: slotMode === "custom" ? "#0f172a" : "#64748b",
+                  fontWeight: slotMode === "custom" ? 700 : 500,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  boxShadow: slotMode === "custom" ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                ⚙️ Custom Time Slots
+              </button>
             </div>
 
             <form onSubmit={handleGenerateSlots} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -1549,8 +1600,8 @@ export default function AdminCentresPage() {
                   <label style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>Vehicles / Window</label>
                   <input
                     type="number"
-                    min={10}
-                    max={100}
+                    min={5}
+                    max={200}
                     value={slotGenData.capacityPerSlot}
                     onChange={(e) => setSlotGenData({ ...slotGenData, capacityPerSlot: parseInt(e.target.value) || 35 })}
                     style={{
@@ -1566,9 +1617,95 @@ export default function AdminCentresPage() {
                 </div>
               </div>
 
-              <div style={{ fontSize: "12px", color: "#64748b", background: "#f1f5f9", padding: "10px", borderRadius: "8px" }}>
-                💡 Will automatically generate 4 daily operational windows (08:00-10:00, 10:00-12:00, 12:30-14:30, 14:30-16:30) with capacity controls.
-              </div>
+              {slotMode === "auto" ? (
+                <div style={{ fontSize: "12px", color: "#64748b", background: "#f1f5f9", padding: "10px 12px", borderRadius: "8px", border: "1px solid #e2e8f0" }}>
+                  💡 <strong>Auto Mode:</strong> Will automatically generate 4 daily operational windows (08:00-10:00, 10:00-12:00, 12:30-14:30, 14:30-16:30) with <strong>{slotGenData.capacityPerSlot}</strong> vehicle capacity each across <strong>{slotGenData.daysCount}</strong> day(s).
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "#f8fafc", padding: "12px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <label style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b" }}>
+                      Custom Time Windows ({customWindows.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCustomWindows([...customWindows, { start: "16:30", end: "18:30" }])}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        padding: "4px 8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        color: "#16a34a",
+                        background: "#dcfce7",
+                        border: "1px solid #bbf7d0",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Plus size={12} /> Add Window
+                    </button>
+                  </div>
+
+                  {customWindows.map((win, idx) => (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", minWidth: "20px" }}>#{idx + 1}</span>
+                      <input
+                        type="time"
+                        required
+                        value={win.start}
+                        onChange={(e) => {
+                          const updated = [...customWindows];
+                          updated[idx].start = e.target.value;
+                          setCustomWindows(updated);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: "6px 8px",
+                          borderRadius: "6px",
+                          border: "1px solid #cbd5e1",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <span style={{ fontSize: "12px", color: "#64748b" }}>to</span>
+                      <input
+                        type="time"
+                        required
+                        value={win.end}
+                        onChange={(e) => {
+                          const updated = [...customWindows];
+                          updated[idx].end = e.target.value;
+                          setCustomWindows(updated);
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: "6px 8px",
+                          borderRadius: "6px",
+                          border: "1px solid #cbd5e1",
+                          fontSize: "12px",
+                        }}
+                      />
+                      {customWindows.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomWindows(customWindows.filter((_, i) => i !== idx))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: "4px",
+                          }}
+                          title="Remove Window"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
                 <button

@@ -47,6 +47,14 @@ const generateSlotsSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   daysCount: z.number().int().min(1).max(30).default(7),
   capacityPerSlot: z.number().int().min(5).max(200).default(35),
+  customWindows: z
+    .array(
+      z.object({
+        start: z.string(),
+        end: z.string(),
+      })
+    )
+    .optional(),
 });
 
 const createCropSchema = z.object({
@@ -156,7 +164,8 @@ export async function postGenerateSlots(req: Request, res: Response, next: NextF
       parsed.centreId,
       parsed.startDate,
       parsed.daysCount,
-      parsed.capacityPerSlot
+      parsed.capacityPerSlot,
+      parsed.customWindows
     );
     res.json(result);
   } catch (error) {
