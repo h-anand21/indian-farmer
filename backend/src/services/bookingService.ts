@@ -171,11 +171,17 @@ export function listMasterCrops() {
 }
 
 /**
- * Get available slots for a centre on a given date (Auto-generates if unseeded)
+ * Get available slots for a centre on a given date (Auto-generates 7-day window if unseeded)
  */
 export async function getSlotsForCentreAndDate(centreId: string, dateStr: string) {
   const [year, month, day] = dateStr.split("-").map(Number);
   const targetDate = new Date(Date.UTC(year, (month || 1) - 1, day || 1));
+
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  const max7DayLimit = new Date(today);
+  max7DayLimit.setUTCDate(max7DayLimit.getUTCDate() + 7);
 
   let slots = await prisma.slot.findMany({
     where: {
@@ -186,8 +192,8 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
     orderBy: { startTime: "asc" },
   });
 
-  // If no slots exist for this centre and date yet, auto-provision standard slots
-  if (slots.length === 0) {
+  // Auto-provision default 7-day slots ONLY if date is within next 7 days and unseeded
+  if (slots.length === 0 && targetDate >= today && targetDate < max7DayLimit) {
     const defaultSlots = [
       { startTime: "08:00", endTime: "10:00", capacity: 35, booked: 0 },
       { startTime: "10:00", endTime: "12:00", capacity: 35, booked: 0 },
@@ -195,18 +201,27 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
       { startTime: "14:30", endTime: "16:30", capacity: 35, booked: 0 },
     ];
 
-    await prisma.slot.createMany({
-      data: defaultSlots.map((ds) => ({
-        centreId,
-        date: targetDate,
-        startTime: ds.startTime,
-        endTime: ds.endTime,
-        capacity: ds.capacity,
-        booked: ds.booked,
-        isActive: true,
-      })),
-      skipDuplicates: true,
-    });
+    for (const ds of defaultSlots) {
+      await prisma.slot.upsert({
+        where: {
+          centreId_date_startTime: {
+            centreId,
+            date: targetDate,
+            startTime: ds.startTime,
+          },
+        },
+        create: {
+          centreId,
+          date: targetDate,
+          startTime: ds.startTime,
+          endTime: ds.endTime,
+          capacity: ds.capacity,
+          booked: ds.booked,
+          isActive: true,
+        },
+        update: {},
+      });
+    }
 
     slots = await prisma.slot.findMany({
       where: {
@@ -313,16 +328,22 @@ export async function createBooking(
       }
     }
 
-    // 3. Resolve Slot (Find existing or auto-create for today)
-    let slot = await tx.slot.findFirst({
-      where: {
-        OR: [
-          { id: input.slotId },
-          { centreId: centre.id },
-        ],
-      },
-      include: { centre: true },
-    });
+    // 3. Resolve Exact Slot by slotId
+    let slot: any = null;
+    if (input.slotId) {
+      slot = await tx.slot.findUnique({
+        where: { id: input.slotId },
+        include: { centre: true },
+      });
+    }
+
+    if (!slot) {
+      slot = await tx.slot.findFirst({
+        where: { centreId: centre.id },
+        orderBy: { date: "desc" },
+        include: { centre: true },
+      });
+    }
 
     if (!slot) {
       const today = new Date();
@@ -332,11 +353,16 @@ export async function createBooking(
           date: today,
           startTime: "09:00",
           endTime: "11:00",
-          capacity: 50,
+          capacity: 35,
           booked: 0,
         },
         include: { centre: true },
       });
+    }
+
+    // Check capacity
+    if (slot.booked >= slot.capacity) {
+      throw new Error("⚠️ Selected time slot is fully booked. Please select another slot or date.");
     }
 
     // 4. Create Crop lot record
