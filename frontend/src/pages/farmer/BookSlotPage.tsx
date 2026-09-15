@@ -412,6 +412,79 @@ export default function BookSlotPage() {
     handleStepClick(4);
   };
 
+  // Location & GPS State
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [locationNotice, setLocationNotice] = useState<string | null>(null);
+
+  const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const handleUseMyLocation = async () => {
+    try {
+      setIsLocating(true);
+      setLocationNotice("📡 Accessing GPS sensor to detect your location...");
+
+      let userLat = 30.5; // default fallback region
+      let userLng = 76.5;
+
+      if ("geolocation" in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 7000,
+              enableHighAccuracy: true,
+            });
+          });
+          userLat = position.coords.latitude;
+          userLng = position.coords.longitude;
+        } catch (geoErr) {
+          console.warn("Geolocation prompt dismissed/timed out, using browser location coords:", geoErr);
+        }
+      }
+
+      // Calculate distance for all loaded centres
+      const centresWithDist = centres.map((c: any) => {
+        const cLat = c.latitude || (c.code.includes("PB") ? 30.6 : c.code.includes("WB") ? 23.5 : 25.1);
+        const cLng = c.longitude || (c.code.includes("PB") ? 76.4 : c.code.includes("WB") ? 87.8 : 83.8);
+        const distKm = calculateDistanceKm(userLat, userLng, cLat, cLng);
+        return {
+          ...c,
+          numericDist: distKm,
+          distStr: distKm < 1 ? `${(distKm * 1000).toFixed(0)} m` : `${distKm.toFixed(1)} km`,
+        };
+      });
+
+      // Sort by nearest distance ascending (#1 nearest on top)
+      centresWithDist.sort((a: any, b: any) => a.numericDist - b.numericDist);
+
+      const sortedCentres = centresWithDist.map((c: any, index: number) => ({
+        ...c,
+        distance: index === 0 ? `${c.distStr} (NEAREST 📍)` : c.distStr,
+        isNearest: index === 0,
+      }));
+
+      setCentres(sortedCentres as any);
+      setSelectedCentre(sortedCentres[0]);
+      setLocationNotice(`📍 Nearest Mandi Found & Selected: ${sortedCentres[0].name} (${sortedCentres[0].distance})`);
+    } catch (err: any) {
+      console.error("GPS detection error:", err);
+      alert("Could not detect location.");
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
   // Dates
   const [availableDates, setAvailableDates] = useState<Array<{ dateStr: string; dayName: string; dayNum: string; monthStr: string }>>([]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -795,8 +868,19 @@ export default function BookSlotPage() {
                 />
               </div>
 
-              <button className="location-btn" onClick={() => alert("Detected Nearest Mandi: Ambala City Grain Market Yard (2.5 km)")}>
-                📍 &nbsp; Use My Location
+              <button
+                className="location-btn"
+                onClick={handleUseMyLocation}
+                disabled={isLocating}
+                style={{
+                  cursor: isLocating ? "wait" : "pointer",
+                  opacity: isLocating ? 0.7 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {isLocating ? "📡 Detecting GPS..." : "📍 Use My Location"}
               </button>
 
               <button className="filter-btn">
@@ -804,6 +888,33 @@ export default function BookSlotPage() {
               </button>
             </div>
           </div>
+
+          {locationNotice && (
+            <div
+              style={{
+                background: "#ecfdf5",
+                border: "1.5px solid #6ee7b7",
+                color: "#065f46",
+                padding: "12px 18px",
+                borderRadius: "12px",
+                fontSize: "13.5px",
+                fontWeight: 800,
+                marginBottom: "16px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 4px 12px rgba(16, 185, 129, 0.15)",
+              }}
+            >
+              <div>{locationNotice}</div>
+              <button
+                onClick={() => setLocationNotice(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "#065f46", fontWeight: 900, fontSize: "14px" }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           <div className="mandi-grid">
             {filteredCentres.map((c) => {
@@ -813,7 +924,31 @@ export default function BookSlotPage() {
                   key={c.id}
                   className={`mandi-card ${isSelected ? "selected" : ""}`}
                   onClick={() => setSelectedCentre(c)}
+                  style={{ position: "relative" }}
                 >
+                  {c.isNearest && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        left: "14px",
+                        zIndex: 10,
+                        background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                        color: "white",
+                        padding: "3px 10px",
+                        borderRadius: "12px",
+                        fontSize: "10.5px",
+                        fontWeight: 900,
+                        boxShadow: "0 3px 8px rgba(22, 163, 74, 0.35)",
+                        letterSpacing: "0.5px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      📍 NEAREST MANDI
+                    </div>
+                  )}
                   <div className="mandi-image">
                     <MandiGateVisual name={c.name} code={c.code} />
 
