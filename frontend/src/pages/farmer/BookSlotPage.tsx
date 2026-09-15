@@ -335,7 +335,58 @@ export default function BookSlotPage() {
   const [vehicleType, setVehicleType] = useState<string>("TRACTOR_TROLLEY");
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
   const [driverPhone, setDriverPhone] = useState<string>("");
-  const [step3Error, setStep3Error] = useState<string | null>(null);
+  // Step Completion Checks & Navigation Guard
+  const isStepComplete = (stepNum: number): boolean => {
+    if (stepNum === 1) {
+      return Boolean(selectedCentre?.id);
+    }
+    if (stepNum === 2) {
+      return isStepComplete(1) && Boolean(selectedCrop) && Number(quantity) > 0;
+    }
+    if (stepNum === 3) {
+      return (
+        isStepComplete(2) &&
+        Boolean(vehicleNumber.trim()) &&
+        /^[6-9]\d{9}$/.test(driverPhone.trim())
+      );
+    }
+    if (stepNum === 4) {
+      return isStepComplete(3) && Boolean(selectedDate) && Boolean(selectedSlot?.id);
+    }
+    return false;
+  };
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep === step) return;
+
+    // Backward navigation is always permitted
+    if (targetStep < step) {
+      setStep(targetStep);
+      return;
+    }
+
+    // Forward navigation requires all prior steps to be completed
+    for (let s = 1; s < targetStep; s++) {
+      if (!isStepComplete(s)) {
+        if (s === 1) {
+          alert("Please select a Mandi Procurement Centre first.");
+          setStep(1);
+        } else if (s === 2) {
+          alert("Please select your Crop Produce and Quantity first.");
+          setStep(2);
+        } else if (s === 3) {
+          setStep3Error("Please enter your Vehicle Registration Plate Number and 10-digit Driver Mobile Number first.");
+          setStep(3);
+        } else if (s === 4) {
+          alert("Please select an arrival Date and Time Slot first.");
+          setStep(4);
+        }
+        return;
+      }
+    }
+
+    setStep(targetStep);
+  };
 
   const handleProceedFromStep3 = () => {
     const cleanVehicle = vehicleNumber.trim();
@@ -358,7 +409,7 @@ export default function BookSlotPage() {
     }
 
     setStep3Error(null);
-    setStep(4);
+    handleStepClick(4);
   };
 
   // Dates
@@ -667,39 +718,54 @@ export default function BookSlotPage() {
 
       {/* ================= STEPPER ================= */}
       <section className="stepper">
-        <div className={`step ${step === 1 ? "step-active" : step > 1 ? "step-done" : ""}`} onClick={() => setStep(1)}>
-          <div className="step-number">{step > 1 ? "✓" : "1"}</div>
+        <div
+          className={`step ${step === 1 ? "step-active" : isStepComplete(1) ? "step-done" : ""}`}
+          onClick={() => handleStepClick(1)}
+        >
+          <div className="step-number">{isStepComplete(1) ? "✓" : "1"}</div>
           <div>
             <strong>Mandi Centre</strong>
             <small>Choose Mandi</small>
           </div>
         </div>
 
-        <div className={`step ${step === 2 ? "step-active" : step > 2 ? "step-done" : ""}`} onClick={() => setStep(2)}>
-          <div className="step-number">{step > 2 ? "✓" : "2"}</div>
+        <div
+          className={`step ${step === 2 ? "step-active" : isStepComplete(2) ? "step-done" : ""}`}
+          onClick={() => handleStepClick(2)}
+        >
+          <div className="step-number">{isStepComplete(2) ? "✓" : "2"}</div>
           <div>
             <strong>Crop & MSP</strong>
             <small>Select Crop</small>
           </div>
         </div>
 
-        <div className={`step ${step === 3 ? "step-active" : step > 3 ? "step-done" : ""}`} onClick={() => setStep(3)}>
-          <div className="step-number">{step > 3 ? "✓" : "3"}</div>
+        <div
+          className={`step ${step === 3 ? "step-active" : isStepComplete(3) ? "step-done" : ""}`}
+          onClick={() => handleStepClick(3)}
+        >
+          <div className="step-number">{isStepComplete(3) ? "✓" : "3"}</div>
           <div>
             <strong>Transport</strong>
             <small>Vehicle Details</small>
           </div>
         </div>
 
-        <div className={`step ${step === 4 ? "step-active" : step > 4 ? "step-done" : ""}`} onClick={() => setStep(4)}>
-          <div className="step-number">{step > 4 ? "✓" : "4"}</div>
+        <div
+          className={`step ${step === 4 ? "step-active" : isStepComplete(4) ? "step-done" : ""}`}
+          onClick={() => handleStepClick(4)}
+        >
+          <div className="step-number">{isStepComplete(4) ? "✓" : "4"}</div>
           <div>
             <strong>Date & Slot</strong>
             <small>Pick Date & Time</small>
           </div>
         </div>
 
-        <div className={`step ${step === 5 ? "step-active" : ""}`} onClick={() => setStep(5)}>
+        <div
+          className={`step ${step === 5 ? "step-active" : ""}`}
+          onClick={() => handleStepClick(5)}
+        >
           <div className="step-number">5</div>
           <div>
             <strong>Review</strong>
@@ -1304,7 +1370,7 @@ export default function BookSlotPage() {
             </button>
 
             {selectedCrop ? (
-              <button className="proceed-btn" onClick={() => setStep(3)}>
+              <button className="proceed-btn" onClick={() => handleStepClick(3)}>
                 Proceed to Transport Details &nbsp; <span>→</span>
               </button>
             ) : (
@@ -1525,7 +1591,7 @@ export default function BookSlotPage() {
               ← Back
             </button>
 
-            <button className="proceed-btn" onClick={() => setStep(5)}>
+            <button className="proceed-btn" onClick={() => handleStepClick(5)}>
               Review & Confirm &nbsp; <span>→</span>
             </button>
           </div>
