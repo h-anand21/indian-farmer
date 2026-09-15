@@ -316,7 +316,7 @@ export default function BookSlotPage() {
   const navigate = useNavigate();
 
   // Step 1: Mandi, Step 2: Crop, Step 3: Transport, Step 4: Date & Slot, Step 5: Review
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<number>(1);
 
   // Master Data
   const [centres, setCentres] = useState<any[]>(DEMO_CENTRES);
@@ -335,6 +335,7 @@ export default function BookSlotPage() {
   const [vehicleType, setVehicleType] = useState<string>("TRACTOR_TROLLEY");
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
   const [driverPhone, setDriverPhone] = useState<string>("");
+  const [step3Error, setStep3Error] = useState<string | null>(null);
   // Step Completion Checks & Navigation Guard
   const isStepComplete = (stepNum: number): boolean => {
     if (stepNum === 1) {
