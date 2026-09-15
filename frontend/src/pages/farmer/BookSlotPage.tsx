@@ -630,6 +630,23 @@ export default function BookSlotPage() {
         vehicleNumber: vehicleNumber.trim(),
         driverPhone: driverPhone.trim(),
       });
+      // Update local slots state to immediately reflect decremented available capacity
+      setSlots((prevSlots) =>
+        prevSlots.map((s) => {
+          if (s.id === selectedSlot.id) {
+            const nextBooked = (s.booked || 0) + 1;
+            const currentAvail = s.availableCapacity !== undefined ? s.availableCapacity : (s.capacity || 35) - (s.booked || 0);
+            const nextAvailable = Math.max(0, currentAvail - 1);
+            return {
+              ...s,
+              booked: nextBooked,
+              availableCapacity: nextAvailable,
+              isFull: nextAvailable <= 0,
+            };
+          }
+          return s;
+        })
+      );
       setConfirmedBooking(res);
     } catch (err: any) {
       console.error("Booking error:", err);
@@ -1700,12 +1717,17 @@ export default function BookSlotPage() {
           <div className="slot-grid">
             {slots.map((s) => {
               const isSelected = selectedSlot?.id === s.id;
-              const remaining = (s.capacity || 0) - (s.bookedCount ?? s.booked ?? 0);
+              const remaining = s.availableCapacity !== undefined
+                ? s.availableCapacity
+                : Math.max(0, (s.capacity || 35) - (s.booked || s.bookedCount || 0));
+              const isFull = remaining <= 0 || s.isFull;
+
               return (
                 <div
                   key={s.id}
-                  className={`slot-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => setSelectedSlot(s)}
+                  className={`slot-card ${isSelected ? "selected" : ""} ${isFull ? "disabled" : ""}`}
+                  onClick={() => !isFull && setSelectedSlot(s)}
+                  style={{ opacity: isFull ? 0.6 : 1, cursor: isFull ? "not-allowed" : "pointer" }}
                 >
                   <div>
                     <strong>🕒 &nbsp; {s.startTime} - {s.endTime}</strong>
@@ -1714,7 +1736,9 @@ export default function BookSlotPage() {
                     </div>
                   </div>
 
-                  <span>{remaining} Slots Left</span>
+                  <span style={{ color: isFull ? "#ef4444" : "#16a34a", fontWeight: 700 }}>
+                    {isFull ? "FULL (0 Left)" : `${remaining} Slots Left`}
+                  </span>
                 </div>
               );
             })}
