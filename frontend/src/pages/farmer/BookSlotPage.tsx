@@ -448,7 +448,6 @@ export default function BookSlotPage() {
             id: c.id || `crop-${i + 1}-${c.name.replace(/\s+/g, "_")}`,
           }));
           setCrops(mapped);
-          setSelectedCrop(mapped[0]);
         } else {
           // Fallback crops
           const fallbackCrops: CropData[] = [
@@ -460,7 +459,6 @@ export default function BookSlotPage() {
             { id: "cr6", name: "Cotton (Kapas)", code: "COTTON-01", mspPrice: 7020, season: "Kharif" },
           ];
           setCrops(fallbackCrops);
-          setSelectedCrop(fallbackCrops[0]);
         }
 
         // Generate Today + next 7 dates
