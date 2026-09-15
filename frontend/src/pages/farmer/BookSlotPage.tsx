@@ -335,6 +335,31 @@ export default function BookSlotPage() {
   const [vehicleType, setVehicleType] = useState<string>("TRACTOR_TROLLEY");
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
   const [driverPhone, setDriverPhone] = useState<string>("");
+  const [step3Error, setStep3Error] = useState<string | null>(null);
+
+  const handleProceedFromStep3 = () => {
+    const cleanVehicle = vehicleNumber.trim();
+    const cleanPhone = driverPhone.trim();
+
+    if (!cleanVehicle) {
+      setStep3Error("Please enter your Vehicle Registration / Plate Number (e.g. HR-01-AB-4821).");
+      return;
+    }
+
+    if (!cleanPhone) {
+      setStep3Error("Please enter the Driver / Accompanier 10-digit mobile number for SMS alerts.");
+      return;
+    }
+
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      setStep3Error("Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.");
+      return;
+    }
+
+    setStep3Error(null);
+    setStep(4);
+  };
 
   // Dates
   const [availableDates, setAvailableDates] = useState<Array<{ dateStr: string; dayName: string; dayNum: string; monthStr: string }>>([]);
@@ -459,6 +484,18 @@ export default function BookSlotPage() {
       return;
     }
 
+    if (!vehicleNumber.trim()) {
+      alert("Vehicle Registration / Plate Number is required. Please fill in Step 3.");
+      setStep(3);
+      return;
+    }
+
+    if (!driverPhone.trim() || !/^[6-9]\d{9}$/.test(driverPhone.trim())) {
+      alert("A valid 10-digit Driver Mobile Number is required. Please fill in Step 3.");
+      setStep(3);
+      return;
+    }
+
     try {
       setSubmitting(true);
       const res = await submitBooking({
@@ -467,8 +504,8 @@ export default function BookSlotPage() {
         cropName: selectedCrop?.name || "Wheat (Kanak)",
         quantity: Number(quantity),
         vehicleType,
-        vehicleNumber: vehicleNumber.trim() || "HR-01-AB-4821",
-        driverPhone: driverPhone.trim() || undefined,
+        vehicleNumber: vehicleNumber.trim(),
+        driverPhone: driverPhone.trim(),
       });
       setConfirmedBooking(res);
     } catch (err: any) {
@@ -1318,7 +1355,7 @@ export default function BookSlotPage() {
               background: "white",
               padding: "24px",
               borderRadius: "16px",
-              border: "1px solid #dce7ed",
+              border: step3Error ? "2px solid #fca5a5" : "1px solid #dce7ed",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: "20px",
@@ -1326,53 +1363,82 @@ export default function BookSlotPage() {
           >
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#081633", marginBottom: "6px" }}>
-                Vehicle Registration / Plate Number
+                Vehicle Registration / Plate Number <span style={{ color: "#ef4444" }}>*</span>
               </label>
               <input
                 type="text"
                 placeholder="e.g. HR-01-AB-4821"
                 value={vehicleNumber}
-                onChange={(e) => setVehicleNumber(e.target.value)}
+                onChange={(e) => {
+                  setVehicleNumber(e.target.value.toUpperCase());
+                  if (step3Error) setStep3Error(null);
+                }}
                 style={{
                   width: "100%",
                   height: "44px",
                   padding: "0 14px",
                   borderRadius: "10px",
-                  border: "1px solid #cbdce5",
+                  border: !vehicleNumber.trim() && step3Error ? "2px solid #ef4444" : "1px solid #cbdce5",
                   fontSize: "13px",
                   outline: "none",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
 
             <div>
               <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#081633", marginBottom: "6px" }}>
-                Driver / Accompanier Mobile Number
+                Driver / Accompanier Mobile Number <span style={{ color: "#ef4444" }}>*</span>
               </label>
               <input
                 type="text"
+                maxLength={10}
                 placeholder="10-digit mobile number for SMS alerts"
                 value={driverPhone}
-                onChange={(e) => setDriverPhone(e.target.value)}
+                onChange={(e) => {
+                  setDriverPhone(e.target.value.replace(/\D/g, ""));
+                  if (step3Error) setStep3Error(null);
+                }}
                 style={{
                   width: "100%",
                   height: "44px",
                   padding: "0 14px",
                   borderRadius: "10px",
-                  border: "1px solid #cbdce5",
+                  border: !driverPhone.trim() && step3Error ? "2px solid #ef4444" : "1px solid #cbdce5",
                   fontSize: "13px",
                   outline: "none",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
           </div>
+
+          {step3Error && (
+            <div
+              style={{
+                background: "#fef2f2",
+                border: "1px solid #fca5a5",
+                color: "#b91c1c",
+                padding: "12px 16px",
+                borderRadius: "12px",
+                fontSize: "13px",
+                fontWeight: 700,
+                marginTop: "16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              ⚠️ {step3Error}
+            </div>
+          )}
 
           <div className="bottom-bar">
             <button className="back-btn" onClick={() => setStep(2)}>
               ← Back
             </button>
 
-            <button className="proceed-btn" onClick={() => setStep(4)}>
+            <button className="proceed-btn" onClick={handleProceedFromStep3}>
               Proceed to Slot Timing &nbsp; <span>→</span>
             </button>
           </div>

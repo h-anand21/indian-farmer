@@ -417,17 +417,30 @@ export default function BookSlotScreen() {
               </View>
             </View>
 
-            <Text style={styles.label}>Vehicle Number (Optional)</Text>
+            <Text style={styles.label}>Vehicle Number *</Text>
             <View style={styles.inputRow}>
               <Truck size={18} color={Colors.light.textMuted} />
-              <TextInput style={styles.input} value={vehicleNo} onChangeText={setVehicleNo} placeholder="e.g. DL 01 AB 1234" />
+              <TextInput style={styles.input} value={vehicleNo} onChangeText={setVehicleNo} placeholder="e.g. HR 01 AB 4821" />
             </View>
 
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.backPillBtn} onPress={() => setStep(3)}>
                 <Text style={styles.backPillText}>Back</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.nextPillBtn, { flex: 1 }]} onPress={() => setStep(5)}>
+              <TouchableOpacity
+                style={[styles.nextPillBtn, { flex: 1 }]}
+                onPress={() => {
+                  if (!vehicleNo.trim()) {
+                    Toast.show({
+                      type: "error",
+                      text1: "Required Field Missing",
+                      text2: "Please enter your Vehicle Registration / Plate Number.",
+                    });
+                    return;
+                  }
+                  setStep(5);
+                }}
+              >
                 <Text style={styles.nextPillText}>Next</Text>
                 <View style={styles.arrowCircle}><ArrowRight size={18} color="#FFFFFF" /></View>
               </TouchableOpacity>
