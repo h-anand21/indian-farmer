@@ -25,6 +25,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import OperatorQueueScreen from '../(operator)/queue';
 import AdminAnalyticsScreen from '../(admin)/analytics';
 import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
+import { fetchMyBookings } from '../../src/services/bookingService';
 
 export default function LiveQueueScreen() {
   const { role, user } = useAuth();
@@ -34,6 +35,50 @@ export default function LiveQueueScreen() {
 
   useEffect(() => {
     async function fetchRealQueue() {
+      try {
+        const bookings = await fetchMyBookings();
+        if (bookings && bookings.length > 0) {
+          const active: BookingRecord[] = bookings
+            .filter((b) => b.status !== 'CANCELLED')
+            .map((b) => {
+              const currentStatus: 'BOOKED' | 'CHECKED_IN' | 'WEIGHING' | 'COMPLETED' | 'CANCELLED' =
+                b.status === 'WAITING' || b.status === 'CHECKED_IN'
+                  ? 'CHECKED_IN'
+                  : b.status === 'CALLED' || b.status === 'IN_PROCUREMENT'
+                  ? 'WEIGHING'
+                  : b.status === 'COMPLETED'
+                  ? 'COMPLETED'
+                  : 'BOOKED';
+
+              return {
+                id: b.id,
+                token: b.token,
+                qrData: `KISANQUEUE|TOKEN:${b.token}|CENTRE:${b.centreId}|CROP:${b.crop?.name || 'Wheat'}|QTY:${b.quantity}|STATUS:${b.status}`,
+                mandi: b.centre?.name || 'Mandi Centre',
+                mandiId: b.centreId || 'centre-wb-1',
+                farmerName: b.farmer?.user?.name || user?.name || 'Farmer',
+                farmerPhone: b.farmer?.user?.phone || user?.phone || '',
+                crop: b.crop?.name || 'Wheat',
+                quantity: `${b.quantity} Quintals`,
+                date: b.slotDate || 'Today',
+                time: b.slotWindow || '08:00 AM',
+                vehicle: 'Tractor-Trolley',
+                status: currentStatus,
+                badgeColor: currentStatus === 'CHECKED_IN' ? '#16A34A' : currentStatus === 'WEIGHING' ? '#E66919' : '#2563EB',
+                badgeBg: currentStatus === 'CHECKED_IN' ? '#DCFCE7' : currentStatus === 'WEIGHING' ? '#FFEDD5' : '#DBEAFE',
+                createdAt: b.bookedAt || new Date().toISOString(),
+              };
+            });
+
+          if (active.length > 0) {
+            setMyBookings(active);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Server booking queue fetch error:", err);
+      }
+
       const farmerId = user?.phone || user?.name || '+91 98140 12345';
       const all = await getBookings(farmerId);
       const active = all.filter(
@@ -42,6 +87,8 @@ export default function LiveQueueScreen() {
       setMyBookings(active);
     }
     fetchRealQueue();
+    const interval = setInterval(fetchRealQueue, 10000);
+    return () => clearInterval(interval);
   }, [user]);
 
   // If Operator is active, show the Operator Queue Controller!

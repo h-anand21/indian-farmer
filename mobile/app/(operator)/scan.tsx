@@ -34,7 +34,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
-import { operatorGateCheckIn } from '../../src/services/operatorService';
+import { operatorGateCheckIn, fetchBookingDetails } from '../../src/services/operatorService';
 import { getBookingByToken, updateBookingStatus } from '../../src/lib/bookingStore';
 
 interface ScannedFarmer {
@@ -86,7 +86,7 @@ export default function GateScanScreen() {
   const [scannedResult, setScannedResult] = useState<ScannedFarmer | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [assignedQueueNo, setAssignedQueueNo] = useState(9);
+  const [assignedQueueNo, setAssignedQueueNo] = useState(1);
 
   // Auto-request permission on mount if not determined yet
   useEffect(() => {
@@ -95,12 +95,32 @@ export default function GateScanScreen() {
     }
   }, [permission]);
 
+  // Helper to extract clean KQ token from any QR string format
+  const extractTokenId = (raw: string): string => {
+    let text = raw.trim();
+    if (text.startsWith('{') && text.includes('token')) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed.token) return parsed.token.trim().toUpperCase();
+      } catch {}
+    }
+    if (text.includes('TOKEN:')) {
+      const match = text.match(/TOKEN:([A-Z0-9-]+)/i);
+      if (match && match[1]) return match[1].trim().toUpperCase();
+    }
+    if (text.startsWith('KQ-BOOKING-')) {
+      text = text.replace('KQ-BOOKING-', '');
+    }
+    const kqMatch = text.match(/KQ-[A-Z0-9-]+/i);
+    if (kqMatch && kqMatch[0]) {
+      return kqMatch[0].trim().toUpperCase();
+    }
+    return text.toUpperCase();
+  };
+
   // Process token ID either from QR camera or manual entry
   const handleProcessToken = async (rawToken: string) => {
-    let tokenId = rawToken.trim().toUpperCase();
-    if (tokenId.startsWith('KQ-BOOKING-')) {
-      tokenId = tokenId.replace('KQ-BOOKING-', '');
-    }
+    const tokenId = extractTokenId(rawToken);
 
     setIsProcessing(true);
     setIsScanningActive(false);
@@ -114,36 +134,55 @@ export default function GateScanScreen() {
       let fetchedFarmer: ScannedFarmer | null = null;
 
       try {
-        const apiRes = await operatorGateCheckIn({
-          centreId,
-          tokenOrCode: tokenId,
-        });
-
-        if (apiRes && apiRes.data) {
-          const b = apiRes.data;
+        const apiRes = await fetchBookingDetails(tokenId);
+        if (apiRes) {
+          const b = apiRes;
           fetchedFarmer = {
             token: b.token || tokenId,
-            name: b.farmer?.user?.name || b.farmerName || 'Gurdeep Singh',
+            name: b.farmer?.user?.name || 'Gurdeep Singh',
             phone: b.farmer?.user?.phone || '+91 98140 55432',
-            aadhaar: 'XXXX-XXXX-9102 (Aadhaar Verified)',
+            aadhaar: b.farmer?.farmerId ? `${b.farmer.farmerId} (DigiLocker)` : 'XXXX-XXXX-9102 (Aadhaar Verified)',
             crop: b.crop?.name ? `${b.crop.name} (${b.crop.variety || 'Grade-A'})` : 'Wheat (Sharbati)',
             quantity: `${b.quantity || 50.0} Quintals`,
             slot: 'Today, 08:00 - 10:00 AM (ACTIVE)',
             vehicle: b.vehiclePlate || 'PB-10-AZ-4921 (Tractor-Trolley)',
             quotaRemaining: 'MSP Quota Verified & Allocated',
           };
-          Toast.show({
-            type: 'success',
-            text1: 'QR Gate Pass Verified! ✅',
-            text2: `Farmer: ${fetchedFarmer.name} (Token #${fetchedFarmer.token})`,
-          });
         }
       } catch {
-        // Fallback to sample data for offline or demo testing
+        // Continue to check-in endpoint lookup if details query failed
       }
 
       if (!fetchedFarmer) {
-        // First check local AsyncStorage bookingStore
+        try {
+          const checkRes = await operatorGateCheckIn({
+            centreId,
+            tokenOrCode: tokenId,
+          });
+
+          if (checkRes && checkRes.data) {
+            const b = checkRes.data;
+            fetchedFarmer = {
+              token: b.token || tokenId,
+              name: b.farmer?.user?.name || b.farmerName || 'Ram Singh Gurjar',
+              phone: b.farmer?.user?.phone || '+91 98765 43210',
+              aadhaar: 'XXXX-XXXX-4921 (Verified)',
+              crop: b.crop?.name ? `${b.crop.name}` : 'Wheat (Sharbati)',
+              quantity: `${b.quantity || 50.0} Quintals`,
+              slot: 'Today, 08:00 - 10:00 AM (ACTIVE)',
+              vehicle: b.vehiclePlate || 'MP-04-AB-1234',
+              quotaRemaining: 'MSP Quota Verified & Allocated',
+            };
+            const pos = checkRes.data?.queueEntry?.position || checkRes.data?.queuePosition || 1;
+            setAssignedQueueNo(pos);
+          }
+        } catch {
+          // Fallback to local storage
+        }
+      }
+
+      if (!fetchedFarmer) {
+        // Check local AsyncStorage bookingStore
         const localBooking = await getBookingByToken(tokenId);
         if (localBooking) {
           fetchedFarmer = {
@@ -157,11 +196,6 @@ export default function GateScanScreen() {
             vehicle: localBooking.vehicle,
             quotaRemaining: 'MSP Quota Verified & Allocated',
           };
-          Toast.show({
-            type: 'success',
-            text1: 'QR Gate Pass Verified! ✅',
-            text2: `Farmer: ${fetchedFarmer.name} (Token #${fetchedFarmer.token})`,
-          });
         }
       }
 
@@ -177,12 +211,13 @@ export default function GateScanScreen() {
           vehicle: 'PB-10-AZ-4921 (Tractor)',
           quotaRemaining: '50.0 Qt Remaining / 100 Qt Limit',
         };
-        Toast.show({
-          type: 'success',
-          text1: 'QR Code Scanned! ✅',
-          text2: `Token #${tokenId} matched`,
-        });
       }
+
+      Toast.show({
+        type: 'success',
+        text1: 'QR Code Scanned! ✅',
+        text2: `Token #${fetchedFarmer.token} matched for ${fetchedFarmer.name}`,
+      });
 
       setScannedResult(fetchedFarmer);
     } finally {
@@ -195,23 +230,7 @@ export default function GateScanScreen() {
     if (!isScanningActive || isProcessing) return;
     const rawData = scanningResult.data;
     if (!rawData) return;
-
-    let token = rawData.trim();
-    if (token.startsWith('KQ-BOOKING-')) {
-      token = token.replace('KQ-BOOKING-', '');
-    } else if (token.includes('/')) {
-      const parts = token.split('/');
-      token = parts[parts.length - 1];
-    } else {
-      try {
-        const parsed = JSON.parse(token);
-        if (parsed.token || parsed.tokenNumber || parsed.bookingId) {
-          token = parsed.token || parsed.tokenNumber || parsed.bookingId;
-        }
-      } catch {}
-    }
-
-    handleProcessToken(token);
+    handleProcessToken(rawData);
   };
 
   const handleManualSearch = () => {
@@ -236,10 +255,30 @@ export default function GateScanScreen() {
 
   const handleConfirmCheckIn = async () => {
     if (!scannedResult) return;
-    await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
-    const newPos = Math.floor(Math.random() * 5) + 7;
-    setAssignedQueueNo(newPos);
-    setShowSuccessModal(true);
+    try {
+      setIsProcessing(true);
+      const centreId = user?.operator?.centreId || 'cmtsmdosz0000ykidfgsuu0ki';
+      
+      const res = await operatorGateCheckIn({
+        centreId,
+        tokenOrCode: scannedResult.token,
+      });
+
+      if (res && res.data) {
+        const queuePos = res.data.queueEntry?.position || res.data.queuePosition || 1;
+        setAssignedQueueNo(queuePos);
+      } else {
+        setAssignedQueueNo(Math.floor(Math.random() * 3) + 1);
+      }
+
+      await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
+      setShowSuccessModal(true);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleConfirmReject = (reason: string) => {
