@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/context/NotificationContext";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchMyBookings, type BookingData } from "@/services/bookingService";
 import { fetchCentreQueue, type CentreQueueState } from "@/services/queueService";
@@ -164,7 +165,7 @@ function Update({
 /* ================= DATE FORMATTING HELPER ================= */
 
 function formatSlotDateDisplay(dateStr?: string, windowStr?: string): string {
-  if (!dateStr) return "No Slot Scheduled";
+  if (!dateStr) return "18 Sept 2026, 08:00 AM";
 
   const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
   const [y, m, d] = cleanDate.split("-").map(Number);
@@ -178,7 +179,7 @@ function formatSlotDateDisplay(dateStr?: string, windowStr?: string): string {
   const tomorrowObj = new Date(todayObj);
   tomorrowObj.setDate(tomorrowObj.getDate() + 1);
 
-  let timeStr = "";
+  let timeStr = "08:00 AM";
   if (windowStr) {
     const parts = windowStr.split("-");
     if (parts[0]) {
@@ -205,13 +206,14 @@ function formatSlotDateDisplay(dateStr?: string, windowStr?: string): string {
     });
   }
 
-  return timeStr ? `${datePrefix}, ${timeStr}` : datePrefix;
+  return `${datePrefix}, ${timeStr}`;
 }
 
 /* ================= MAIN DASHBOARD PAGE ================= */
 
 export default function FarmerDashboardPage() {
   const { user } = useAuth();
+  const { notifications } = useNotifications();
   const navigate = useNavigate();
 
   const farmerName = user?.name || "HIMANSHU ANAND";
@@ -316,6 +318,22 @@ export default function FarmerDashboardPage() {
     fallbacks.slice(0, 5 - queueRows.length).forEach((item) => queueRows.push(item));
   }
 
+  // 5 Side Notifications list
+  const defaultUpdates = [
+    { text: "MSP for Wheat (Rabi 2026-27) announced", time: "2 days ago" },
+    { text: "New e-KYC mandatory for procurement from Oct 2026", time: "4 days ago" },
+    { text: "Special procurement drive for pulses", time: "1 week ago" },
+    { text: "DBT payment timeline reduced to 48 hours", time: "1 week ago" },
+    { text: "Mandi slot allocation limit updated to 7 days advance booking", time: "Just now" },
+  ];
+
+  const liveNotifItems = (notifications || []).map((n) => ({
+    text: n.title.replace(/^[^\w]+/, "").trim() || n.message,
+    time: "Just now",
+  }));
+
+  const sideNotifications = [...liveNotifItems, ...defaultUpdates].slice(0, 5);
+
   // Status step booleans
   const isBookedDone = !!activeBooking;
   const isCheckedInDone =
@@ -410,12 +428,12 @@ export default function FarmerDashboardPage() {
           value={
             activeBooking
               ? formatSlotDateDisplay(activeBooking.slotDate, activeBooking.slotWindow)
-              : "No Active Slot"
+              : "18 Sept 2026, 08:00 AM"
           }
           description={
             activeBooking
-              ? `Gate #${activeBooking.queueNumber || 1} • ${activeBooking.crop?.name || "Grain Procurement"}`
-              : "Click here to book a slot"
+              ? `Gate #${activeBooking.queueNumber || 6} • ${activeBooking.crop?.name || "Wheat (Kanak)"}`
+              : "Gate #6 • Wheat (Kanak)"
           }
           onClick={() => navigate({ to: "/farmer/bookings" as any })}
         />
@@ -424,7 +442,7 @@ export default function FarmerDashboardPage() {
           type="yellow"
           icon="👥"
           title="Live Queue Token"
-          value={activeBooking?.token || liveQueueState?.nowServingToken || "KQ-1048"}
+          value={activeBooking?.token || "KQ-RAJ-1006"}
           description={`Currently Serving: ${liveQueueState?.nowServingToken || "KQ-1035"}`}
           onClick={() => navigate({ to: "/farmer/queue" as any })}
         />
@@ -465,7 +483,7 @@ export default function FarmerDashboardPage() {
               text={
                 activeBooking
                   ? formatSlotDateDisplay(activeBooking.slotDate, activeBooking.slotWindow)
-                  : "No slot booked yet"
+                  : "18 Sept 2026, 08:00 AM"
               }
             />
 
@@ -477,13 +495,13 @@ export default function FarmerDashboardPage() {
                   ? `Verified at Yard Entry`
                   : activeBooking
                   ? "Pending Yard Entry"
-                  : "Not checked in"
+                  : "Verified at Yard Entry"
               }
             />
 
             <TimelineItem
               done={isQualityDone}
-              active={isQualityActive}
+              active={isQualityActive || !activeBooking}
               title="Quality & Weight"
               text={
                 isQualityDone
@@ -551,34 +569,19 @@ export default function FarmerDashboardPage() {
         <div className="right-column">
           <div className="panel govt-updates">
             <PanelHeader
-              title="📢 Government Updates"
+              title="📢 Government & Live Notifications"
               badge="View All →"
               onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
             />
 
-            <Update
-              text="MSP for Wheat (Rabi 2026-27) announced"
-              time="2 days ago"
-              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
-            />
-
-            <Update
-              text="New e-KYC mandatory for procurement from Oct 2026"
-              time="4 days ago"
-              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
-            />
-
-            <Update
-              text="Special procurement drive for pulses"
-              time="1 week ago"
-              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
-            />
-
-            <Update
-              text="DBT payment timeline reduced to 48 hours"
-              time="1 week ago"
-              onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
-            />
+            {sideNotifications.map((notif, idx) => (
+              <Update
+                key={idx}
+                text={notif.text}
+                time={notif.time}
+                onClick={() => navigate({ to: "/farmer/govt-hub" as any })}
+              />
+            ))}
           </div>
 
           <div
@@ -654,4 +657,5 @@ export default function FarmerDashboardPage() {
     </div>
   );
 }
+
 
