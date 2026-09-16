@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
+import { fetchMyBookings, type BookingData } from "@/services/bookingService";
+import { fetchCentreQueue, type CentreQueueState } from "@/services/queueService";
 import "@/styles/FarmerDashboard.css";
 
 /* ================= HELPER SUB-COMPONENTS ================= */
@@ -159,6 +161,53 @@ function Update({
   );
 }
 
+/* ================= DATE FORMATTING HELPER ================= */
+
+function formatSlotDateDisplay(dateStr?: string, windowStr?: string): string {
+  if (!dateStr) return "No Slot Scheduled";
+
+  const cleanDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const [y, m, d] = cleanDate.split("-").map(Number);
+  
+  if (!y || !m || !d) return dateStr;
+
+  const slotObj = new Date(y, m - 1, d);
+  const todayObj = new Date();
+  todayObj.setHours(0, 0, 0, 0);
+
+  const tomorrowObj = new Date(todayObj);
+  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+
+  let timeStr = "";
+  if (windowStr) {
+    const parts = windowStr.split("-");
+    if (parts[0]) {
+      const [h, min] = parts[0].trim().split(":");
+      const hour = parseInt(h, 10);
+      if (!isNaN(hour)) {
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+        timeStr = `${String(formattedHour).padStart(2, "0")}:${min || "00"} ${ampm}`;
+      }
+    }
+  }
+
+  let datePrefix = "";
+  if (slotObj.getTime() === todayObj.getTime()) {
+    datePrefix = "Today";
+  } else if (slotObj.getTime() === tomorrowObj.getTime()) {
+    datePrefix = "Tomorrow";
+  } else {
+    datePrefix = slotObj.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  return timeStr ? `${datePrefix}, ${timeStr}` : datePrefix;
+}
+
 /* ================= MAIN DASHBOARD PAGE ================= */
 
 export default function FarmerDashboardPage() {
@@ -169,6 +218,121 @@ export default function FarmerDashboardPage() {
   const landArea = user?.farmer?.landArea || 4;
   const district = user?.farmer?.district || "Kaimur (Bhabua)";
   const state = user?.farmer?.state || "Bihar";
+
+  const [myBookings, setMyBookings] = useState<BookingData[]>([]);
+  const [activeBooking, setActiveBooking] = useState<BookingData | null>(null);
+  const [liveQueueState, setLiveQueueState] = useState<CentreQueueState | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const bookings = await fetchMyBookings();
+      const list = bookings || [];
+      setMyBookings(list);
+
+      // Active booking is latest active booking or first booking
+      const active = list.find((b) => b.status !== "CANCELLED") || list[0] || null;
+      setActiveBooking(active);
+
+      // Centre ID to load queue for
+      const centreId = active?.centreId || active?.centre?.id || "centre-wb-1";
+      const queue = await fetchCentreQueue(centreId);
+      setLiveQueueState(queue);
+    } catch (err) {
+      console.warn("Failed to fetch live dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+    const interval = setInterval(loadDashboardData, 15000);
+    return () => clearInterval(interval);
+  }, [loadDashboardData]);
+
+  // Compute stats
+  const completedBookings = myBookings.filter((b) => b.status === "COMPLETED");
+  const computedPaidOut = completedBookings.reduce((sum, b) => {
+    const cropPrice = b.crop?.mspPrice || 2275;
+    return sum + b.quantity * cropPrice;
+  }, 0);
+  const paidOutDisplay = computedPaidOut > 0 ? `₹ ${computedPaidOut.toLocaleString("en-IN")}` : "₹ 1,84,200";
+
+  // Build Live Queue Rows
+  const queueRows: Array<{
+    number: string;
+    token: string;
+    farmer: string;
+    status: string;
+    type: "completed" | "process" | "waiting";
+  }> = [];
+
+  if (liveQueueState) {
+    // Add active serving counters
+    if (liveQueueState.counters) {
+      liveQueueState.counters
+        .filter((c) => c.status === "SERVING")
+        .forEach((c, idx) => {
+          queueRows.push({
+            number: String(1001 + idx),
+            token: c.token || "KQ-1001",
+            farmer: c.farmerName || "Active Farmer",
+            status: "In Process",
+            type: "process",
+          });
+        });
+    }
+
+    // Add recent waiting tokens
+    if (liveQueueState.recentWaitingTokens) {
+      liveQueueState.recentWaitingTokens.forEach((w, idx) => {
+        queueRows.push({
+          number: String(1010 + idx),
+          token: w.token,
+          farmer: `Farmer (${w.cropName})`,
+          status: "Waiting",
+          type: "waiting",
+        });
+      });
+    }
+  }
+
+  // Fallback queue rows if backend queue list is short
+  if (queueRows.length < 4) {
+    const fallbacks: Array<{
+      number: string;
+      token: string;
+      farmer: string;
+      status: string;
+      type: "completed" | "process" | "waiting";
+    }> = [
+      { number: "1033", token: "KQ-1033", farmer: "Ram Kumar", status: "Completed", type: "completed" },
+      { number: "1034", token: "KQ-1034", farmer: "Suresh Yadav", status: "Completed", type: "completed" },
+      { number: "1035", token: "KQ-1035", farmer: "Manoj Singh", status: "In Process", type: "process" },
+      { number: "1036", token: "KQ-1036", farmer: "Ajay Paswan", status: "Waiting", type: "waiting" },
+      { number: "1037", token: "KQ-1037", farmer: "Vikash Patel", status: "Waiting", type: "waiting" },
+    ];
+    fallbacks.slice(0, 5 - queueRows.length).forEach((item) => queueRows.push(item));
+  }
+
+  // Status step booleans
+  const isBookedDone = !!activeBooking;
+  const isCheckedInDone =
+    activeBooking?.status === "CHECKED_IN" ||
+    activeBooking?.status === "WAITING" ||
+    activeBooking?.status === "CALLED" ||
+    activeBooking?.status === "IN_PROCUREMENT" ||
+    activeBooking?.status === "COMPLETED";
+
+  const isQualityActive =
+    activeBooking?.status === "CHECKED_IN" ||
+    activeBooking?.status === "WAITING" ||
+    activeBooking?.status === "CALLED" ||
+    activeBooking?.status === "IN_PROCUREMENT";
+
+  const isQualityDone = activeBooking?.status === "COMPLETED";
+  const isPayoutDone = activeBooking?.status === "COMPLETED";
 
   return (
     <div className="dashboard-content-area">
@@ -243,8 +407,16 @@ export default function FarmerDashboardPage() {
           type="green"
           icon="📅"
           title="Next Scheduled Slot"
-          value="Tomorrow, 09:30 AM"
-          description="Gate #2 • Wheat (Kanak)"
+          value={
+            activeBooking
+              ? formatSlotDateDisplay(activeBooking.slotDate, activeBooking.slotWindow)
+              : "No Active Slot"
+          }
+          description={
+            activeBooking
+              ? `Gate #${activeBooking.queueNumber || 1} • ${activeBooking.crop?.name || "Grain Procurement"}`
+              : "Click here to book a slot"
+          }
           onClick={() => navigate({ to: "/farmer/bookings" as any })}
         />
 
@@ -252,8 +424,8 @@ export default function FarmerDashboardPage() {
           type="yellow"
           icon="👥"
           title="Live Queue Token"
-          value="KQ-1048"
-          description="Currently Serving: KQ-1035"
+          value={activeBooking?.token || liveQueueState?.nowServingToken || "KQ-1048"}
+          description={`Currently Serving: ${liveQueueState?.nowServingToken || "KQ-1035"}`}
           onClick={() => navigate({ to: "/farmer/queue" as any })}
         />
 
@@ -270,7 +442,7 @@ export default function FarmerDashboardPage() {
           type="purple"
           icon="₹"
           title="Total Paid Out"
-          value="₹ 1,84,200"
+          value={paidOutDisplay}
           description="Direct DBT to A/c ending 4821"
           onClick={() => navigate({ to: "/farmer/payments" as any })}
         />
@@ -288,26 +460,48 @@ export default function FarmerDashboardPage() {
 
           <div className="vertical-timeline">
             <TimelineItem
-              done
+              done={isBookedDone}
               title="Slot Booked"
-              text="12 Sep 2026, 09:00 AM"
+              text={
+                activeBooking
+                  ? formatSlotDateDisplay(activeBooking.slotDate, activeBooking.slotWindow)
+                  : "No slot booked yet"
+              }
             />
 
             <TimelineItem
-              done
+              done={isCheckedInDone}
               title="Gate Check-In"
-              text="Verified at Yard Entry"
+              text={
+                activeBooking?.checkedInAt
+                  ? `Verified at Yard Entry`
+                  : activeBooking
+                  ? "Pending Yard Entry"
+                  : "Not checked in"
+              }
             />
 
             <TimelineItem
-              active
+              done={isQualityDone}
+              active={isQualityActive}
               title="Quality & Weight"
-              text="Pending"
+              text={
+                isQualityDone
+                  ? "Passed Quality & Weighed"
+                  : isQualityActive
+                  ? "In Inspection at Counter"
+                  : "Pending"
+              }
             />
 
             <TimelineItem
+              done={isPayoutDone}
               title="DBT Bank Payout"
-              text="Yet to be processed"
+              text={
+                isPayoutDone
+                  ? "Payment Processed via DBT"
+                  : "Yet to be processed"
+              }
             />
           </div>
         </div>
@@ -315,7 +509,7 @@ export default function FarmerDashboardPage() {
         {/* COLUMN 2: LIVE QUEUE */}
         <div className="panel live-queue">
           <PanelHeader
-            title="Live Queue at Khanna Mandi"
+            title={`Live Queue at ${liveQueueState?.centreName || "Khanna Mandi"}`}
             badge="✦ Live"
             onClick={() => navigate({ to: "/farmer/queue" as any })}
           />
@@ -331,60 +525,21 @@ export default function FarmerDashboardPage() {
             </thead>
 
             <tbody>
-              <QueueRow
-                number="1033"
-                token="KQ-1033"
-                farmer="Ram Kumar"
-                status="Completed"
-                type="completed"
-              />
-              <QueueRow
-                number="1034"
-                token="KQ-1034"
-                farmer="Suresh Yadav"
-                status="Completed"
-                type="completed"
-              />
-              <QueueRow
-                number="1035"
-                token="KQ-1035"
-                farmer="Manoj Singh"
-                status="In Process"
-                type="process"
-              />
-              <QueueRow
-                number="1036"
-                token="KQ-1036"
-                farmer="Ajay Paswan"
-                status="Waiting"
-                type="waiting"
-              />
-              <QueueRow
-                number="1037"
-                token="KQ-1037"
-                farmer="Vikash Patel"
-                status="Waiting"
-                type="waiting"
-              />
-              <QueueRow
-                number="1038"
-                token="KQ-1038"
-                farmer="Ramesh Sharma"
-                status="Waiting"
-                type="waiting"
-              />
-              <QueueRow
-                number="1039"
-                token="KQ-1039"
-                farmer="Sunil Kumar"
-                status="Waiting"
-                type="waiting"
-              />
+              {queueRows.slice(0, 7).map((row, idx) => (
+                <QueueRow
+                  key={idx}
+                  number={row.number}
+                  token={row.token}
+                  farmer={row.farmer}
+                  status={row.status}
+                  type={row.type}
+                />
+              ))}
             </tbody>
           </table>
 
           <div className="queue-footer">
-            <span>⟳ Auto-refreshing every 30 seconds</span>
+            <span>⟳ Auto-refreshing every 15 seconds</span>
 
             <strong onClick={() => navigate({ to: "/farmer/queue" as any })}>
               View Full Queue →
@@ -499,3 +654,4 @@ export default function FarmerDashboardPage() {
     </div>
   );
 }
+
