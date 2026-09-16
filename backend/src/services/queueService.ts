@@ -66,17 +66,60 @@ export interface FarmerQueuePosition {
  * Get comprehensive real-time queue state for a procurement centre
  */
 export async function getCentreQueueState(centreId: string): Promise<CentreQueueState> {
-  const centre = await prisma.procurementCentre.findUnique({
-    where: { id: centreId },
+  const isAll = !centreId || centreId === "ALL";
+
+  let centreName = "All Mandis";
+  let centreCode = "ALL";
+  let totalCounters = 5;
+
+  if (!isAll) {
+    const centre = await prisma.procurementCentre.findUnique({
+      where: { id: centreId },
+    });
+
+    if (centre) {
+      centreName = centre.name;
+      centreCode = centre.code;
+      totalCounters = centre.totalCounters;
+    }
+  }
+
+  const whereCentre = isAll ? {} : { centreId };
+
+  // Repair orphan active bookings (status in WAITING/CHECKED_IN/CALLED/IN_PROCUREMENT) missing queueEntry
+  const orphanBookings = await prisma.booking.findMany({
+    where: {
+      ...whereCentre,
+      status: { in: ["WAITING", "CHECKED_IN", "CALLED", "IN_PROCUREMENT"] },
+      queueEntry: null,
+    },
   });
 
-  if (!centre) {
-    throw new Error("Procurement Centre not found");
+  if (orphanBookings.length > 0) {
+    let maxPosEntry = await prisma.queueEntry.findFirst({
+      where: whereCentre,
+      orderBy: { position: "desc" },
+    });
+    let currentMax = maxPosEntry?.position || 0;
+
+    for (const ob of orphanBookings) {
+      currentMax++;
+      await prisma.queueEntry
+        .create({
+          data: {
+            bookingId: ob.id,
+            centreId: ob.centreId,
+            position: currentMax,
+            estimatedWaitMins: currentMax * 10,
+          },
+        })
+        .catch(() => {});
+    }
   }
 
   // Get active queue entries for this centre
   const activeEntries = await prisma.queueEntry.findMany({
-    where: { centreId },
+    where: whereCentre,
     include: {
       booking: {
         include: {
@@ -98,7 +141,7 @@ export async function getCentreQueueState(centreId: string): Promise<CentreQueue
 
   const completedTodayCount = await prisma.booking.count({
     where: {
-      centreId,
+      ...whereCentre,
       status: "COMPLETED",
       completedAt: { gte: todayStart },
     },
@@ -110,7 +153,7 @@ export async function getCentreQueueState(centreId: string): Promise<CentreQueue
     ["CALLED", "IN_PROCUREMENT"].includes(e.booking.status)
   );
 
-  for (let c = 1; c <= centre.totalCounters; c++) {
+  for (let c = 1; c <= totalCounters; c++) {
     const entryAtCounter = servingEntries.find((e) => e.counterNo === c);
     if (entryAtCounter) {
       counters.push({
@@ -137,10 +180,10 @@ export async function getCentreQueueState(centreId: string): Promise<CentreQueue
   const nextUpToken = waitingEntries.length > 0 ? waitingEntries[0].booking.token : null;
 
   return {
-    centreId: centre.id,
-    centreName: centre.name,
-    code: centre.code,
-    totalCounters: centre.totalCounters,
+    centreId: isAll ? "ALL" : centreId,
+    centreName,
+    code: centreCode,
+    totalCounters,
     counters,
     nowServingToken,
     nextUpToken,

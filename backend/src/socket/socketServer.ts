@@ -88,11 +88,15 @@ export function broadcastQueueUpdate(
     completedToday: number;
   }
 ): void {
-  io.to(`centre:${centreId}`).emit("queue:updated", {
+  const payload = {
     centreId,
     ...data,
     timestamp: Date.now(),
-  });
+  };
+  io.to(`centre:${centreId}`).emit("queue:updated", payload);
+  io.to(`centre:${centreId}`).emit("queue:update", payload);
+  io.emit("queue:updated", payload);
+  io.emit("queue:update", payload);
 }
 
 /**
