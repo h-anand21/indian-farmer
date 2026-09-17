@@ -454,12 +454,25 @@ export async function createBooking(
         where: { id: input.slotId },
         include: { centre: true },
       });
+      if (!slot) {
+        slot = await tx.slot.findFirst({
+          where: {
+            centreId: centre.id,
+            OR: [
+              { startTime: { contains: input.slotId } },
+              { id: { contains: input.slotId } },
+            ],
+          },
+          orderBy: { date: "asc" },
+          include: { centre: true },
+        });
+      }
     }
 
     if (!slot) {
       slot = await tx.slot.findFirst({
         where: { centreId: centre.id },
-        orderBy: { date: "desc" },
+        orderBy: { date: "asc" },
         include: { centre: true },
       });
     }
