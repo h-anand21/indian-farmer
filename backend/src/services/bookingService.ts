@@ -255,11 +255,36 @@ export async function getSlotsForCentreAndDate(centreId: string, dateStr: string
     });
   }
 
-  return slots.map((s) => ({
-    ...s,
-    availableCapacity: Math.max(0, s.capacity - s.booked),
-    isFull: s.booked >= s.capacity,
-  }));
+  // Calculate real active booking count from database for each slot
+  const slotsWithRealCounts = await Promise.all(
+    slots.map(async (s) => {
+      const realBookedCount = await prisma.booking.count({
+        where: {
+          slotId: s.id,
+          status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
+        },
+      });
+
+      if (s.booked !== realBookedCount) {
+        await prisma.slot.update({
+          where: { id: s.id },
+          data: { booked: realBookedCount },
+        }).catch(() => {});
+      }
+
+      const availableCapacity = Math.max(0, s.capacity - realBookedCount);
+
+      return {
+        ...s,
+        booked: realBookedCount,
+        bookedCount: realBookedCount,
+        availableCapacity,
+        isFull: realBookedCount >= s.capacity,
+      };
+    })
+  );
+
+  return slotsWithRealCounts;
 }
 
 /**
