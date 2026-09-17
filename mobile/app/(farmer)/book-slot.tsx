@@ -35,7 +35,7 @@ import Colors from '../../src/theme/colors';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { createBooking } from '../../src/lib/bookingStore';
-import { fetchCentres } from '../../src/services/bookingService';
+import { fetchCentres, fetchSlots, submitBooking } from '../../src/services/bookingService';
 import { downloadOrShareQrPass } from '../../src/services/qrPassService';
 
 const DEFAULT_MANDIS = [
@@ -131,6 +131,30 @@ export default function BookSlotScreen() {
     if (!agreed) {
       Toast.show({ type: 'error', text1: 'Terms Required', text2: 'Please accept Terms & Conditions.' });
       return;
+    }
+
+    try {
+      const apiRes = await submitBooking({
+        centreId: selectedMandi.id,
+        slotId: selectedSlot.id || 'slot-1',
+        cropName: cropType,
+        quantity: parseFloat(quantity) || 50,
+        vehicleType: 'Tractor Trolley',
+        vehicleNumber: vehicleNo || 'PB 10 AB 1234',
+      });
+
+      if (apiRes) {
+        setGeneratedToken(apiRes.token);
+        setShowSuccessModal(true);
+        Toast.show({
+          type: 'success',
+          text1: 'Booking Slot Generated! 🎟️',
+          text2: `Token #${apiRes.token} created for ${selectedMandi.name}`,
+        });
+        return;
+      }
+    } catch (err: any) {
+      console.warn("Backend booking submit fallback:", err);
     }
 
     const created = await createBooking({
