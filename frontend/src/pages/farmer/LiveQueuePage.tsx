@@ -582,7 +582,7 @@ export default function LiveQueuePage() {
                 );
               })}
             </div>
-          </div>one ? "done" : ""
+          </div>
                         }`}
                       />
                     )}
