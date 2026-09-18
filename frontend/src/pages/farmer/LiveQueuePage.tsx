@@ -206,8 +206,6 @@ export default function LiveQueuePage() {
       downloadLink.click();
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
-  };
-
   // Selected Booking details
   const selectedBooking = myBookings.find((b) => b.id === selectedBookingId);
 
@@ -216,7 +214,7 @@ export default function LiveQueuePage() {
     farmerPosition?.centreName ||
     selectedBooking?.centre?.name ||
     centres.find((c) => c.id === selectedCentreId)?.name ||
-    "Ambala City Grain Market Yard (Wheat - Kanak)";
+    "Ambala City Grain Market Yard";
   const activeDistrict =
     selectedBooking?.centre?.district ||
     centres.find((c) => c.id === selectedCentreId)?.district ||
@@ -226,15 +224,22 @@ export default function LiveQueuePage() {
     centres.find((c) => c.id === selectedCentreId)?.state ||
     "Haryana";
 
-  const isProximityAlertActive = true;
+  const currentStatus = farmerPosition?.status || selectedBooking?.status || "WAITING";
 
   const tokensAhead = farmerPosition?.tokensAhead ?? 0;
-  const estimatedMinutes = farmerPosition?.estimatedMinutes ?? 0;
-  const nowServingToken = centreQueue?.nowServingToken || activeToken;
-  const nextUpToken = centreQueue?.nextUpToken || "KQ-AMB-1037";
-  const completedCount = centreQueue?.completedTodayCount ?? 1;
+  const estimatedMinutes = farmerPosition?.estimatedMinutes ?? tokensAhead * 8;
 
-  const currentStatus = farmerPosition?.status || selectedBooking?.status || "WAITING";
+  // Now Serving & Next In Line fallbacks aligned with real status
+  const nowServingToken =
+    centreQueue?.nowServingToken ||
+    (["CALLED", "IN_PROCUREMENT"].includes(currentStatus) ? activeToken : "KQ-AMB-1035");
+
+  const nextUpToken =
+    centreQueue?.nextUpToken ||
+    (["WAITING", "CHECKED_IN"].includes(currentStatus) ? activeToken : "KQ-AMB-1040");
+
+  const completedCount = centreQueue?.completedTodayCount ?? 0;
+
   const slotDate =
     farmerPosition?.slotDate ||
     (selectedBooking?.slot?.date
@@ -248,22 +253,12 @@ export default function LiveQueuePage() {
           month: "short",
           year: "numeric",
         }));
+
   const slotWindow =
     farmerPosition?.slotWindow ||
     (selectedBooking?.slot
       ? `${selectedBooking.slot.startTime} - ${selectedBooking.slot.endTime}`
       : "09:00 - 10:00");
-
-  const positionLabel =
-    tokensAhead === 0
-      ? "You're Next! (At Counter)"
-      : tokensAhead === 1
-      ? "1st in Line"
-      : tokensAhead === 2
-      ? "2nd in Line"
-      : tokensAhead === 3
-      ? "3rd in Line"
-      : `${tokensAhead}th in Line`;
 
   // ── Queue ahead list from live data ──
   const farmerPos = farmerPosition?.position ?? null;
@@ -273,7 +268,6 @@ export default function LiveQueuePage() {
     status?: string;
     cropName?: string;
   }> = (() => {
-    // Use queueEntries if backend returns them, else recentWaitingTokens
     const entries =
       centreQueue?.queueEntries ??
       centreQueue?.recentWaitingTokens ??
@@ -378,10 +372,12 @@ export default function LiveQueuePage() {
         </span>
         <div className="lq-status-text">
           <strong>
-            {currentStatus === "BOOKED" && "Slot Confirmed — Proceed to Mandi Gate"}
-            {currentStatus === "CHECKED_IN" && "Gate Check-In Verified ✓"}
+            {currentStatus === "BOOKED" && "Slot Confirmed — Gate Check-In Pending"}
+            {currentStatus === "CHECKED_IN" && "Gate Check-In Verified ✓ — Entering Yard Queue"}
             {currentStatus === "WAITING" &&
-              `In Yard Queue — ${tokensAhead} Vehicles Ahead • ~${estimatedMinutes} Min`}
+              (tokensAhead === 0
+                ? "In Yard Queue — Next Up for Weighbridge Counter Call"
+                : `In Yard Queue — ${tokensAhead} Vehicles Ahead • ~${estimatedMinutes} Min`)}
             {currentStatus === "CALLED" &&
               "🔔 Your Token Has Been Called! Proceed to Bay #1"}
             {currentStatus === "IN_PROCUREMENT" &&
@@ -454,11 +450,17 @@ export default function LiveQueuePage() {
         {/* ══ RIGHT COLUMN: QUEUE INFO ══ */}
         <div className="lq-right-col">
 
-          {/* Position */}
+          {/* Position Card */}
           <div className="lq-pos-card">
             <p className="lq-pos-heading">Your Position in Queue</p>
-            {tokensAhead === 0 ? (
-              <div className="lq-pos-next">🚀 You are Next in Line!</div>
+            {currentStatus === "CALLED" ? (
+              <div className="lq-pos-next">🔔 Counter Call Active!</div>
+            ) : currentStatus === "IN_PROCUREMENT" ? (
+              <div className="lq-pos-next">⚖️ At Weighbridge Counter</div>
+            ) : currentStatus === "COMPLETED" ? (
+              <div className="lq-pos-next">🎉 Payout Initiated</div>
+            ) : tokensAhead === 0 ? (
+              <div className="lq-pos-next">🚀 You are Next Up in Line!</div>
             ) : (
               <div className="lq-pos-num-row">
                 <span className="lq-pos-big">{tokensAhead}</span>
@@ -468,7 +470,11 @@ export default function LiveQueuePage() {
               </div>
             )}
             <div className="lq-wait-chip">
-              🕒 ~{estimatedMinutes} min wait
+              {currentStatus === "COMPLETED"
+                ? "✓ Complete"
+                : currentStatus === "CALLED" || currentStatus === "IN_PROCUREMENT"
+                ? "⚡ Active Now"
+                : `🕒 ~${estimatedMinutes} min wait`}
             </div>
           </div>
 
@@ -568,7 +574,15 @@ export default function LiveQueuePage() {
                     {idx < 5 && (
                       <div
                         className={`lq-stage-line ${
-                          isDone ? "done" : ""
+                          isDone || isActive ? "done" : ""
+                        }`}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>one ? "done" : ""
                         }`}
                       />
                     )}
