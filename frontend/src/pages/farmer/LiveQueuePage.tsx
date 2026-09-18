@@ -206,6 +206,8 @@ export default function LiveQueuePage() {
       downloadLink.click();
     };
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
+  };
+
   // Selected Booking details
   const selectedBooking = myBookings.find((b) => b.id === selectedBookingId);
 
