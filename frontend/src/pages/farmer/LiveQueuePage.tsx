@@ -144,6 +144,12 @@ export default function LiveQueuePage() {
     }
   };
 
+  const handleManualRefresh = async () => {
+    setRefreshing(true);
+    await refreshData();
+    setTimeout(() => setRefreshing(false), 500);
+  };
+
   useEffect(() => {
     refreshData();
   }, [selectedCentreId, selectedBookingId]);
@@ -340,11 +346,16 @@ export default function LiveQueuePage() {
               if (!soundEnabled) playChimeBell();
               setSoundEnabled(!soundEnabled);
             }}
+            title={soundEnabled ? "Mute audio announcements" : "Enable audio announcements"}
           >
-            {soundEnabled ? "🔔 Sound On" : "🔕 Muted"}
+            {soundEnabled ? "🔔 Sound On" : "🔕 Sound Off"}
           </button>
-          <button className="lq-refresh-btn" onClick={refreshData}>
-            ↻
+          <button
+            className={`lq-refresh-btn ${refreshing ? "spinning" : ""}`}
+            onClick={handleManualRefresh}
+            title="Refresh Live Queue"
+          >
+            <span className="lq-refresh-icon">🔄</span> Refresh
           </button>
         </div>
       </div>
