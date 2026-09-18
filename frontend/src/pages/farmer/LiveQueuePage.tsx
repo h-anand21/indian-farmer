@@ -80,7 +80,18 @@ export default function LiveQueuePage() {
         setMyBookings(bookingsData);
         setCentres(centresData);
 
-        if (bookingsData.length > 0) {
+        const savedCentreId = localStorage.getItem("lq_selected_centre");
+        const savedBookingId = localStorage.getItem("lq_selected_booking");
+
+        if (savedBookingId && bookingsData.some((b) => b.id === savedBookingId)) {
+          const b = bookingsData.find((b) => b.id === savedBookingId)!;
+          setSelectedBookingId(b.id);
+          setSelectedCentreId(b.centreId);
+        } else if (savedCentreId && centresData.some((c) => c.id === savedCentreId)) {
+          setSelectedCentreId(savedCentreId);
+          const matching = bookingsData.find((b) => b.centreId === savedCentreId);
+          if (matching) setSelectedBookingId(matching.id);
+        } else if (bookingsData.length > 0) {
           const active = bookingsData.find((b) =>
             b.status ? ["BOOKED", "CHECKED_IN", "WAITING", "CALLED"].includes(b.status) : false
           );
@@ -337,28 +348,73 @@ export default function LiveQueuePage() {
         </div>
       </div>
 
-      {/* ─── TOKEN SELECTOR (only if multiple bookings) ─── */}
-      {myBookings.length > 1 && (
-        <div className="lq-selector-bar">
-          <label>Select Token:</label>
+      {/* ─── MANDI & TOKEN SELECTOR BAR ─── */}
+      <div className="lq-selector-bar">
+        {/* Mandi (Procurement Centre) Selector */}
+        <div className="lq-selector-item">
+          <label htmlFor="mandi-select">🏛️ Select Mandi Yard:</label>
           <select
-            value={selectedBookingId}
+            id="mandi-select"
+            value={selectedCentreId}
             onChange={(e) => {
-              const b = myBookings.find((item) => item.id === e.target.value);
-              if (b) {
-                setSelectedBookingId(b.id || "");
-                setSelectedCentreId(b.centreId || "");
+              const cId = e.target.value;
+              setSelectedCentreId(cId);
+              localStorage.setItem("lq_selected_centre", cId);
+              const matching = myBookings.find((b) => b.centreId === cId);
+              if (matching) {
+                setSelectedBookingId(matching.id);
+                localStorage.setItem("lq_selected_booking", matching.id);
+              } else {
+                setSelectedBookingId("");
+                localStorage.removeItem("lq_selected_booking");
+                setFarmerPosition(null);
               }
             }}
           >
-            {myBookings.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.token} — {b.centre?.name || "Mandi"} ({b.crop?.name || "Crop"})
-              </option>
-            ))}
+            {centres.length > 0 ? (
+              centres.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} {c.district ? `(${c.district}, ${c.state || ""})` : ""}
+                </option>
+              ))
+            ) : (
+              <option value="">Ambala City Grain Market Yard</option>
+            )}
           </select>
         </div>
-      )}
+
+        {/* My Booking / Token Selector */}
+        {myBookings.length > 0 && (
+          <div className="lq-selector-item">
+            <label htmlFor="token-select">🎫 My Booked Token:</label>
+            <select
+              id="token-select"
+              value={selectedBookingId}
+              onChange={(e) => {
+                const bId = e.target.value;
+                const b = myBookings.find((item) => item.id === bId);
+                if (b) {
+                  setSelectedBookingId(b.id || "");
+                  setSelectedCentreId(b.centreId || "");
+                  localStorage.setItem("lq_selected_booking", b.id || "");
+                  localStorage.setItem("lq_selected_centre", b.centreId || "");
+                } else {
+                  setSelectedBookingId("");
+                  localStorage.removeItem("lq_selected_booking");
+                  setFarmerPosition(null);
+                }
+              }}
+            >
+              <option value="">-- All Mandi Live View --</option>
+              {myBookings.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.token} — {b.centre?.name || "Mandi"} ({b.crop?.name || "Crop"})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {/* ─── STATUS BANNER ─── */}
       <div
