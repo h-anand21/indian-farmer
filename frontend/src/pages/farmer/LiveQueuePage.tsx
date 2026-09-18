@@ -583,14 +583,6 @@ export default function LiveQueuePage() {
               })}
             </div>
           </div>
-                        }`}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
           {/* ─── FARMER ACTION / INFO AREA ─── */}
           {/* Only Gate Check-In is farmer's own action.
