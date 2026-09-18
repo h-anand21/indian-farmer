@@ -63,6 +63,7 @@ export default function LiveQueuePage() {
 
   // Loading states
   const [checkingIn, setCheckingIn] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Audio trigger tracking
   const previousStatusRef = useRef<string | null>(null);
