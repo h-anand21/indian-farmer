@@ -608,7 +608,7 @@ export default function OperatorDashboardPage() {
                 </div>
 
                 {/* 4. Real Status Badge */}
-                <div>
+                <div style={{ display: "flex", alignItems: "center", minWidth: 0, overflow: "hidden" }}>
                   {isNowServing ? (
                     <span className="kq-status-pill serving">
                       <span className="kq-status-dot" />
