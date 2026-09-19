@@ -330,116 +330,12 @@ export const ProcessFarmerPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ================= QUICK TOKEN SEARCH / DIRECT INTAKE BAR ================= */}
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "12px 20px",
-          borderRadius: "14px",
-          marginBottom: "14px",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-          border: "1px solid #e2e8f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: "280px" }}>
-          <span style={{ fontSize: "20px" }}>⚡</span>
-          <form
-            onSubmit={handleLookupToken}
-            style={{ display: "flex", gap: "8px", width: "100%", maxWidth: "550px" }}
-          >
-            <input
-              type="text"
-              placeholder="Direct Token / Slip Entry (e.g. KQ-KMR-1006, KQ-MUR-1001)..."
-              value={tokenSearchInput}
-              onChange={(e) => setTokenSearchInput(e.target.value)}
-              style={{
-                flex: 1,
-                padding: "8px 14px",
-                borderRadius: "8px",
-                border: "1.5px solid #cbd5e1",
-                fontSize: "13px",
-                fontWeight: 600,
-                outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={isQueueLoading}
-              style={{
-                background: "#0f172a",
-                color: "#ffffff",
-                border: "none",
-                padding: "8px 16px",
-                borderRadius: "8px",
-                fontSize: "13px",
-                fontWeight: 700,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {isQueueLoading ? "Searching..." : "🔍 Load Farmer"}
-            </button>
-          </form>
-        </div>
-
-        <button
-          onClick={() => loadRoster(selectedCentreId)}
-          title="Refresh Queue"
-          style={{
-            background: "#f8fafc",
-            color: "#475569",
-            border: "1px solid #cbd5e1",
-            padding: "8px 14px",
-            borderRadius: "8px",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          <span>⟳</span>
-          <span>{isQueueLoading ? "Refreshing..." : "Refresh Queue"}</span>
-        </button>
-      </div>
-
-      {/* ================= MANDI & FARMER QUEUE SELECTOR ================= */}
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "16px 20px",
-          borderRadius: "14px",
-          marginBottom: "16px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-          border: "1px solid #e2e8f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "14px",
-        }}
-      >
-        {/* Mandi Selector */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "24px" }}>🏛️</span>
-          <div>
-            <label
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "#64748b",
-                textTransform: "uppercase",
-                display: "block",
-              }}
-            >
-              Procurement Mandi / Yard
-            </label>
+      {/* ================= UNIFIED EXECUTIVE CONTROL PANEL ================= */}
+      <div className="procure-control-panel">
+        <div className="procure-control-grid">
+          {/* 1. Mandi Yard Selector */}
+          <div className="procure-control-group">
+            <label>🏛️ Mandi Yard:</label>
             <select
               value={selectedCentreId}
               onChange={(e) => {
@@ -447,20 +343,8 @@ export const ProcessFarmerPage: React.FC = () => {
                 setSelectedCentreId(val);
                 localStorage.setItem("operator_selected_centre_id", val);
               }}
-              style={{
-                marginTop: "4px",
-                padding: "8px 14px",
-                borderRadius: "8px",
-                border: "1.5px solid #cbd5e1",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#0f172a",
-                background: "#f8fafc",
-                cursor: "pointer",
-                minWidth: "260px",
-              }}
             >
-              <option value="ALL">🌐 All Mandis / Yards (Consolidated Queue)</option>
+              <option value="ALL">🌐 All Mandis (Consolidated Queue)</option>
               {centres.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} ({c.code || c.district})
@@ -468,24 +352,12 @@ export const ProcessFarmerPage: React.FC = () => {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Farmer In Queue Selector */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1, maxWidth: "550px" }}>
-          <span style={{ fontSize: "24px" }}>🌾</span>
-          <div style={{ width: "100%" }}>
-            <label
-              style={{
-                fontSize: "11px",
-                fontWeight: 700,
-                color: "#64748b",
-                textTransform: "uppercase",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>Active Farmer In Queue ({roster.length} Total)</span>
-              {isQueueLoading && <span style={{ color: "#16a34a" }}>⟳ Updating...</span>}
+          {/* 2. Active Farmer Selector */}
+          <div className="procure-control-group flex-2">
+            <label>
+              <span>🌾 Active Farmer in Queue ({roster.length}):</span>
+              {isQueueLoading && <span style={{ color: "#059669" }}>⟳ Syncing...</span>}
             </label>
             <select
               value={activeBooking?.id || ""}
@@ -493,21 +365,9 @@ export const ProcessFarmerPage: React.FC = () => {
                 const found = roster.find((r) => (r.bookingId || r.id) === e.target.value);
                 if (found) selectFarmerFromRoster(found);
               }}
-              style={{
-                marginTop: "4px",
-                width: "100%",
-                padding: "8px 14px",
-                borderRadius: "8px",
-                border: "1.5px solid #cbd5e1",
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#0f172a",
-                background: "#f8fafc",
-                cursor: "pointer",
-              }}
             >
               {roster.length === 0 ? (
-                <option value="">No farmers currently in queue for this Mandi</option>
+                <option value="">No farmers currently waiting in queue</option>
               ) : (
                 roster.map((r) => (
                   <option key={r.bookingId || r.id} value={r.bookingId || r.id}>
@@ -517,6 +377,31 @@ export const ProcessFarmerPage: React.FC = () => {
               )}
             </select>
           </div>
+
+          {/* 3. Direct Token Search */}
+          <form className="procure-token-form" onSubmit={handleLookupToken}>
+            <div className="procure-search-input-wrap">
+              <span>⚡</span>
+              <input
+                type="text"
+                placeholder="Token # (e.g. KQ-AMB-1039)..."
+                value={tokenSearchInput}
+                onChange={(e) => setTokenSearchInput(e.target.value)}
+              />
+            </div>
+            <button type="submit" disabled={isQueueLoading}>
+              {isQueueLoading ? "Searching..." : "🔍 Load"}
+            </button>
+          </form>
+
+          {/* 4. Refresh Button */}
+          <button
+            className="procure-refresh-btn"
+            onClick={() => loadRoster(selectedCentreId)}
+            title="Refresh Roster Data"
+          >
+            <span>🔄</span>
+          </button>
         </div>
       </div>
 

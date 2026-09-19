@@ -84,6 +84,152 @@
 }
 
 /* =====================================================
+   UNIFIED CONTROL PANEL
+===================================================== */
+.procure-control-panel {
+  background: #ffffff;
+  padding: 14px 20px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.procure-control-grid {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.procure-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.procure-control-group.flex-2 {
+  flex: 1.8;
+  min-width: 280px;
+}
+
+.procure-control-group label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.procure-control-group select {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.procure-control-group select:focus,
+.procure-control-group select:hover {
+  border-color: #059669;
+  background: #ffffff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.procure-token-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1.2;
+  min-width: 260px;
+  margin-top: 16px;
+}
+
+.procure-search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.procure-search-input-wrap:focus-within {
+  border-color: #059669;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+.procure-search-input-wrap input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.procure-token-form button {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.procure-token-form button:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.procure-refresh-btn {
+  height: 42px;
+  width: 42px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+
+.procure-refresh-btn:hover {
+  border-color: #059669;
+  color: #059669;
+  background: #f0fdf4;
+  transform: translateY(-1px);
+}
+
+/* =====================================================
    FARMER HERO BANNER (Glassmorphism & High Contrast)
 ===================================================== */
 .procure-farmer-hero {
