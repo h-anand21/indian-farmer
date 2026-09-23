@@ -253,7 +253,7 @@ export default function BookSlotScreen() {
     const freshDates = getAvailableDates();
     setSelectedDateObj(freshDates[1] || freshDates[0]);
     setSelectedDate((freshDates[1] || freshDates[0]).formattedDate);
-    setSelectedSlot(TIME_SLOTS[0]);
+    setSelectedSlot(slotList[0] || TIME_SLOTS[0]);
     setCropType('Wheat');
     setQuantity('50');
     setVehicleNo('PB 10 AB 1234');
@@ -450,7 +450,7 @@ export default function BookSlotScreen() {
             <Text style={styles.stepSubtitle}>Choose an available time slot</Text>
 
             {/* Slot Radio Cards List */}
-            {TIME_SLOTS.map((slotItem) => {
+            {slotList.map((slotItem) => {
               const isSelected = selectedSlot.id === slotItem.id;
               const isFull = slotItem.type === 'FULL';
               return (
