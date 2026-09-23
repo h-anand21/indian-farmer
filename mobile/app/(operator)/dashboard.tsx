@@ -55,15 +55,52 @@ export default function OperatorDashboard() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const [metrics, setMetrics] = useState<any>(null);
+  const [liveStrip, setLiveStrip] = useState(LIVE_STRIP_ITEMS);
 
+  const centreId = user?.operator?.centre?.id || user?.operator?.centreId || '';
   const centreName = user?.operator?.centre?.name || 'Khanna Grain Market APMC';
-  const operatorId = 'OP-0482';
+  const operatorId = user?.operator?.employeeId || 'OP-0482';
   const gateNumber = 'Gate #1';
+
+  const loadDashboardData = async () => {
+    if (!centreId) return;
+    try {
+      const { fetchOperatorMetrics, fetchOperatorRoster } = require('../../src/services/operatorService');
+      // Load metrics
+      const m = await fetchOperatorMetrics(centreId);
+      if (m) setMetrics(m);
+
+      // Load live roster for strip
+      const roster = await fetchOperatorRoster(centreId);
+      if (Array.isArray(roster) && roster.length > 0) {
+        const mapped = roster.slice(0, 6).map((r: any, i: number) => ({
+          id: r.bookingId || `r-${i}`,
+          token: `#${r.token}`,
+          name: r.farmerName || 'Farmer',
+          crop: `${r.cropName || 'Wheat'} • ${r.quantity || r.expectedQuantity || 50} Qt`,
+          bay: r.counterNo ? `Counter #${r.counterNo}` : 'Yard Queue',
+          status: r.status === 'CALLED' ? 'NOW SERVING' : r.status === 'IN_PROCUREMENT' ? 'TESTING' : r.status === 'WAITING' ? 'WAITING' : r.status === 'CHECKED_IN' ? 'CHECKED IN' : 'WAITING',
+        }));
+        setLiveStrip(mapped);
+      }
+    } catch (err) {
+      console.warn('Operator dashboard API fallback:', err);
+    }
+  };
+
+  React.useEffect(() => { loadDashboardData(); }, [centreId]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    loadDashboardData().finally(() => setRefreshing(false));
   };
+
+  // Derived stats from metrics or fallback
+  const checkedIn = metrics?.totalBookingsToday || 42;
+  const inQueue = metrics?.waitingInYardCount || metrics?.waitingInYard || 8;
+  const processed = metrics?.completedTodayCount || metrics?.completedToday || 34;
+  const avgWait = metrics?.avgTurnaroundMins ? `${metrics.avgTurnaroundMins} min` : '18 min';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
