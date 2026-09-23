@@ -7,6 +7,7 @@ import {
   ScrollView,
   Modal,
   Share,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -28,23 +29,123 @@ import Toast from 'react-native-toast-message';
 import Colors from '../../../src/theme/colors';
 import { useAuth } from '../../../src/context/AuthContext';
 import { getBookingByToken, BookingRecord } from '../../../src/lib/bookingStore';
+import { fetchBookingById } from '../../../src/services/bookingService';
 import { downloadOrShareQrPass } from '../../../src/services/qrPassService';
+
+// Extended booking info from API
+interface BookingDetailExtended extends BookingRecord {
+  grossWeight?: string;
+  tareWeight?: string;
+  netWeight?: string;
+  netQuintals?: string;
+  grade?: string;
+  moisture?: string;
+  mspRate?: number;
+  totalAmount?: number;
+  receiptNumber?: string;
+  paymentStatus?: string;
+  bankRef?: string;
+  bookedAt?: string;
+  checkedInAt?: string;
+  completedAt?: string;
+}
 
 export default function BookingDetailScreen() {
   const { user } = useAuth();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
-  const [booking, setBooking] = useState<BookingRecord | null>(null);
+  const [booking, setBooking] = useState<BookingDetailExtended | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const bookingId = id || 'KQ-1048';
 
   useEffect(() => {
     async function loadData() {
+      setIsLoading(true);
+      
+      // 1. Try fetching from backend API first
+      try {
+        const apiData = await fetchBookingById(bookingId);
+        if (apiData) {
+          // Map API booking data to our extended format
+          const statusMap: Record<string, BookingRecord['status']> = {
+            BOOKED: 'BOOKED', CHECKED_IN: 'CHECKED_IN', WAITING: 'CHECKED_IN',
+            CALLED: 'WEIGHING', IN_PROCUREMENT: 'WEIGHING',
+            COMPLETED: 'COMPLETED', CANCELLED: 'CANCELLED',
+          };
+          const mappedStatus = statusMap[apiData.status] || 'BOOKED';
+          const badgeMap: Record<string, { color: string; bg: string }> = {
+            BOOKED: { color: '#E6A219', bg: '#FFF8E6' },
+            CHECKED_IN: { color: '#2B70C9', bg: '#EDF4FC' },
+            WEIGHING: { color: '#E66919', bg: '#FFEDD5' },
+            COMPLETED: { color: '#2D8A39', bg: '#EBF4E5' },
+            CANCELLED: { color: '#D93838', bg: '#FFF2F2' },
+          };
+          const badge = badgeMap[mappedStatus] || badgeMap.BOOKED;
+
+          // Extract procurement/weighment data if available
+          const proc = (apiData as any).procurement;
+          const payment = (apiData as any).payment;
+
+          let dateStr = 'Today';
+          try {
+            if (apiData.slotDate) {
+              const parts = apiData.slotDate.split('T')[0].split('-');
+              if (parts.length === 3) {
+                const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+                dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+              }
+            }
+          } catch { /* keep default */ }
+
+          const mapped: BookingDetailExtended = {
+            id: apiData.id,
+            token: apiData.token,
+            qrData: `KQ-BOOKING-${apiData.token}`,
+            mandi: apiData.centre?.name || 'Mandi Centre',
+            mandiId: apiData.centreId || '',
+            date: dateStr,
+            time: apiData.slotWindow || '08:00 AM',
+            crop: apiData.crop?.name || 'Wheat',
+            quantity: `${apiData.quantity} Qt`,
+            vehicle: 'Tractor Trolley',
+            farmerName: apiData.farmer?.user?.name || user?.name || '',
+            farmerPhone: apiData.farmer?.user?.phone || user?.phone || '',
+            status: mappedStatus,
+            badgeColor: badge.color,
+            badgeBg: badge.bg,
+            createdAt: apiData.bookedAt || new Date().toISOString(),
+            // Procurement details
+            grossWeight: proc?.grossWeight ? `${proc.grossWeight.toLocaleString('en-IN')} kg` : undefined,
+            tareWeight: proc?.tareWeight ? `${proc.tareWeight.toLocaleString('en-IN')} kg` : undefined,
+            netWeight: proc?.actualWeight ? `${proc.actualWeight.toLocaleString('en-IN')} kg` : undefined,
+            netQuintals: proc?.actualWeight ? `${(proc.actualWeight / 100).toFixed(1)} Qt` : undefined,
+            grade: proc?.qualityGrade || undefined,
+            moisture: proc?.moisturePercent ? `${proc.moisturePercent}%` : undefined,
+            mspRate: apiData.crop?.mspPrice || (apiData.crop as any)?.mspRate || 2275,
+            totalAmount: proc?.totalAmount || (payment?.amount) || undefined,
+            receiptNumber: proc?.receiptNumber || undefined,
+            paymentStatus: payment?.status || undefined,
+            bankRef: payment?.utrNumber || undefined,
+            bookedAt: apiData.bookedAt || undefined,
+            checkedInAt: apiData.checkedInAt || undefined,
+            completedAt: apiData.completedAt || undefined,
+          };
+          setBooking(mapped);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend booking detail fetch failed:', err);
+      }
+
+      // 2. Fallback to local AsyncStorage
       const b = await getBookingByToken(bookingId);
       if (b) {
         setBooking(b);
       }
+      setIsLoading(false);
     }
     loadData();
   }, [bookingId]);
