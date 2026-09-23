@@ -94,6 +94,9 @@ export default function BookSlotScreen() {
   const [selectedDate, setSelectedDate] = useState(selectedDateObj.formattedDate);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [cropType, setCropType] = useState('Wheat');
+  const [cropList, setCropList] = useState<{ name: string; mspPrice: number }[]>([]);
+  const [slotList, setSlotList] = useState(TIME_SLOTS);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [quantity, setQuantity] = useState('50');
   const [vehicleNo, setVehicleNo] = useState('');
   const [agreed, setAgreed] = useState(true);
@@ -104,6 +107,7 @@ export default function BookSlotScreen() {
 
   const router = useRouter();
 
+  // Load centres + crops on mount
   React.useEffect(() => {
     async function loadCentres() {
       try {
@@ -124,8 +128,71 @@ export default function BookSlotScreen() {
         console.log('Using default database mandi list for offline mode');
       }
     }
+
+    async function loadCrops() {
+      try {
+        const { fetchCrops } = require('../../src/services/bookingService');
+        const crops = await fetchCrops();
+        if (Array.isArray(crops) && crops.length > 0) {
+          setCropList(crops.map((c: any) => ({ name: c.name, mspPrice: c.mspPrice || c.mspRate || 2275 })));
+          setCropType(crops[0].name);
+        }
+      } catch (e) {
+        console.log('Using default crop list');
+        setCropList([
+          { name: 'Wheat', mspPrice: 2275 },
+          { name: 'Paddy (Rice)', mspPrice: 2300 },
+          { name: 'Mustard (Sarson)', mspPrice: 5950 },
+          { name: 'Maize', mspPrice: 2225 },
+          { name: 'Chana (Gram)', mspPrice: 5650 },
+          { name: 'Soybean', mspPrice: 4600 },
+        ]);
+      }
+    }
+
     loadCentres();
+    loadCrops();
   }, []);
+
+  // Fetch real slots when mandi or date changes
+  React.useEffect(() => {
+    async function loadSlots() {
+      if (!selectedMandi?.id) return;
+      setLoadingSlots(true);
+      try {
+        const dateForApi = selectedDateObj.formattedDate;
+        // Try to get ISO date from the selected date object
+        const today = new Date();
+        const idx = availableDates.findIndex((d) => d.id === selectedDateObj.id);
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + (idx >= 0 ? idx : 0));
+        const isoDate = targetDate.toISOString().split('T')[0];
+
+        const apiSlots = await fetchSlots(selectedMandi.id, isoDate);
+        if (Array.isArray(apiSlots) && apiSlots.length > 0) {
+          const mapped = apiSlots.map((s: any) => {
+            const available = s.availableCapacity ?? (s.capacity - (s.booked || s.bookedCount || 0));
+            const isFull = s.isFull || available <= 0;
+            return {
+              id: s.id,
+              window: `${s.startTime || '06:00'} - ${s.endTime || '08:00'}`,
+              status: isFull ? 'Fully Booked' : `${available} slots available`,
+              type: isFull ? 'FULL' : available <= 5 ? 'FEW' : 'AVAILABLE',
+            };
+          });
+          setSlotList(mapped);
+          const firstAvail = mapped.find((s: any) => s.type !== 'FULL');
+          if (firstAvail) setSelectedSlot(firstAvail);
+          else setSelectedSlot(mapped[0]);
+        }
+      } catch (e) {
+        console.log('Using default time slots for offline mode');
+        setSlotList(TIME_SLOTS);
+      }
+      setLoadingSlots(false);
+    }
+    loadSlots();
+  }, [selectedMandi?.id, selectedDateObj.id]);
 
   const handleConfirmBooking = async () => {
     if (!agreed) {
