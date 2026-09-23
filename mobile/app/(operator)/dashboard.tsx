@@ -164,7 +164,7 @@ export default function OperatorDashboard() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.stripScroll}
           >
-            {LIVE_STRIP_ITEMS.map((item) => (
+            {liveStrip.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={[
@@ -210,7 +210,7 @@ export default function OperatorDashboard() {
             <View style={[styles.statIconCircle, { backgroundColor: '#EBF4E5' }]}>
               <CheckCircle2 size={18} color="#3B7A1E" />
             </View>
-            <Text style={styles.statNumber}>42</Text>
+            <Text style={styles.statNumber}>{checkedIn}</Text>
             <Text style={styles.statLabel}>Checked-In</Text>
             <Text style={styles.statSub}>At Gate #1 & #2</Text>
           </View>
@@ -219,7 +219,7 @@ export default function OperatorDashboard() {
             <View style={[styles.statIconCircle, { backgroundColor: '#FFF4EC' }]}>
               <Users size={18} color="#E66919" />
             </View>
-            <Text style={[styles.statNumber, { color: '#E66919' }]}>8</Text>
+            <Text style={[styles.statNumber, { color: '#E66919' }]}>{inQueue}</Text>
             <Text style={styles.statLabel}>In Queue</Text>
             <Text style={styles.statSub}>Awaiting weighment</Text>
           </View>
@@ -228,7 +228,7 @@ export default function OperatorDashboard() {
             <View style={[styles.statIconCircle, { backgroundColor: '#EDF4FC' }]}>
               <Scale size={18} color="#0284C7" />
             </View>
-            <Text style={styles.statNumber}>34</Text>
+            <Text style={styles.statNumber}>{processed}</Text>
             <Text style={styles.statLabel}>Processed Today</Text>
             <Text style={styles.statSub}>Form J generated</Text>
           </View>
@@ -237,9 +237,9 @@ export default function OperatorDashboard() {
             <View style={[styles.statIconCircle, { backgroundColor: '#F3E8FF' }]}>
               <Clock size={18} color="#7C3AED" />
             </View>
-            <Text style={styles.statNumber}>18 min</Text>
+            <Text style={styles.statNumber}>{avgWait}</Text>
             <Text style={styles.statLabel}>Avg Wait Time</Text>
-            <Text style={styles.statSub}>-4 min faster</Text>
+            <Text style={styles.statSub}>vs yesterday</Text>
           </View>
         </View>
 

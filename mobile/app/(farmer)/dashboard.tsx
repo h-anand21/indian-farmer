@@ -65,6 +65,37 @@ export default function DynamicDashboard() {
   }
 
   const farmerName = user?.name || 'Sardar Gurdeep Singh';
+  const [locationText, setLocationText] = useState('Detecting...');
+
+  // Get real location
+  React.useEffect(() => {
+    async function getLocation() {
+      try {
+        const Location = require('expo-location');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationText('Location Off');
+          return;
+        }
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        // Reverse geocode
+        const geocode = await Location.reverseGeocodeAsync({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+        if (geocode && geocode.length > 0) {
+          const g = geocode[0];
+          const city = g.city || g.subregion || g.district || 'Unknown';
+          const state = g.region || '';
+          setLocationText(`${city}, ${state}`);
+        }
+      } catch (e) {
+        console.warn('Location error:', e);
+        setLocationText('India');
+      }
+    }
+    getLocation();
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -84,7 +115,7 @@ export default function DynamicDashboard() {
             {/* Live Weather & Location Badge Pill */}
             <View style={styles.weatherLocationRow}>
               <MapPin size={11} color="#3B7A1E" />
-              <Text style={styles.locationText}>Bhopal, MP</Text>
+              <Text style={styles.locationText}>{locationText}</Text>
               <Text style={styles.weatherDot}>•</Text>
               <CloudSun size={12} color="#D4A836" />
               <Text style={styles.weatherText}>28°C Sunny</Text>

@@ -103,6 +103,35 @@ export default function OperatorPaymentsScreen() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'SUCCESS' | 'PROCESSING'>('ALL');
+  const [payments, setPayments] = useState(OPERATOR_PAYMENTS);
+
+  React.useEffect(() => {
+    async function loadPayments() {
+      try {
+        const { fetchOperatorPayments } = require('../../src/services/operatorService');
+        // Try to get centreId from stored auth — fallback to empty
+        const apiPayments = await fetchOperatorPayments('');
+        if (Array.isArray(apiPayments) && apiPayments.length > 0) {
+          const mapped = apiPayments.map((p: any) => ({
+            id: p.id,
+            farmer: p.farmerName || 'Farmer',
+            token: `#${p.token}`,
+            crop: p.cropName || 'Wheat',
+            quantity: `${p.quantityWeighed || 0} Qt`,
+            amount: `₹ ${(p.amount || 0).toLocaleString('en-IN')}`,
+            dbtStatus: p.status === 'DISBURSED' ? 'SUCCESS' : p.status === 'PROCESSING' ? 'PROCESSING' : p.status === 'PENDING' ? 'PROCESSING' : 'SUCCESS',
+            dbtRef: p.utrNumber || `DBT-${p.id?.slice(0, 8)}`,
+            time: p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+            bank: p.bankAccount || 'Bank Account',
+          }));
+          setPayments(mapped);
+        }
+      } catch (err) {
+        console.warn('Using mock payment data:', err);
+      }
+    }
+    loadPayments();
+  }, []);
 
   const handleExportStatement = () => {
     Toast.show({
@@ -112,7 +141,7 @@ export default function OperatorPaymentsScreen() {
     });
   };
 
-  const filtered = OPERATOR_PAYMENTS.filter((p) => {
+  const filtered = payments.filter((p) => {
     const matchesSearch =
       p.farmer.toLowerCase().includes(search.toLowerCase()) ||
       p.token.toLowerCase().includes(search.toLowerCase()) ||

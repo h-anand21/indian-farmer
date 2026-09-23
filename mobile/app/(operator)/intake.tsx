@@ -29,35 +29,40 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
-import { updateBookingStatus } from '../../src/lib/bookingStore';
+import { useAuth } from '../../src/context/AuthContext';
+import { updateBookingStatus, getBookingByToken } from '../../src/lib/bookingStore';
 
 export default function OperatorIntakeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
 
   // Farmer & Booking State
-  const [tokenInput, setTokenInput] = useState('KQ-1048');
-  const [farmerName, setFarmerName] = useState('Ram Singh Gurjar');
-  const [phone, setPhone] = useState('+91 98765 43210');
-  const [cropType, setCropType] = useState('Wheat (Sharbati)');
-  const [vehicleNo, setVehicleNo] = useState('MP-04-AB-1234');
+  const [tokenInput, setTokenInput] = useState('');
+  const [bookingId, setBookingId] = useState('');
+  const [farmerName, setFarmerName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [cropType, setCropType] = useState('');
+  const [vehicleNo, setVehicleNo] = useState('');
+  const [cropMspRate, setCropMspRate] = useState(2275);
 
   // Weighment State
-  const [grossWeight, setGrossWeight] = useState('5450'); // kg
-  const [tareWeight, setTareWeight] = useState('450'); // kg
-  const [bagCount, setBagCount] = useState('100'); // 50kg bags
+  const [grossWeight, setGrossWeight] = useState('');
+  const [tareWeight, setTareWeight] = useState('');
+  const [bagCount, setBagCount] = useState('');
 
   // Quality Grading State
   const [grade, setGrade] = useState<'A' | 'B' | 'C'>('A');
-  const [moisture, setMoisture] = useState('11.2'); // %
-  const [foreignMatter, setForeignMatter] = useState('0.8'); // %
-  const [brokenGrains, setBrokenGrains] = useState('1.5'); // %
+  const [moisture, setMoisture] = useState('11.2');
+  const [foreignMatter, setForeignMatter] = useState('0.8');
+  const [brokenGrains, setBrokenGrains] = useState('1.5');
 
   // Base MSP Rate (Rs per Quintal)
-  const baseMspRate = 2275;
+  const baseMspRate = cropMspRate || 2275;
 
   // Modals
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingFarmer, setIsLoadingFarmer] = useState(false);
 
   // Calculations
   const gross = parseFloat(grossWeight) || 0;
@@ -70,6 +75,42 @@ export default function OperatorIntakeScreen() {
   const effectiveMspRate = Math.round(baseMspRate * gradeMultiplier);
   const totalAmount = Math.round((parseFloat(netQuintals) || 0) * effectiveMspRate);
 
+  // Auto-fetch farmer data when token changes
+  const handleLookupToken = async (token: string) => {
+    if (!token || token.length < 3) return;
+    setIsLoadingFarmer(true);
+    try {
+      // Try backend API first
+      const { fetchBookingDetails } = require('../../src/services/operatorService');
+      const details = await fetchBookingDetails(token);
+      if (details) {
+        setBookingId(details.id || details.bookingId || token);
+        setFarmerName(details.farmerName || details.farmer?.user?.name || '');
+        setPhone(details.farmerPhone || details.farmer?.user?.phone || '');
+        setCropType(details.cropName || details.crop?.name || 'Wheat');
+        setVehicleNo(details.vehicleNumber || '');
+        setCropMspRate(details.cropMspPrice || details.crop?.mspPrice || 2275);
+        setIsLoadingFarmer(false);
+        return;
+      }
+    } catch (e) {
+      console.warn('Backend lookup failed, trying local:', e);
+    }
+
+    // Fallback: local AsyncStorage
+    try {
+      const localBooking = await getBookingByToken(token);
+      if (localBooking) {
+        setBookingId(localBooking.id);
+        setFarmerName(localBooking.farmerName || '');
+        setPhone(localBooking.farmerPhone || '');
+        setCropType(localBooking.crop || 'Wheat');
+        setVehicleNo(localBooking.vehicle || '');
+      }
+    } catch (e) { /* ignore */ }
+    setIsLoadingFarmer(false);
+  };
+
   const handleGenerateFormJ = async () => {
     if (!tokenInput || gross <= 0 || tare >= gross) {
       Toast.show({
@@ -81,30 +122,48 @@ export default function OperatorIntakeScreen() {
     }
 
     setIsSubmitting(true);
+    
+    // Try submitting to backend API first
+    try {
+      const { operatorRecordWeighment } = require('../../src/services/operatorService');
+      const gradeMap: Record<string, string> = { A: 'GRADE_A', B: 'GRADE_B', C: 'GRADE_C' };
+      await operatorRecordWeighment({
+        bookingId: bookingId || tokenInput,
+        actualWeight: netKg,
+        qualityGrade: gradeMap[grade] || 'FAQ_STANDARD',
+        moisturePercent: parseFloat(moisture) || 11.0,
+        foreignMatter: parseFloat(foreignMatter) || 0.5,
+        remarks: `Bags: ${bagCount}, Broken: ${brokenGrains}%`,
+      });
+      Toast.show({ type: 'success', text1: 'Weighment recorded on server! ✅' });
+    } catch (err) {
+      console.warn('Backend weighment failed, updating locally:', err);
+    }
+
+    // Also update local store
     await updateBookingStatus(tokenInput, 'COMPLETED');
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowReceiptModal(true);
-    }, 500);
+    setIsSubmitting(false);
+    setShowReceiptModal(true);
   };
 
   const handleProcessNext = async () => {
-    await updateBookingStatus(tokenInput, 'COMPLETED');
     setShowReceiptModal(false);
     Toast.show({
       type: 'success',
       text1: 'Form J Submitted & Saved!',
-      text2: 'Next farmer token loaded.',
+      text2: 'Ready for next farmer.',
     });
-    // Load next demo token
-    setTokenInput('KQ-1049');
-    setFarmerName('Sita Devi');
-    setPhone('+91 98123 45678');
-    setCropType('Paddy (Basmati)');
-    setVehicleNo('MP-04-CD-5678');
-    setGrossWeight('4820');
-    setTareWeight('520');
-    setBagCount('86');
+    // Reset form for next farmer
+    setTokenInput('');
+    setBookingId('');
+    setFarmerName('');
+    setPhone('');
+    setCropType('');
+    setVehicleNo('');
+    setGrossWeight('');
+    setTareWeight('');
+    setBagCount('');
+    setGrade('A');
   };
 
   return (

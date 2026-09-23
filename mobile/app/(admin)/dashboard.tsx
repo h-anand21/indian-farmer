@@ -114,6 +114,9 @@ export default function AdminDashboardScreen() {
     avgWait: '22 min',
   });
 
+  const [topMandis, setTopMandis] = useState(TOP_MANDIS);
+  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
+
   const loadData = async () => {
     try {
       const data = await fetchAdminMetrics();
@@ -129,6 +132,27 @@ export default function AdminDashboardScreen() {
       }
     } catch (error) {
       console.log('Using mock dashboard metrics');
+    }
+
+    // Also load top mandis from centres API
+    try {
+      const { fetchAdminCentres } = require('../../src/services/adminService');
+      const centres = await fetchAdminCentres();
+      if (Array.isArray(centres) && centres.length > 0) {
+        const sorted = [...centres]
+          .sort((a: any, b: any) => (b.totalBookings || 0) - (a.totalBookings || 0))
+          .slice(0, 5)
+          .map((c: any, i: number) => ({
+            rank: i + 1,
+            name: c.name,
+            district: c.district || c.state || '',
+            volume: `${((c.totalBookings || 0) * 50).toLocaleString('en-IN')} Qtl`,
+            capacityPct: Math.min(99, Math.round(((c.congestionRatio || 0.7) * 100))),
+          }));
+        if (sorted.length > 0) setTopMandis(sorted);
+      }
+    } catch (e) {
+      console.log('Using mock top mandis');
     }
   };
 
