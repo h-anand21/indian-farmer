@@ -228,68 +228,56 @@ export default function BookingDetailScreen() {
         {/* Live Stepper List */}
         <Text style={styles.sectionTitle}>Live Status</Text>
         <View style={styles.stepperCard}>
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Booked</Text>
-              <Text style={styles.stepTime}>12 Sep 2025, 04:15 PM</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
+          {(() => {
+            const steps = [
+              { title: 'Booked', key: 'BOOKED', time: booking?.createdAt },
+              { title: 'Checked In', key: 'CHECKED_IN', time: booking?.checkedInAt },
+              { title: 'In Queue', key: 'QUEUE', time: null },
+              { title: 'Weighing', key: 'WEIGHING', time: null },
+              { title: 'Graded', key: 'GRADED', time: null },
+              { title: 'Payment Initiated', key: 'PAYMENT', time: null },
+              { title: 'Completed', key: 'COMPLETED', time: booking?.completedAt },
+            ];
+            const statusOrder = ['BOOKED', 'CHECKED_IN', 'WEIGHING', 'COMPLETED'];
+            const currentIdx = statusOrder.indexOf(currentStatus);
+            // Steps up to and including current status are "completed"
+            const completedKeys = new Set<string>();
+            if (currentIdx >= 0) completedKeys.add('BOOKED');
+            if (currentIdx >= 1) { completedKeys.add('CHECKED_IN'); completedKeys.add('QUEUE'); }
+            if (currentIdx >= 2) { completedKeys.add('WEIGHING'); completedKeys.add('GRADED'); }
+            if (currentIdx >= 3) { completedKeys.add('PAYMENT'); completedKeys.add('COMPLETED'); }
 
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Checked In</Text>
-              <Text style={styles.stepTime}>15 Sep 2025, 06:05 AM</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
+            const formatTime = (t?: string | null) => {
+              if (!t) return '';
+              try {
+                const d = new Date(t);
+                if (isNaN(d.getTime())) return '';
+                return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
+                  d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+              } catch { return ''; }
+            };
 
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>In Queue</Text>
-              <Text style={styles.stepTime}>Position #3</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
-
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Weighing</Text>
-              <Text style={styles.stepTime}>15 Sep 2025, 07:10 AM</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
-
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Graded</Text>
-              <Text style={styles.stepTime}>A Grade</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
-
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Payment Initiated</Text>
-              <Text style={styles.stepTime}>15 Sep 2025, 07:45 AM</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
-
-          <View style={styles.stepItem}>
-            <CheckCircle2 size={18} color={Colors.light.primary} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.stepTitle}>Completed</Text>
-              <Text style={styles.stepTime}>15 Sep 2025, 08:10 AM</Text>
-            </View>
-            <Text style={styles.stepStatusText}>Completed</Text>
-          </View>
+            return steps.map((s, i) => {
+              const done = completedKeys.has(s.key);
+              const isCurrent = !done && (i === currentIdx + 1 || (currentIdx === -1 && i === 0));
+              return (
+                <View key={s.key} style={styles.stepItem}>
+                  <CheckCircle2 size={18} color={done ? Colors.light.primary : isCurrent ? '#E6A219' : '#D4D0C8'} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.stepTitle}>{s.title}</Text>
+                    <Text style={styles.stepTime}>
+                      {s.key === 'QUEUE' && done ? `Position #${booking?.quantity || '—'}` :
+                       s.key === 'GRADED' && done ? (booking?.grade || 'A Grade') :
+                       formatTime(s.time) || (done ? 'Done' : isCurrent ? 'In Progress...' : 'Pending')}
+                    </Text>
+                  </View>
+                  <Text style={[styles.stepStatusText, { color: done ? Colors.light.primary : isCurrent ? '#E6A219' : '#B8B4A8' }]}>
+                    {done ? 'Completed' : isCurrent ? 'Current' : 'Pending'}
+                  </Text>
+                </View>
+              );
+            });
+          })()}
         </View>
 
         {/* Weighment & Payment Details Card */}
@@ -298,35 +286,37 @@ export default function BookingDetailScreen() {
           <View style={styles.gradeHeader}>
             <Text style={styles.detailLabel}>Quality Grade</Text>
             <View style={styles.gradeBadge}>
-              <Text style={styles.gradeBadgeText}>A Grade</Text>
+              <Text style={styles.gradeBadgeText}>{booking?.grade || 'A Grade'}</Text>
             </View>
           </View>
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Gross Weight</Text>
-            <Text style={styles.detailVal}>5,120 kg</Text>
+            <Text style={styles.detailVal}>{booking?.grossWeight || '—'}</Text>
           </View>
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Tare Weight</Text>
-            <Text style={styles.detailVal}>1,020 kg</Text>
+            <Text style={styles.detailVal}>{booking?.tareWeight || '—'}</Text>
           </View>
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Net Weight</Text>
-            <Text style={styles.detailValBold}>4,100 kg (41 Qt)</Text>
+            <Text style={styles.detailValBold}>{booking?.netWeight ? `${booking.netWeight} (${booking.netQuintals})` : '—'}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>MSP Rate</Text>
-            <Text style={styles.detailVal}>₹ 2,275 / Qt</Text>
+            <Text style={styles.detailVal}>₹ {(booking?.mspRate || 2275).toLocaleString('en-IN')} / Qt</Text>
           </View>
 
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Total Amount</Text>
-            <Text style={styles.totalAmountVal}>₹ 93,275</Text>
+            <Text style={styles.totalAmountVal}>
+              {booking?.totalAmount ? `₹ ${booking.totalAmount.toLocaleString('en-IN')}` : '—'}
+            </Text>
           </View>
         </View>
 
