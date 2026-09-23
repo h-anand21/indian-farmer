@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -25,18 +26,97 @@ import { useAuth } from '../../../src/context/AuthContext';
 import GateScanScreen from '../../(operator)/scan';
 import AdminCentresListScreen from '../../(admin)/centres/index';
 import { getBookings, BookingRecord } from '../../../src/lib/bookingStore';
+import { fetchMyBookings, type BookingData } from '../../../src/services/bookingService';
+
+// Helper: Map backend BookingData to local BookingRecord format
+function mapApiBookingToRecord(b: BookingData): BookingRecord {
+  const statusMap: Record<string, BookingRecord['status']> = {
+    BOOKED: 'BOOKED',
+    CHECKED_IN: 'CHECKED_IN',
+    WAITING: 'CHECKED_IN',
+    CALLED: 'WEIGHING',
+    IN_PROCUREMENT: 'WEIGHING',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED',
+  };
+  const mappedStatus = statusMap[b.status] || 'BOOKED';
+
+  const badgeColors: Record<string, { color: string; bg: string }> = {
+    BOOKED: { color: '#E6A219', bg: '#FFF8E6' },
+    CHECKED_IN: { color: '#2B70C9', bg: '#EDF4FC' },
+    WEIGHING: { color: '#E66919', bg: '#FFEDD5' },
+    COMPLETED: { color: '#2D8A39', bg: '#EBF4E5' },
+    CANCELLED: { color: '#D93838', bg: '#FFF2F2' },
+  };
+  const badge = badgeColors[mappedStatus] || badgeColors.BOOKED;
+
+  // Format date
+  let dateStr = 'Today';
+  try {
+    if (b.slotDate) {
+      const parts = b.slotDate.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+    }
+  } catch { /* keep default */ }
+
+  return {
+    id: b.id,
+    token: b.token,
+    qrData: `KQ-BOOKING-${b.token}`,
+    mandi: b.centre?.name || 'Mandi Centre',
+    mandiId: b.centreId || '',
+    date: dateStr,
+    time: b.slotWindow || '08:00 AM',
+    crop: b.crop?.name || 'Wheat',
+    quantity: `${b.quantity} Qt`,
+    vehicle: 'Tractor Trolley',
+    farmerName: b.farmer?.user?.name || '',
+    farmerPhone: b.farmer?.user?.phone || '',
+    status: mappedStatus,
+    badgeColor: badge.color,
+    badgeBg: badge.bg,
+    createdAt: b.bookedAt || new Date().toISOString(),
+  };
+}
 
 export default function MyBookingsScreen() {
   const { role, user } = useAuth();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PAST' | 'CANCELLED'>('ACTIVE');
   const [bookingsList, setBookingsList] = useState<BookingRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const loadBookings = useCallback(async () => {
+    try {
+      // 1. Try fetching from backend API first
+      const apiBookings = await fetchMyBookings();
+      if (apiBookings && apiBookings.length > 0) {
+        const mapped = apiBookings.map(mapApiBookingToRecord);
+        // 2. Also get local bookings and merge (avoid duplicates by id/token)
+        const farmerId = user?.phone || user?.name || '';
+        const localBookings = await getBookings(farmerId);
+        const apiIds = new Set(mapped.map((b) => b.id));
+        const apiTokens = new Set(mapped.map((b) => b.token));
+        const uniqueLocal = localBookings.filter(
+          (lb) => !apiIds.has(lb.id) && !apiTokens.has(lb.token)
+        );
+        setBookingsList([...mapped, ...uniqueLocal]);
+        setIsLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('Backend bookings fetch failed, using local data:', err);
+    }
+
+    // 3. Fallback: load from AsyncStorage
     const farmerId = user?.phone || user?.name || '+91 98140 12345';
     const data = await getBookings(farmerId);
     setBookingsList(data);
+    setIsLoading(false);
   }, [user]);
 
   useFocusEffect(
