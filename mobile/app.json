@@ -29,12 +29,11 @@
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "CAMERA",
+        "RECORD_AUDIO",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "RECEIVE_BOOT_COMPLETED"
       ]
     },
     "web": {
@@ -53,15 +52,7 @@
           "cameraPermission": "Allow KisanQueue to access your camera to scan gate passes and QR codes."
         }
       ],
-      "@react-native-google-signin/google-signin",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "kotlinVersion": "1.9.25"
-          }
-        }
-      ]
+      "@react-native-google-signin/google-signin"
     ],
     "extra": {
       "router": {},
