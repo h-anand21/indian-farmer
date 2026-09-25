@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -111,13 +111,26 @@ function EmeraldWaveDivider() {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, loginAsDemo } = useAuth();
+  const { isAuthenticated, role, login, loginAsDemo } = useAuth();
   const { currentLanguage, activeLanguageInfo, setLanguage, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [devEmail, setDevEmail] = useState('');
   const [devPassword, setDevPassword] = useState('');
+
+  // ── Auto-navigate as soon as user is authenticated ──
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (role === 'OPERATOR') {
+        router.replace('/(operator)/dashboard');
+      } else if (role === 'ADMIN') {
+        router.replace('/(admin)/dashboard');
+      } else {
+        router.replace('/(farmer)/dashboard');
+      }
+    }
+  }, [isAuthenticated, role]);
 
   // ── Production APK: Native Google Sign-In ──
   const handleGoogleLogin = async () => {
@@ -145,6 +158,7 @@ export default function LoginScreen() {
       await login(userCredential.user);
 
       Toast.show({ type: 'success', text1: '✅ Google Login Successful!' });
+      router.replace('/(farmer)/dashboard');
     } catch (error: any) {
       if (error?.code !== statusCodes?.SIGN_IN_CANCELLED) {
         Toast.show({ type: 'error', text1: 'Login Failed', text2: error?.message });
@@ -155,16 +169,23 @@ export default function LoginScreen() {
   };
 
   // ── Instant Demo Login (Farmer / Operator / Admin) ──
-  const handleDemoLogin = async (role: 'FARMER' | 'OPERATOR' | 'ADMIN' = 'FARMER') => {
+  const handleDemoLogin = async (targetRole: 'FARMER' | 'OPERATOR' | 'ADMIN' = 'FARMER') => {
     setIsLoading(true);
     setShowDevModal(false);
     try {
-      await loginAsDemo(role);
+      await loginAsDemo(targetRole);
       Toast.show({
         type: 'success',
-        text1: `✅ ${role} Mode Active!`,
-        text2: `Logged in as ${role} for quick testing ✅`,
+        text1: `✅ ${targetRole} Mode Active!`,
+        text2: `Logged in as ${targetRole} for quick testing ✅`,
       });
+      if (targetRole === 'OPERATOR') {
+        router.replace('/(operator)/dashboard');
+      } else if (targetRole === 'ADMIN') {
+        router.replace('/(admin)/dashboard');
+      } else {
+        router.replace('/(farmer)/dashboard');
+      }
     } catch (error: any) {
       Toast.show({ type: 'error', text1: 'Failed', text2: error?.message });
     } finally {
@@ -184,6 +205,7 @@ export default function LoginScreen() {
       await login(userCredential.user);
       setShowDevModal(false);
       Toast.show({ type: 'success', text1: '✅ Dev Login Successful!', text2: userCredential.user.email || '' });
+      router.replace('/(farmer)/dashboard');
     } catch (error: any) {
       Toast.show({ type: 'error', text1: 'Login Failed', text2: error?.message });
     } finally {
