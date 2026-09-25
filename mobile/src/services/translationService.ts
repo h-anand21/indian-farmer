@@ -88,13 +88,18 @@ export async function translateText(text: string, targetLang: string): Promise<s
           const cloudData = await cloudRes.json();
           const translated = cloudData?.data?.translations?.[0]?.translatedText;
           if (translated && translated.trim() !== '') {
+            console.log(`[Google Cloud API ✅] Key (${GOOGLE_API_KEY.slice(0, 8)}...${GOOGLE_API_KEY.slice(-4)}) translated: "${cleanText}" -> "${translated}" [${targetLang}]`);
             if (!memoryCache[targetLang]) memoryCache[targetLang] = {};
             memoryCache[targetLang][cleanText] = translated;
             schedulePersist(targetLang);
             return translated;
           }
+        } else {
+          console.warn(`[Google Cloud API] Status ${cloudRes.status}:`, await cloudRes.text());
         }
-      } catch {}
+      } catch (cloudErr) {
+        console.warn('[Google Cloud API Error]:', cloudErr);
+      }
     }
 
     try {
