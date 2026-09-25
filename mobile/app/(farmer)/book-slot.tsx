@@ -39,32 +39,15 @@ import { createBooking } from '../../src/lib/bookingStore';
 import { fetchCentres, fetchCrops, fetchSlots, fetchAvailableDates, submitBooking } from '../../src/services/bookingService';
 import { downloadOrShareQrPass } from '../../src/services/qrPassService';
 
-const DEFAULT_MANDIS = [
-  { id: 'PB-KHN-01', name: 'Khanna Main Grain Market (Yard #1)', location: 'Ludhiana, Punjab', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 42 },
-  { id: 'PB-RJP-02', name: 'Rajpura APMC Grain Procurement Complex', location: 'Patiala, Punjab', congestion: 'Medium Congestion', congestionColor: '#E6A219', slots: 18 },
-  { id: 'HR-KRN-04', name: 'Karnal Anaj Mandi Complex Gate #2', location: 'Karnal, Haryana', congestion: 'High Congestion', congestionColor: '#D93838', slots: 6 },
-  { id: 'HR-AMB-05', name: 'Ambala City Grain Market Yard', location: 'Ambala, Haryana', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 24 },
-  { id: 'PB-SRH-03', name: 'Sirhind Grain Market Yard', location: 'Fatehgarh Sahib, Punjab', congestion: 'Low Congestion', congestionColor: '#2D8A39', slots: 31 },
-];
-
-const TIME_SLOTS = [
-  { id: 'slot-1', window: '6:00 AM - 8:00 AM', status: '12 slots available', type: 'AVAILABLE' },
-  { id: 'slot-2', window: '8:00 AM - 10:00 AM', status: '5 slots available', type: 'FEW' },
-  { id: 'slot-3', window: '10:00 AM - 12:00 PM', status: 'Fully Booked', type: 'FULL' },
-  { id: 'slot-4', window: '12:00 PM - 2:00 PM', status: '8 slots available', type: 'AVAILABLE' },
-  { id: 'slot-5', window: '2:00 PM - 4:00 PM', status: '15 slots available', type: 'AVAILABLE' },
-  { id: 'slot-6', window: '4:00 PM - 6:00 PM', status: '22 slots available', type: 'AVAILABLE' },
-];
-
-// Helper to generate dynamic 7-day calendar dates
-const getAvailableDates = () => {
+// Helper to generate initial 7-day calendar dates
+const getInitialDates = () => {
   const dates = [];
   const today = new Date();
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dayNum = d.getDate().toString().padStart(2, '0');
-    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short' });
     const monthName = d.toLocaleDateString('en-US', { month: 'short' });
     const dateStr = d.toISOString().split('T')[0];
     const formattedDate = `${dayName}, ${dayNum} ${monthName} ${d.getFullYear()}`;
@@ -87,78 +70,97 @@ export default function BookSlotScreen() {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
 
-  // Dynamic Date List & State
-  const [availableDates, setAvailableDates] = useState(getAvailableDates());
-  const [selectedDateObj, setSelectedDateObj] = useState(availableDates[0]);
+  // Search Filter
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Form State
-  const [mandiList, setMandiList] = useState(DEFAULT_MANDIS);
-  const [selectedMandi, setSelectedMandi] = useState(DEFAULT_MANDIS[0]);
-  const [selectedDate, setSelectedDate] = useState(availableDates[0].formattedDate);
-  const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
-  const [cropType, setCropType] = useState('Wheat');
-  const [cropList, setCropList] = useState<{ name: string; mspPrice: number }[]>([]);
-  const [slotList, setSlotList] = useState(TIME_SLOTS);
+  // Dynamic Date List & State
+  const [availableDates, setAvailableDates] = useState(getInitialDates());
+  const [selectedDateObj, setSelectedDateObj] = useState(getInitialDates()[0]);
+  const [selectedDate, setSelectedDate] = useState(getInitialDates()[0].formattedDate);
+  const [loadingDates, setLoadingDates] = useState(false);
+
+  // Live Mandi State (100% Real from Neon DB)
+  const [mandiList, setMandiList] = useState<any[]>([]);
+  const [selectedMandi, setSelectedMandi] = useState<any | null>(null);
+  const [loadingMandis, setLoadingMandis] = useState(true);
+
+  // Live Slot State (100% Real from Neon DB)
+  const [slotList, setSlotList] = useState<any[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<any | null>(null);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Crop & Form State
+  const [cropType, setCropType] = useState('Wheat');
+  const [cropList, setCropList] = useState<{ id?: string; name: string; mspPrice: number }[]>([]);
+  const [loadingCrops, setLoadingCrops] = useState(true);
   const [quantity, setQuantity] = useState('50');
   const [vehicleNo, setVehicleNo] = useState('');
   const [agreed, setAgreed] = useState(true);
 
   // Success Modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [generatedToken, setGeneratedToken] = useState('KQ-1049');
+  const [generatedToken, setGeneratedToken] = useState('');
 
   const router = useRouter();
 
-  // Load centres + crops on mount
-  React.useEffect(() => {
-    async function loadCentres() {
-      try {
-        const liveCentres = await fetchCentres();
-        if (Array.isArray(liveCentres) && liveCentres.length > 0) {
-          const mapped = liveCentres.map((c) => ({
-            id: c.id,
-            name: c.name,
-            location: `${c.district || c.state || 'Grain Market'}, ${c.state || ''}`,
-            congestion: c.congestion ? `${c.congestion} Congestion` : 'Low Congestion',
-            congestionColor: c.congestion === 'HIGH' ? '#D93838' : c.congestion === 'MODERATE' ? '#E6A219' : '#2D8A39',
-            slots: c.totalCounters ? c.totalCounters * 8 : 30,
-          }));
-          setMandiList(mapped);
-          setSelectedMandi(mapped[0]);
-        }
-      } catch (e) {
-        console.warn('Centres fetch fallback:', e);
+  // Load real centres + crops on mount from Neon DB
+  const loadCentres = async () => {
+    setLoadingMandis(true);
+    try {
+      const liveCentres = await fetchCentres();
+      if (Array.isArray(liveCentres) && liveCentres.length > 0) {
+        const mapped = liveCentres.map((c) => ({
+          id: c.id,
+          name: c.name,
+          location: `${c.district || c.state || 'Grain Market'}, ${c.state || ''}`,
+          congestion: c.congestion ? `${c.congestion} Congestion` : 'Low Congestion',
+          congestionColor: c.congestion === 'HIGH' ? '#D93838' : c.congestion === 'MODERATE' ? '#E6A219' : '#2D8A39',
+          slots: c.totalCounters ? c.totalCounters * 8 : 30,
+        }));
+        setMandiList(mapped);
+        setSelectedMandi(mapped[0]);
+      } else {
+        setMandiList([]);
+        setSelectedMandi(null);
       }
+    } catch (e) {
+      console.warn('Live centres fetch error:', e);
+      setMandiList([]);
+      setSelectedMandi(null);
+    } finally {
+      setLoadingMandis(false);
     }
+  };
 
-    async function loadCrops() {
-      try {
-        const crops = await fetchCrops();
-        if (Array.isArray(crops) && crops.length > 0) {
-          setCropList(crops.map((c: any) => ({ name: c.name, mspPrice: c.mspPrice || c.mspRate || 2275 })));
-          setCropType(crops[0].name);
-        }
-      } catch (e) {
-        setCropList([
-          { name: 'Wheat', mspPrice: 2275 },
-          { name: 'Paddy (Rice)', mspPrice: 2300 },
-          { name: 'Mustard (Sarson)', mspPrice: 5950 },
-          { name: 'Maize', mspPrice: 2225 },
-          { name: 'Chana (Gram)', mspPrice: 5650 },
-          { name: 'Soybean', mspPrice: 4600 },
-        ]);
+  const loadCrops = async () => {
+    setLoadingCrops(true);
+    try {
+      const crops = await fetchCrops();
+      if (Array.isArray(crops) && crops.length > 0) {
+        setCropList(crops.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          mspPrice: c.mspPrice || c.mspRate || 2275,
+        })));
+        setCropType(crops[0].name);
       }
+    } catch (e) {
+      console.warn('Live crops fetch error:', e);
+    } finally {
+      setLoadingCrops(false);
     }
+  };
 
+  useEffect(() => {
     loadCentres();
     loadCrops();
   }, []);
 
-  // Fetch real available dates when mandi changes
-  React.useEffect(() => {
+  // Fetch real available dates from Neon DB when mandi changes
+  useEffect(() => {
     if (!selectedMandi?.id) return;
     async function loadDates() {
+      setLoadingDates(true);
       try {
         const apiDates = await fetchAvailableDates(selectedMandi.id);
         if (Array.isArray(apiDates) && apiDates.length > 0) {
@@ -177,14 +179,16 @@ export default function BookSlotScreen() {
           setSelectedDate(mapped[0].formattedDate);
         }
       } catch (e) {
-        // keep dynamic dates
+        console.warn('Live dates fetch error:', e);
+      } finally {
+        setLoadingDates(false);
       }
     }
     loadDates();
   }, [selectedMandi?.id]);
 
-  // Fetch real slots when mandi or date changes
-  React.useEffect(() => {
+  // Fetch real slots from Neon DB when mandi or date changes
+  useEffect(() => {
     if (!selectedMandi?.id || !selectedDateObj?.dateStr) return;
     async function loadSlots() {
       setLoadingSlots(true);
@@ -199,39 +203,82 @@ export default function BookSlotScreen() {
               window: `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
               status: isFull ? 'Fully Booked' : `${available} slots available`,
               type: isFull ? 'FULL' : available <= 5 ? 'FEW' : 'AVAILABLE',
+              availableSlots: Math.max(0, available),
             };
           });
           setSlotList(mapped);
           const firstAvail = mapped.find((s: any) => s.type !== 'FULL');
-          if (firstAvail) setSelectedSlot(firstAvail);
-          else setSelectedSlot(mapped[0]);
+          setSelectedSlot(firstAvail || mapped[0] || null);
+        } else {
+          setSlotList([]);
+          setSelectedSlot(null);
         }
       } catch (e) {
-        console.warn('Real slots fetch error:', e);
+        console.warn('Live slots fetch error:', e);
+        setSlotList([]);
+        setSelectedSlot(null);
+      } finally {
+        setLoadingSlots(false);
       }
-      setLoadingSlots(false);
     }
     loadSlots();
   }, [selectedMandi?.id, selectedDateObj?.dateStr]);
 
+  // Handle final submission to live Render API + Neon PostgreSQL DB
   const handleConfirmBooking = async () => {
     if (!agreed) {
       Toast.show({ type: 'error', text1: 'Terms Required', text2: 'Please accept Terms & Conditions.' });
       return;
     }
 
+    if (!selectedMandi?.id) {
+      Toast.show({ type: 'error', text1: 'Mandi Required', text2: 'Please select a Mandi Procurement Centre.' });
+      setStep(1);
+      return;
+    }
+
+    if (!selectedSlot?.id) {
+      Toast.show({ type: 'error', text1: 'Slot Required', text2: 'Please select an available time slot.' });
+      setStep(3);
+      return;
+    }
+
+    if (selectedSlot.type === 'FULL') {
+      Toast.show({ type: 'error', text1: 'Slot Full', text2: 'This slot is fully booked. Please choose another slot.' });
+      setStep(3);
+      return;
+    }
+
     try {
       const apiRes = await submitBooking({
         centreId: selectedMandi.id,
-        slotId: selectedSlot.id || 'slot-1',
+        slotId: selectedSlot.id,
         cropName: cropType,
         quantity: parseFloat(quantity) || 50,
         vehicleType: 'Tractor Trolley',
-        vehicleNumber: vehicleNo || 'PB 10 AB 1234',
+        vehicleNumber: vehicleNo.trim() || 'PB 10 AB 1234',
+        driverPhone: user?.phone || '+91 98140 12345',
       });
 
       if (apiRes) {
-        // Also sync local store for offline cache consistency
+        // Immediately decrement slot count locally for instant UI responsiveness
+        setSlotList((prevSlots) =>
+          prevSlots.map((s) => {
+            if (s.id === selectedSlot.id) {
+              const currentAvail = s.availableSlots !== undefined ? s.availableSlots : 1;
+              const nextAvailable = Math.max(0, currentAvail - 1);
+              return {
+                ...s,
+                status: nextAvailable <= 0 ? 'Fully Booked' : `${nextAvailable} slots available`,
+                type: nextAvailable <= 0 ? 'FULL' : nextAvailable <= 5 ? 'FEW' : 'AVAILABLE',
+                availableSlots: nextAvailable,
+              };
+            }
+            return s;
+          })
+        );
+
+        // Also sync local cache for offline viewing
         await createBooking({
           mandi: selectedMandi.name,
           mandiId: selectedMandi.id,
@@ -239,81 +286,50 @@ export default function BookSlotScreen() {
           time: selectedSlot.window,
           crop: cropType,
           quantity: `${quantity} Qt`,
-          vehicle: vehicleNo || 'Tractor Trolley',
-          farmerName: user?.name || 'Sardar Gurdeep Singh',
+          vehicle: vehicleNo.trim() || 'Tractor Trolley',
+          farmerName: user?.name || 'Kisan Farmer',
           farmerPhone: user?.phone || '+91 98140 12345',
         });
 
         setGeneratedToken(apiRes.token);
         setShowSuccessModal(true);
 
-        // Re-fetch slots from Render backend so capacity decreases on screen immediately
-        try {
-          const today = new Date();
-          const idx = availableDates.findIndex((d) => d.id === selectedDateObj.id);
-          const targetDate = new Date(today);
-          targetDate.setDate(today.getDate() + (idx >= 0 ? idx : 0));
-          const isoDate = targetDate.toISOString().split('T')[0];
-          const freshSlots = await fetchSlots(selectedMandi.id, isoDate);
-          if (Array.isArray(freshSlots) && freshSlots.length > 0) {
-            const mapped = freshSlots.map((s: any) => {
-              const available = s.availableCapacity ?? (s.capacity - (s.booked || s.bookedCount || 0));
-              const isFull = s.isFull || available <= 0;
-              return {
-                id: s.id,
-                window: `${s.startTime || '06:00'} - ${s.endTime || '08:00'}`,
-                status: isFull ? 'Fully Booked' : `${available} slots available`,
-                type: isFull ? 'FULL' : available <= 5 ? 'FEW' : 'AVAILABLE',
-              };
-            });
-            setSlotList(mapped);
-          }
-        } catch (e) {}
-
         Toast.show({
           type: 'success',
-          text1: 'Booking Slot Generated! 🎟️',
-          text2: `Token #${apiRes.token} created on Render DB for ${selectedMandi.name}`,
+          text1: 'Booking Slot Confirmed! 🎟️',
+          text2: `Token #${apiRes.token} created on live database for ${selectedMandi.name}`,
         });
         return;
       }
     } catch (err: any) {
-      console.warn("Backend booking submit fallback:", err);
+      console.error('Live booking submission error:', err);
+      const errMsg = err.response?.data?.message || err.message || 'Booking submission failed. Please try again.';
+      Toast.show({
+        type: 'error',
+        text1: 'Booking Failed ❌',
+        text2: errMsg,
+      });
     }
-
-    const created = await createBooking({
-      mandi: selectedMandi.name,
-      mandiId: selectedMandi.id,
-      date: selectedDate,
-      time: selectedSlot.window,
-      crop: cropType,
-      quantity: `${quantity} Qt`,
-      vehicle: vehicleNo || 'Tractor Trolley',
-      farmerName: user?.name || 'Sardar Gurdeep Singh',
-      farmerPhone: user?.phone || '+91 98140 12345',
-    });
-
-    setGeneratedToken(created.token);
-    setShowSuccessModal(true);
-    Toast.show({
-      type: 'success',
-      text1: 'Booking Slot Generated! 🎟️',
-      text2: `Token #${created.token} created for ${selectedMandi.name}`,
-    });
   };
 
   // Reset form for a new booking
   const handleNewBooking = () => {
     setShowSuccessModal(false);
     setStep(1);
-    setSelectedMandi(mandiList[0] || DEFAULT_MANDIS[0]);
-    const freshDates = getAvailableDates();
-    setSelectedDateObj(freshDates[1] || freshDates[0]);
-    setSelectedDate((freshDates[1] || freshDates[0]).formattedDate);
-    setSelectedSlot(slotList[0] || TIME_SLOTS[0]);
-    setCropType('Wheat');
+    if (mandiList.length > 0) {
+      setSelectedMandi(mandiList[0]);
+    }
+    const freshDates = getInitialDates();
+    setAvailableDates(freshDates);
+    setSelectedDateObj(freshDates[0]);
+    setSelectedDate(freshDates[0].formattedDate);
+    if (slotList.length > 0) {
+      const firstAvail = slotList.find((s) => s.type !== 'FULL');
+      setSelectedSlot(firstAvail || slotList[0]);
+    }
+    setCropType(cropList[0]?.name || 'Wheat');
     setQuantity('50');
-    setVehicleNo('PB 10 AB 1234');
+    setVehicleNo('');
     setAgreed(true);
     Toast.show({
       type: 'info',
@@ -326,12 +342,12 @@ export default function BookSlotScreen() {
   const handleDownloadQR = async (token: string) => {
     await downloadOrShareQrPass({
       token,
-      mandi: selectedMandi.name,
+      mandi: selectedMandi?.name || 'Mandi Procurement Centre',
       date: selectedDate,
-      time: selectedSlot.window,
+      time: selectedSlot?.window || 'Time Slot',
       crop: cropType,
       quantity: `${quantity} Quintals`,
-      farmerName: user?.name || 'Sardar Gurdeep Singh',
+      farmerName: user?.name || 'Kisan Farmer',
       farmerPhone: user?.phone || '+91 98140 12345',
       vehicle: vehicleNo || 'Tractor Trolley',
     });
