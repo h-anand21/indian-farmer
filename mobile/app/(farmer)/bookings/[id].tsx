@@ -179,7 +179,7 @@ export default function BookingDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -198,7 +198,13 @@ export default function BookingDetailScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+        overScrollMode="always"
+      >
         {/* QR Code & Token Card */}
         <View style={styles.qrCard}>
           <View style={styles.qrHeader}>
@@ -333,6 +339,9 @@ export default function BookingDetailScreen() {
             <Text style={styles.downloadPdfText}>Download PDF</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Bottom spacer for floating glass navigation bar */}
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* Official Form J Receipt Modal */}
@@ -475,10 +484,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.light.primary,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 40,
+    paddingBottom: 170,
   },
   qrCard: {
     backgroundColor: '#FFFFFF',
