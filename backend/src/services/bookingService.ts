@@ -638,7 +638,11 @@ export async function getBookingById(bookingId: string, firebaseUid: string) {
     include: { farmer: true },
   });
 
-  if (!user || !user.farmer) throw new Error("Farmer not found");
+  if (!user || !user.farmer) {
+    const err: any = new Error("Farmer not found");
+    err.statusCode = 404;
+    throw err;
+  }
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -653,9 +657,15 @@ export async function getBookingById(bookingId: string, firebaseUid: string) {
     },
   });
 
-  if (!booking) throw new Error("Booking not found");
+  if (!booking) {
+    const err: any = new Error("Booking not found");
+    err.statusCode = 404;
+    throw err;
+  }
   if (booking.farmerId !== user.farmer.id && user.role !== "ADMIN") {
-    throw new Error("Unauthorized to view this booking");
+    const err: any = new Error("Unauthorized to view this booking");
+    err.statusCode = 403;
+    throw err;
   }
 
   return booking;
