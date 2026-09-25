@@ -54,17 +54,6 @@ export default function DynamicDashboard() {
     }, [loadData])
   );
 
-  // If active role is OPERATOR, render the dedicated Operator Mandi Desk Dashboard!
-  if (role === 'OPERATOR') {
-    return <OperatorDashboard />;
-  }
-
-  // If active role is ADMIN, render the dedicated State Admin Command Dashboard!
-  if (role === 'ADMIN') {
-    return <AdminDashboardScreen />;
-  }
-
-  const farmerName = user?.name || 'Sardar Gurdeep Singh';
   const [locationText, setLocationText] = useState('Detecting...');
 
   // Get real location
@@ -96,6 +85,18 @@ export default function DynamicDashboard() {
     }
     getLocation();
   }, []);
+
+  // If active role is OPERATOR, render the dedicated Operator Mandi Desk Dashboard!
+  if (role === 'OPERATOR') {
+    return <OperatorDashboard />;
+  }
+
+  // If active role is ADMIN, render the dedicated State Admin Command Dashboard!
+  if (role === 'ADMIN') {
+    return <AdminDashboardScreen />;
+  }
+
+  const farmerName = user?.name || 'Sardar Gurdeep Singh';
 
   const onRefresh = () => {
     setRefreshing(true);
