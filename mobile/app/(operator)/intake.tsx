@@ -254,7 +254,18 @@ export default function OperatorIntakeScreen() {
         `PR-KHN-${Date.now().toString().slice(-5)}`;
       setGeneratedReceiptNo(receiptNo);
 
-      await updateBookingStatus(tokenInput, 'COMPLETED');
+      await updateBookingStatus(tokenInput, 'COMPLETED', {
+        receiptNumber: receiptNo,
+        grossWeight: `${gross} kg`,
+        tareWeight: `${tare} kg`,
+        netWeight: `${netKg} kg`,
+        netQuintals: `${actualQuintals} Qt`,
+        grade: `${grade} Grade`,
+        moisture: `${moisture}%`,
+        mspRate: effectiveMspRate,
+        totalAmount: totalAmount,
+        paymentStatus: 'PENDING',
+      });
 
       Toast.show({
         type: 'success',

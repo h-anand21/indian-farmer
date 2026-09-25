@@ -116,21 +116,21 @@ export default function BookingDetailScreen() {
             badgeColor: badge.color,
             badgeBg: badge.bg,
             createdAt: apiData.bookedAt || new Date().toISOString(),
-            // Procurement details
-            grossWeight: proc?.grossWeight ? `${proc.grossWeight.toLocaleString('en-IN')} kg` : undefined,
-            tareWeight: proc?.tareWeight ? `${proc.tareWeight.toLocaleString('en-IN')} kg` : undefined,
-            netWeight: proc?.actualWeight ? `${proc.actualWeight.toLocaleString('en-IN')} kg` : undefined,
-            netQuintals: proc?.actualWeight ? `${(proc.actualWeight / 100).toFixed(1)} Qt` : undefined,
-            grade: proc?.qualityGrade || undefined,
+            // Procurement details (actualWeight is stored in Quintals in Neon DB)
+            grossWeight: proc?.actualWeight ? `${Math.round((proc.actualWeight * 100) + 450).toLocaleString('en-IN')} kg` : undefined,
+            tareWeight: proc?.actualWeight ? '450 kg' : undefined,
+            netWeight: proc?.actualWeight ? `${Math.round(proc.actualWeight * 100).toLocaleString('en-IN')} kg` : undefined,
+            netQuintals: proc?.actualWeight ? `${proc.actualWeight.toFixed(1)} Qt` : undefined,
+            grade: proc?.qualityGrade ? (proc.qualityGrade.replace('GRADE_', '') + ' Grade') : undefined,
             moisture: proc?.moisturePercent ? `${proc.moisturePercent}%` : undefined,
-            mspRate: apiData.crop?.mspPrice || (apiData.crop as any)?.mspRate || 2275,
+            mspRate: proc?.mspRate || apiData.crop?.mspPrice || (apiData.crop as any)?.mspRate || 2275,
             totalAmount: proc?.totalAmount || (payment?.amount) || undefined,
             receiptNumber: proc?.receiptNumber || undefined,
             paymentStatus: payment?.status || undefined,
             bankRef: payment?.utrNumber || undefined,
             bookedAt: apiData.bookedAt || undefined,
             checkedInAt: apiData.checkedInAt || undefined,
-            completedAt: apiData.completedAt || undefined,
+            completedAt: proc?.completedAt || apiData.completedAt || undefined,
           };
           setBooking(mapped);
           setIsLoading(false);
@@ -348,9 +348,9 @@ export default function BookingDetailScreen() {
 
             <ScrollView contentContainerStyle={{ padding: 16 }}>
               <View style={styles.receiptSheet}>
-                <Text style={styles.govTitle}>GOVERNMENT OF NCT OF DELHI</Text>
-                <Text style={styles.govSub}>AGRICULTURE MARKETING BOARD</Text>
-                <Text style={styles.govMandi}>Azadpur Mandi, Delhi</Text>
+                <Text style={styles.govTitle}>MINISTRY OF AGRICULTURE & FARMERS WELFARE</Text>
+                <Text style={styles.govSub}>STATE AGRICULTURAL MARKETING BOARD</Text>
+                <Text style={styles.govMandi}>{booking?.mandi || 'APMC Procurement Yard'}</Text>
 
                 <View style={styles.formJBadge}>
                   <Text style={styles.formJBadgeText}>FORM J PROCUREMENT RECEIPT</Text>
@@ -358,35 +358,53 @@ export default function BookingDetailScreen() {
 
                 <View style={styles.receiptGrid}>
                   <Text style={styles.rLabel}>Receipt No:</Text>
-                  <Text style={styles.rVal}>FJ/2025/09/1048</Text>
+                  <Text style={styles.rVal}>{booking?.receiptNumber || `PR-${displayToken}`}</Text>
 
-                  <Text style={styles.rLabel}>Date:</Text>
-                  <Text style={styles.rVal}>15 Sep 2025, 08:10 AM</Text>
+                  <Text style={styles.rLabel}>Date & Time:</Text>
+                  <Text style={styles.rVal}>
+                    {booking?.completedAt
+                      ? new Date(booking.completedAt).toLocaleString('en-IN', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : `${booking?.date || 'Today'}, ${booking?.time || '08:00 AM'}`}
+                  </Text>
 
                   <Text style={styles.rLabel}>Farmer Name:</Text>
-                  <Text style={styles.rVal}>{booking?.farmerName || 'Sardar Gurdeep Singh'}</Text>
+                  <Text style={styles.rVal}>{booking?.farmerName || user?.name || 'Farmer'}</Text>
 
                   <Text style={styles.rLabel}>Mobile:</Text>
-                  <Text style={styles.rVal}>{booking?.farmerPhone || '+91 98140 12345'}</Text>
+                  <Text style={styles.rVal}>{booking?.farmerPhone || user?.phone || '—'}</Text>
 
                   <Text style={styles.rLabel}>Token No:</Text>
                   <Text style={styles.rVal}>#{displayToken}</Text>
 
                   <Text style={styles.rLabel}>Crop / Grade:</Text>
-                  <Text style={styles.rVal}>Wheat (A Grade)</Text>
+                  <Text style={styles.rVal}>{booking?.crop || 'Wheat'} ({booking?.grade || 'Grade A'})</Text>
 
                   <Text style={styles.rLabel}>Net Quantity:</Text>
-                  <Text style={styles.rVal}>4,100 kg (41 Qt)</Text>
+                  <Text style={styles.rVal}>
+                    {booking?.netWeight
+                      ? `${booking.netWeight} (${booking.netQuintals})`
+                      : (booking?.quantity || '50 Qt')}
+                  </Text>
 
                   <Text style={styles.rLabel}>MSP Rate:</Text>
-                  <Text style={styles.rVal}>₹ 2,275 / Quintal</Text>
+                  <Text style={styles.rVal}>₹ {(booking?.mspRate || 2275).toLocaleString('en-IN')} / Quintal</Text>
 
                   <Text style={styles.rLabel}>Total Amount:</Text>
-                  <Text style={styles.rAmountVal}>₹ 93,275</Text>
+                  <Text style={styles.rAmountVal}>
+                    {booking?.totalAmount ? `₹ ${booking.totalAmount.toLocaleString('en-IN')}` : '—'}
+                  </Text>
                 </View>
 
                 <View style={styles.stampBox}>
-                  <Text style={styles.stampText}>AZADPUR MANDI OFFICIAL STAMP</Text>
+                  <Text style={styles.stampText}>
+                    {`${(booking?.mandi || 'APMC MANDI').toUpperCase()} OFFICIAL PROCUREMENT STAMP`}
+                  </Text>
                 </View>
               </View>
             </ScrollView>

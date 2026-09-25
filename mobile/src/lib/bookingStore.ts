@@ -17,6 +17,18 @@ export interface BookingRecord {
   badgeColor: string;
   badgeBg: string;
   createdAt: string;
+  grossWeight?: string;
+  tareWeight?: string;
+  netWeight?: string;
+  netQuintals?: string;
+  grade?: string;
+  moisture?: string;
+  mspRate?: number;
+  totalAmount?: number;
+  receiptNumber?: string;
+  paymentStatus?: string;
+  bankRef?: string;
+  completedAt?: string;
 }
 
 const BOOKINGS_STORAGE_KEY = '@kisanqueue_bookings';
@@ -110,16 +122,47 @@ export async function createBooking(
   return created;
 }
 
-export async function updateBookingStatus(token: string, newStatus: BookingRecord['status']): Promise<void> {
-  const cleanToken = token.trim().toUpperCase().replace('KQ-BOOKING-', '');
+export async function updateBookingStatus(
+  token: string,
+  newStatus: BookingRecord['status'],
+  extraDetails?: Partial<BookingRecord>
+): Promise<void> {
+  if (!token) return;
+  const rawToken = token.trim().toUpperCase();
+  const cleanToken = rawToken.replace('KQ-BOOKING-', '').trim();
   const all = await getBookings();
   const updated = all.map((b) => {
-    if (b.token.toUpperCase() === cleanToken || b.id.toUpperCase() === cleanToken) {
+    const bToken = (b.token || '').toUpperCase().trim();
+    const bId = (b.id || '').toUpperCase().trim();
+    const matches =
+      bToken === cleanToken ||
+      bToken === rawToken ||
+      bId === cleanToken ||
+      bId === rawToken ||
+      (cleanToken.length > 3 && (bToken.includes(cleanToken) || cleanToken.includes(bToken)));
+
+    if (matches) {
       return {
         ...b,
+        ...extraDetails,
         status: newStatus,
-        badgeColor: newStatus === 'CHECKED_IN' ? '#2B70C9' : newStatus === 'COMPLETED' ? '#2D8A39' : '#E6A219',
-        badgeBg: newStatus === 'CHECKED_IN' ? '#EDF4FC' : newStatus === 'COMPLETED' ? '#EBF4E5' : '#FFF8E6',
+        badgeColor:
+          newStatus === 'CHECKED_IN'
+            ? '#2B70C9'
+            : newStatus === 'COMPLETED'
+            ? '#2D8A39'
+            : newStatus === 'WEIGHING'
+            ? '#E66919'
+            : '#E6A219',
+        badgeBg:
+          newStatus === 'CHECKED_IN'
+            ? '#EDF4FC'
+            : newStatus === 'COMPLETED'
+            ? '#EBF4E5'
+            : newStatus === 'WEIGHING'
+            ? '#FFEDD5'
+            : '#FFF8E6',
+        completedAt: newStatus === 'COMPLETED' ? new Date().toISOString() : b.completedAt,
       };
     }
     return b;

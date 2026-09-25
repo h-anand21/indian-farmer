@@ -614,6 +614,8 @@ export async function getFarmerBookings(firebaseUid: string) {
       slot: true,
       crop: true,
       queueEntry: true,
+      procurement: true,
+      payment: true,
     },
     orderBy: { bookedAt: "desc" },
   });
@@ -635,22 +637,30 @@ export async function getFarmerBookings(firebaseUid: string) {
 export async function getBookingById(bookingId: string, firebaseUid: string) {
   const user = await prisma.user.findUnique({
     where: { firebaseUid },
-    include: { farmer: true },
+    include: { farmer: true, operator: true },
   });
 
-  if (!user || !user.farmer) {
-    const err: any = new Error("Farmer not found");
+  if (!user) {
+    const err: any = new Error("User not found");
     err.statusCode = 404;
     throw err;
   }
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
+  // Lookup by ID or Token
+  const booking = await prisma.booking.findFirst({
+    where: {
+      OR: [
+        { id: bookingId },
+        { token: { equals: bookingId, mode: "insensitive" } },
+      ],
+    },
     include: {
       centre: true,
       slot: true,
       crop: true,
       queueEntry: true,
+      procurement: true,
+      payment: true,
       farmer: {
         include: { user: true },
       },
@@ -662,13 +672,23 @@ export async function getBookingById(bookingId: string, firebaseUid: string) {
     err.statusCode = 404;
     throw err;
   }
-  if (booking.farmerId !== user.farmer.id && user.role !== "ADMIN") {
+
+  const isOwner = user.farmer && booking.farmerId === user.farmer.id;
+  const isStaff = user.role === "ADMIN" || user.role === "OPERATOR" || !!user.operator;
+  if (!isOwner && !isStaff) {
     const err: any = new Error("Unauthorized to view this booking");
     err.statusCode = 403;
     throw err;
   }
 
-  return booking;
+  return {
+    ...booking,
+    slotDate: booking.slot?.date
+      ? new Date(booking.slot.date).toISOString().split("T")[0]
+      : (booking.bookedAt ? new Date(booking.bookedAt).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]),
+    slotWindow: booking.slot ? `${booking.slot.startTime} - ${booking.slot.endTime}` : "09:00 - 11:00",
+    queueNumber: booking.queueEntry?.position || 1,
+  };
 }
 
 /**

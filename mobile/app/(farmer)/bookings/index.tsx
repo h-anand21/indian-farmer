@@ -79,6 +79,10 @@ function mapApiBookingToRecord(b: BookingData): BookingRecord {
     badgeColor: badge.color,
     badgeBg: badge.bg,
     createdAt: b.bookedAt || new Date().toISOString(),
+    netWeight: (b as any).procurement?.actualWeight ? `${Math.round((b as any).procurement.actualWeight * 100).toLocaleString('en-IN')} kg` : undefined,
+    netQuintals: (b as any).procurement?.actualWeight ? `${(b as any).procurement.actualWeight.toFixed(1)} Qt` : undefined,
+    totalAmount: (b as any).procurement?.totalAmount || (b as any).payment?.amount || undefined,
+    receiptNumber: (b as any).procurement?.receiptNumber || undefined,
   };
 }
 

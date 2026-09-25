@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   MapPin,
   CloudSun,
+  FileText,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import Colors from '../../src/theme/colors';
@@ -39,21 +40,25 @@ export default function DynamicDashboard() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
+  const [totalProcuredText, setTotalProcuredText] = useState('0 Qt');
+  const [pendingPaymentsText, setPendingPaymentsText] = useState('₹ 0');
 
   const loadData = React.useCallback(async () => {
     try {
       const apiBookings = await fetchMyBookings();
       if (apiBookings && apiBookings.length > 0) {
-        const active: BookingRecord[] = apiBookings
-          .filter(
-            (b) =>
-              b.status === 'BOOKED' ||
-              b.status === 'CHECKED_IN' ||
-              b.status === 'WAITING' ||
-              b.status === 'CALLED' ||
-              b.status === 'IN_PROCUREMENT'
-          )
-          .map((b) => ({
+        const mappedList: BookingRecord[] = apiBookings.map((b) => {
+          const isCompleted = b.status === 'COMPLETED';
+          const isWeighing = b.status === 'CALLED' || b.status === 'IN_PROCUREMENT';
+          const isCheckedIn = b.status === 'CHECKED_IN' || b.status === 'WAITING';
+          const status = isCompleted ? 'COMPLETED' : isWeighing ? 'WEIGHING' : isCheckedIn ? 'CHECKED_IN' : 'BOOKED';
+          const badgeColor = isCompleted ? '#16A34A' : isWeighing ? '#EA580C' : isCheckedIn ? '#2563EB' : '#CA8A04';
+          const badgeBg = isCompleted ? '#DCFCE7' : isWeighing ? '#FFEDD5' : isCheckedIn ? '#DBEAFE' : '#FEF9C3';
+
+          const proc = (b as any).procurement;
+          const pay = (b as any).payment;
+
+          return {
             id: b.id,
             token: b.token,
             qrData: `KQ-BOOKING-${b.token}`,
@@ -66,17 +71,37 @@ export default function DynamicDashboard() {
             vehicle: 'Tractor Trolley',
             farmerName: b.farmer?.user?.name || user?.name || 'Farmer',
             farmerPhone: b.farmer?.user?.phone || user?.phone || '',
-            status:
-              b.status === 'CALLED' || b.status === 'IN_PROCUREMENT'
-                ? 'WEIGHING'
-                : b.status === 'CHECKED_IN' || b.status === 'WAITING'
-                ? 'CHECKED_IN'
-                : 'BOOKED',
-            badgeColor: '#16A34A',
-            badgeBg: '#DCFCE7',
+            status,
+            badgeColor,
+            badgeBg,
             createdAt: b.bookedAt || new Date().toISOString(),
-          }));
-        setMyBookings(active);
+            netWeight: proc?.actualWeight ? `${Math.round(proc.actualWeight * 100).toLocaleString('en-IN')} kg` : undefined,
+            netQuintals: proc?.actualWeight ? `${proc.actualWeight.toFixed(1)} Qt` : undefined,
+            totalAmount: proc?.totalAmount || pay?.amount || undefined,
+            receiptNumber: proc?.receiptNumber || undefined,
+            paymentStatus: pay?.status || undefined,
+          };
+        });
+
+        // Priority sort: In Progress first, then Booked, then Completed
+        mappedList.sort((a, b) => {
+          const order: Record<string, number> = { WEIGHING: 0, CHECKED_IN: 1, BOOKED: 2, COMPLETED: 3, CANCELLED: 4 };
+          return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+        });
+
+        setMyBookings(mappedList);
+
+        // Compute real metrics from live bookings
+        const totalQt = mappedList
+          .filter((b) => b.status === 'COMPLETED')
+          .reduce((sum, b) => sum + (parseFloat(b.netQuintals?.replace(' Qt', '') || '') || parseFloat(b.quantity?.replace(' Qt', '') || '') || 0), 0);
+        setTotalProcuredText(`${totalQt > 0 ? totalQt.toFixed(1) : '0'} Qt`);
+
+        const totalPay = mappedList
+          .filter((b) => b.status === 'COMPLETED')
+          .reduce((sum, b) => sum + (b.totalAmount || Math.round((parseFloat(b.quantity) || 50) * 2275)), 0);
+        setPendingPaymentsText(`₹ ${totalPay.toLocaleString('en-IN')}`);
+
         return;
       }
     } catch (e) {
@@ -85,10 +110,21 @@ export default function DynamicDashboard() {
 
     const farmerId = user?.phone || user?.name || '+91 98140 12345';
     const all = await getBookings(farmerId);
-    const active = all.filter(
-      (b) => b.status === 'BOOKED' || b.status === 'CHECKED_IN' || b.status === 'WEIGHING'
-    );
-    setMyBookings(active);
+    all.sort((a, b) => {
+      const order: Record<string, number> = { WEIGHING: 0, CHECKED_IN: 1, BOOKED: 2, COMPLETED: 3, CANCELLED: 4 };
+      return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+    });
+    setMyBookings(all);
+
+    const totalQt = all
+      .filter((b) => b.status === 'COMPLETED')
+      .reduce((sum, b) => sum + (parseFloat(b.netQuintals?.replace(' Qt', '') || '') || parseFloat(b.quantity?.replace(' Qt', '') || '') || 0), 0);
+    setTotalProcuredText(`${totalQt > 0 ? totalQt.toFixed(1) : '0'} Qt`);
+
+    const totalPay = all
+      .filter((b) => b.status === 'COMPLETED')
+      .reduce((sum, b) => sum + (b.totalAmount || Math.round((parseFloat(b.quantity) || 50) * 2275)), 0);
+    setPendingPaymentsText(`₹ ${totalPay.toLocaleString('en-IN')}`);
   }, [user]);
 
   useFocusEffect(
@@ -246,7 +282,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Pending Payments</Text>
-              <Text style={styles.statValue}>{myBookings.length > 0 ? '₹ 45,000' : '₹ 0'}</Text>
+              <Text style={styles.statValue}>{pendingPaymentsText}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -260,7 +296,7 @@ export default function DynamicDashboard() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.statLabel}>Total Procured</Text>
-              <Text style={styles.statValue}>{myBookings.length > 0 ? '28.5 Qt' : '0 Qt'}</Text>
+              <Text style={styles.statValue}>{totalProcuredText}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -268,7 +304,11 @@ export default function DynamicDashboard() {
 
         {/* Active Booking Spotlight Card */}
         <View style={styles.spotlightHeader}>
-          <Text style={styles.sectionTitle}>Active Booking</Text>
+          <Text style={styles.sectionTitle}>
+            {myBookings.length > 0 && myBookings[0].status === 'COMPLETED'
+              ? 'Procurement Completed'
+              : 'Active Booking'}
+          </Text>
           <TouchableOpacity onPress={() => router.push('/(farmer)/bookings')}>
             <Text style={styles.viewAllText}>View All ›</Text>
           </TouchableOpacity>
@@ -283,8 +323,30 @@ export default function DynamicDashboard() {
                   📍 {myBookings[0].mandi}
                 </Text>
               </View>
-              <View style={styles.confirmedBadge}>
-                <Text style={styles.confirmedBadgeText}>✓ {myBookings[0].status}</Text>
+              <View
+                style={[
+                  styles.confirmedBadge,
+                  {
+                    backgroundColor:
+                      myBookings[0].status === 'COMPLETED'
+                        ? '#DCFCE7'
+                        : myBookings[0].badgeBg || '#DCFCE7',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.confirmedBadgeText,
+                    {
+                      color:
+                        myBookings[0].status === 'COMPLETED'
+                          ? '#16A34A'
+                          : myBookings[0].badgeColor || '#16A34A',
+                    },
+                  ]}
+                >
+                  ✓ {myBookings[0].status === 'COMPLETED' ? 'COMPLETED / DONE' : myBookings[0].status}
+                </Text>
               </View>
             </View>
 
@@ -306,19 +368,31 @@ export default function DynamicDashboard() {
             </View>
 
             <View style={styles.spotlightActionsRow}>
-              <TouchableOpacity
-                style={styles.qrButton}
-                onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
-              >
-                <QrCode size={16} color="#FFFFFF" />
-                <Text style={styles.qrButtonText}>View QR Code</Text>
-              </TouchableOpacity>
+              {myBookings[0].status === 'COMPLETED' ? (
+                <TouchableOpacity
+                  style={[styles.qrButton, { backgroundColor: '#16A34A' }]}
+                  onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
+                >
+                  <FileText size={16} color="#FFFFFF" />
+                  <Text style={styles.qrButtonText}>View Form J Receipt</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.qrButton}
+                  onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
+                >
+                  <QrCode size={16} color="#FFFFFF" />
+                  <Text style={styles.qrButtonText}>View QR Code</Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={styles.manageButton}
                 onPress={() => router.push(`/(farmer)/bookings/${myBookings[0].id}`)}
               >
-                <Text style={styles.manageButtonText}>Manage</Text>
+                <Text style={styles.manageButtonText}>
+                  {myBookings[0].status === 'COMPLETED' ? 'Pass & Bill' : 'Manage'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
