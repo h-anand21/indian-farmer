@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Expo caches
+.expo/
+dist/
+web-build/
+
+# Metro
+.metro-health-check*
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS files
+.DS_Store
+*.pem
+
+# Typescript build info
+*.tsbuildinfo
+
+# Note: google-services.json and assets are KEPT so EAS cloud build can access them!

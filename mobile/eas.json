@@ -1,0 +1,72 @@
+{
+  "cli": {
+    "version": ">= 14.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://172.27.200.162:3001/api",
+        "EXPO_PUBLIC_SOCKET_URL": "http://172.27.200.162:3001",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyA3fpSWGQEB_Ubbce82XNdmTOb8KFWf8BM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "kisanqueue-25ea7.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "kisanqueue-25ea7",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "kisanqueue-25ea7.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "23124802029",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:23124802029:android:ca86185ac1036b1fadcfe4",
+        "EXPO_PUBLIC_FIREBASE_DATABASE_URL": "https://kisanqueue-25ea7-default-rtdb.asia-southeast1.firebasedatabase.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "23124802029-7p37ajptksuaq7p7lbtfi44alj0f0mu7.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY": "AIzaSyBWJszbmGGTRqFjQTABh9z1YrII8HCKn-U"
+      }
+    },
+    "apk": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://172.27.200.162:3001/api",
+        "EXPO_PUBLIC_SOCKET_URL": "http://172.27.200.162:3001",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyA3fpSWGQEB_Ubbce82XNdmTOb8KFWf8BM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "kisanqueue-25ea7.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "kisanqueue-25ea7",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "kisanqueue-25ea7.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "23124802029",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:23124802029:android:ca86185ac1036b1fadcfe4",
+        "EXPO_PUBLIC_FIREBASE_DATABASE_URL": "https://kisanqueue-25ea7-default-rtdb.asia-southeast1.firebasedatabase.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "23124802029-7p37ajptksuaq7p7lbtfi44alj0f0mu7.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY": "AIzaSyBWJszbmGGTRqFjQTABh9z1YrII8HCKn-U"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://172.27.200.162:3001/api",
+        "EXPO_PUBLIC_SOCKET_URL": "http://172.27.200.162:3001",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyA3fpSWGQEB_Ubbce82XNdmTOb8KFWf8BM",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "kisanqueue-25ea7.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "kisanqueue-25ea7",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "kisanqueue-25ea7.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "23124802029",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:23124802029:android:ca86185ac1036b1fadcfe4",
+        "EXPO_PUBLIC_FIREBASE_DATABASE_URL": "https://kisanqueue-25ea7-default-rtdb.asia-southeast1.firebasedatabase.app",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "23124802029-7p37ajptksuaq7p7lbtfi44alj0f0mu7.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY": "AIzaSyBWJszbmGGTRqFjQTABh9z1YrII8HCKn-U"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
