@@ -226,6 +226,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const loginAsDemo = useCallback(async (demoRole: "FARMER" | "OPERATOR" | "ADMIN") => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+    const demoToken = `demo-token-${demoRole.toLowerCase()}`;
+    await Storage.setSecureToken(demoToken);
+
+    try {
+      // 🚀 Real Backend API Call: Creates and fetches user from PostgreSQL database!
+      const result = await verifyToken(demoRole);
+      if (result.isRegistered && result.data) {
+        await Storage.setItem(STORAGE_USER_KEY, result.data);
+        await Storage.setItem(STORAGE_ROLE_KEY, result.data.role || demoRole);
+
+        setState({
+          firebaseUser: null,
+          user: result.data,
+          isLoading: false,
+          isAuthenticated: true,
+          isRegistered: true,
+          role: result.data.role || demoRole,
+        });
+        return;
+      }
+    } catch (err) {
+      console.warn("Backend verify-token call failed for demo user, falling back to local:", err);
+    }
+
     const demoUser: UserData = {
       id: `demo-${demoRole.toLowerCase()}-01`,
       firebaseUid: `demo-${demoRole.toLowerCase()}-uid`,
@@ -266,7 +291,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     await Storage.setItem(STORAGE_USER_KEY, demoUser);
     await Storage.setItem(STORAGE_ROLE_KEY, demoRole);
-    await Storage.setSecureToken(`demo-token-${demoRole.toLowerCase()}`);
 
     setState({
       firebaseUser: null,

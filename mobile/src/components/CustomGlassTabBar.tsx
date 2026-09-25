@@ -193,8 +193,6 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                   <Circle cx="12" cy="7.5" r="4.2" />
                   <Path d="M4.5 19.5c0-4.14 3.36-7.5 7.5-7.5s7.5 3.36 7.5 7.5v0.5H4.5v-0.5z" />
                 </Svg>
-
-
               );
             }
 
@@ -381,4 +379,3 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-

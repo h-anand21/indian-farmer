@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "scheme": "kisanqueue",
     "orientation": "portrait",
-    "icon": "./assets/image.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/image.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#FFFBEF"
     },
@@ -19,8 +19,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFFBEF",
-        "foregroundImage": "./assets/image.png",
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
@@ -37,7 +37,7 @@
       ]
     },
     "web": {
-      "favicon": "./assets/image.png",
+      "favicon": "./assets/icon.png",
       "bundler": "metro"
     },
     "plugins": [
