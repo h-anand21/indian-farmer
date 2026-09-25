@@ -163,9 +163,37 @@ export const QUEUE_STAGES = [
   { key: "completed", label: "Completed", icon: "○" },
 ] as const;
 
-// ── API & Socket URL ──
-export const API_URL = process.env.EXPO_PUBLIC_API_URL || "https://indian-farmer.onrender.com/api";
-export const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL || "https://indian-farmer.onrender.com";
+// ── API & Socket URL (Smart Dynamic LAN Resolution in DEV) ──
+function resolveApiUrl(): string {
+  if (__DEV__) {
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri) {
+      const ip = hostUri.split(':')[0];
+      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+        return `http://${ip}:3001/api`;
+      }
+    }
+    return process.env.EXPO_PUBLIC_API_URL || "http://172.27.200.162:3001/api";
+  }
+  return process.env.EXPO_PUBLIC_API_URL || "https://indian-farmer.onrender.com/api";
+}
+
+function resolveSocketUrl(): string {
+  if (__DEV__) {
+    const hostUri = Constants.expoConfig?.hostUri;
+    if (hostUri) {
+      const ip = hostUri.split(':')[0];
+      if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+        return `http://${ip}:3001`;
+      }
+    }
+    return process.env.EXPO_PUBLIC_SOCKET_URL || "http://172.27.200.162:3001";
+  }
+  return process.env.EXPO_PUBLIC_SOCKET_URL || "https://indian-farmer.onrender.com";
+}
+
+export const API_URL = resolveApiUrl();
+export const SOCKET_URL = resolveSocketUrl();
 
 // ── App Info ──
 export const APP_NAME = "KisanQueue";
