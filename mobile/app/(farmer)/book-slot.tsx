@@ -60,7 +60,7 @@ const getInitialDates = () => {
       monthName,
       formattedDate,
       relativeLabel,
-      slots: 'Available',
+      badgeLabel: i === 0 ? 'TODAY' : 'OPEN',
     });
   }
   return dates;
@@ -171,8 +171,8 @@ export default function BookSlotScreen() {
             dayName: d.dayName,
             monthName: d.monthStr,
             formattedDate: `${d.dayName}, ${d.dayNum} ${d.monthStr}`,
-            relativeLabel: d.badgeLabel || d.dayName,
-            slots: 'Available',
+            relativeLabel: d.dayName === 'Today' ? 'Today' : d.dayName,
+            badgeLabel: d.badgeLabel || (d.dayName === 'Today' ? 'TODAY' : 'OPEN'),
           }));
           setAvailableDates(mapped);
           setSelectedDateObj(mapped[0]);
@@ -512,7 +512,7 @@ export default function BookSlotScreen() {
                       </Text>
                       <View style={[styles.dateSlotPill, isSel && styles.dateSlotPillActive]}>
                         <Text style={[styles.dateSlotPillText, isSel && styles.textWhite]}>
-                          {dateItem.slots}
+                          {dateItem.badgeLabel || 'OPEN'}
                         </Text>
                       </View>
                     </TouchableOpacity>

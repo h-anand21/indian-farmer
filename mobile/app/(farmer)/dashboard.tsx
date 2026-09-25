@@ -31,6 +31,7 @@ import Colors from '../../src/theme/colors';
 import OperatorDashboard from '../(operator)/dashboard';
 import AdminDashboardScreen from '../(admin)/dashboard';
 import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
+import { fetchMyBookings } from '../../src/services/bookingService';
 import { useFocusEffect } from 'expo-router';
 
 export default function DynamicDashboard() {
@@ -40,6 +41,48 @@ export default function DynamicDashboard() {
   const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
 
   const loadData = React.useCallback(async () => {
+    try {
+      const apiBookings = await fetchMyBookings();
+      if (apiBookings && apiBookings.length > 0) {
+        const active: BookingRecord[] = apiBookings
+          .filter(
+            (b) =>
+              b.status === 'BOOKED' ||
+              b.status === 'CHECKED_IN' ||
+              b.status === 'WAITING' ||
+              b.status === 'CALLED' ||
+              b.status === 'IN_PROCUREMENT'
+          )
+          .map((b) => ({
+            id: b.id,
+            token: b.token,
+            qrData: `KQ-BOOKING-${b.token}`,
+            mandi: b.centre?.name || 'Mandi Centre',
+            mandiId: b.centreId || '',
+            date: b.slotDate ? b.slotDate.split('T')[0] : 'Today',
+            time: b.slotWindow || '08:00 AM',
+            crop: b.crop?.name || 'Wheat',
+            quantity: `${b.quantity} Qt`,
+            vehicle: 'Tractor Trolley',
+            farmerName: b.farmer?.user?.name || user?.name || 'Farmer',
+            farmerPhone: b.farmer?.user?.phone || user?.phone || '',
+            status:
+              b.status === 'CALLED' || b.status === 'IN_PROCUREMENT'
+                ? 'WEIGHING'
+                : b.status === 'CHECKED_IN' || b.status === 'WAITING'
+                ? 'CHECKED_IN'
+                : 'BOOKED',
+            badgeColor: '#16A34A',
+            badgeBg: '#DCFCE7',
+            createdAt: b.bookedAt || new Date().toISOString(),
+          }));
+        setMyBookings(active);
+        return;
+      }
+    } catch (e) {
+      console.warn('Dashboard real bookings fetch error:', e);
+    }
+
     const farmerId = user?.phone || user?.name || '+91 98140 12345';
     const all = await getBookings(farmerId);
     const active = all.filter(
