@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Text, TextProps } from 'react-native';
 import { Storage } from '../lib/storage';
 import { INDIAN_LANGUAGES, IndianLanguage } from '../lib/languages';
+import {
+  initLanguageCache,
+  translateText,
+  getCachedTranslation,
+} from '../services/translationService';
 
 export type TranslationKey =
   | 'appName'
@@ -1594,7 +1600,8 @@ interface LanguageContextType {
   currentLanguage: string;
   activeLanguageInfo: IndianLanguage;
   setLanguage: (langCode: string) => Promise<void>;
-  t: (key: TranslationKey) => string;
+  t: (keyOrText: TranslationKey | string) => string;
+  translateDynamic: (text: string) => Promise<string>;
   isReady: boolean;
 }
 
@@ -1604,13 +1611,15 @@ const LanguageContext = createContext<LanguageContextType>({
   currentLanguage: 'en',
   activeLanguageInfo: defaultLangInfo,
   setLanguage: async () => {},
-  t: (key: TranslationKey) => key,
+  t: (keyOrText: TranslationKey | string) => keyOrText,
+  translateDynamic: async (text: string) => text,
   isReady: false,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguageState] = useState<string>('en');
   const [isReady, setIsReady] = useState(false);
+  const [, setVersion] = useState(0);
 
   useEffect(() => {
     async function init() {
@@ -1618,6 +1627,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const saved = await Storage.getItem<string>('kisan_lang');
         if (saved && (saved in TRANSLATIONS || INDIAN_LANGUAGES.some((l) => l.code === saved))) {
           setCurrentLanguageState(saved);
+          await initLanguageCache(saved);
         }
       } catch {
         // fallback to en
@@ -1631,23 +1641,47 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const changeLang = async (langCode: string) => {
     setCurrentLanguageState(langCode);
     await Storage.setItem('kisan_lang', langCode);
+    await initLanguageCache(langCode);
   };
 
   const activeLanguageInfo =
     INDIAN_LANGUAGES.find((l) => l.code === currentLanguage) || INDIAN_LANGUAGES[0];
 
-  const t = (key: TranslationKey): string => {
-    // 1. Direct language dictionary
+  const t = (keyOrText: TranslationKey | string): string => {
+    if (!keyOrText || currentLanguage === 'en') {
+      return keyOrText;
+    }
+
+    // 1. Direct language dictionary lookup
     const langDict = TRANSLATIONS[currentLanguage];
-    if (langDict && langDict[key]) {
-      return langDict[key];
+    if (langDict && (langDict as any)[keyOrText]) {
+      return (langDict as any)[keyOrText];
     }
-    // 2. Hindi fallback for Indian languages if exact key is missing
-    if (TRANSLATIONS.hi && TRANSLATIONS.hi[key]) {
-      return TRANSLATIONS.hi[key];
+
+    // 2. Dynamic translation cache (from Google Translate API)
+    const cached = getCachedTranslation(keyOrText, currentLanguage);
+    if (cached) {
+      return cached;
     }
-    // 3. English master fallback
-    return TRANSLATIONS.en[key] || key;
+
+    // 3. Trigger dynamic Google Translate in background without blocking UI
+    translateText(keyOrText, currentLanguage).then((translated) => {
+      if (translated && translated !== keyOrText) {
+        setVersion((v) => v + 1);
+      }
+    });
+
+    // 4. Hindi fallback for Indian languages if exact key is missing
+    if (TRANSLATIONS.hi && (TRANSLATIONS.hi as any)[keyOrText]) {
+      return (TRANSLATIONS.hi as any)[keyOrText];
+    }
+
+    // 5. English master fallback
+    return (TRANSLATIONS.en as any)?.[keyOrText] || keyOrText;
+  };
+
+  const translateDynamic = async (text: string): Promise<string> => {
+    return translateText(text, currentLanguage);
   };
 
   return (
@@ -1657,6 +1691,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         activeLanguageInfo,
         setLanguage: changeLang,
         t,
+        translateDynamic,
         isReady,
       }}
     >
@@ -1668,3 +1703,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export function useLanguage() {
   return useContext(LanguageContext);
 }
+
+/**
+ * Auto-Translating Text Component for Mobile:
+ * Developers can simply write:
+ * <T style={styles.anyStyle}>Any English text</T>
+ * and it automatically translates via Google Translate into any of the 22 Indian regional languages!
+ */
+export const T: React.FC<TextProps & { children: string }> = ({ children, style, ...rest }) => {
+  const { t } = useLanguage();
+  return (
+    <Text style={style} {...rest}>
+      {typeof children === 'string' ? t(children) : children}
+    </Text>
+  );
+};
