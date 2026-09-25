@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,165 +7,217 @@ import {
   TouchableOpacity,
   Alert,
   Switch,
-  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import {
   Users,
   Bell,
-  PhoneCall,
   CheckCircle,
   Clock,
   Volume2,
-  ShieldAlert,
   ArrowRight,
   RefreshCw,
-  ArrowUp,
-  ArrowDown,
   SkipForward,
   Trash2,
   MessageSquare,
   Scale,
   Truck,
-  Filter,
+  Building2,
+  CheckCircle2,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
-
-interface QueueItem {
-  id: string;
-  token: string;
-  farmer: string;
-  phone: string;
-  vehicle: string;
-  crop: string;
-  bay: string;
-  status: 'NOW_SERVING' | 'WAITING' | 'COMPLETED';
-  waitTime: string;
-  position: number;
-}
-
-const INITIAL_QUEUE: QueueItem[] = [
-  { id: '1', token: 'KQ-1048', farmer: 'Ram Singh Gurjar', phone: '+91 98765 43210', vehicle: 'MP-04-AB-1234', crop: 'Wheat (50 Qt)', bay: 'Weighbridge A', status: 'NOW_SERVING', waitTime: '0 min', position: 1 },
-  { id: '2', token: 'KQ-1049', farmer: 'Sita Devi', phone: '+91 98123 45678', vehicle: 'MP-04-CD-5678', crop: 'Paddy (32 Qt)', bay: 'Weighbridge B', status: 'WAITING', waitTime: '12 min', position: 2 },
-  { id: '3', token: 'KQ-1050', farmer: 'Mohan Lal', phone: '+91 97654 32109', vehicle: 'MP-04-EF-9012', crop: 'Mustard (25 Qt)', bay: 'Weighbridge A', status: 'WAITING', waitTime: '18 min', position: 3 },
-  { id: '4', token: 'KQ-1051', farmer: 'Vikram Singh', phone: '+91 99887 76655', vehicle: 'MP-04-GH-3456', crop: 'Chana (40 Qt)', bay: 'Weighbridge B', status: 'WAITING', waitTime: '24 min', position: 4 },
-  { id: '5', token: 'KQ-1052', farmer: 'Sunita Sharma', phone: '+91 96543 21098', vehicle: 'MP-04-IJ-7890', crop: 'Wheat (48 Qt)', bay: 'Weighbridge A', status: 'WAITING', waitTime: '31 min', position: 5 },
-  { id: '6', token: 'KQ-1053', farmer: 'Harpreet Singh', phone: '+91 98140 11223', vehicle: 'PB-10-AB-5544', crop: 'Wheat (55 Qt)', bay: 'Weighbridge B', status: 'WAITING', waitTime: '36 min', position: 6 },
-  { id: '7', token: 'KQ-1047', farmer: 'Ramesh Patel', phone: '+91 98220 99887', vehicle: 'MP-04-XX-0001', crop: 'Rice (32 Qt)', bay: 'Weighbridge A', status: 'COMPLETED', waitTime: 'Done', position: 0 },
-];
+import { useAuth } from '../../src/context/AuthContext';
+import {
+  fetchOperatorRoster,
+  type RosterItem,
+} from '../../src/services/operatorService';
+import {
+  fetchCentreQueue,
+  advanceQueueSimulation,
+  type CentreQueueState,
+} from '../../src/services/queueService';
 
 export default function OperatorQueueScreen() {
-  const [queue, setQueue] = useState<QueueItem[]>(INITIAL_QUEUE);
-  const [filterStatus, setFilterStatus] = useState<'ALL' | 'WAITING' | 'NOW_SERVING' | 'COMPLETED'>('ALL');
-  const [selectedBay, setSelectedBay] = useState<string>('ALL');
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const centreId = user?.operator?.centreId || 'cmtsmdosz0000ykidfgsuu0ki';
+  const centreName = user?.operator?.centre?.name || 'APMC Mandi Procurement Complex';
+
+  // Live States from Database
+  const [roster, setRoster] = useState<RosterItem[]>([]);
+  const [centreQueue, setCentreQueue] = useState<CentreQueueState | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isActionPending, setIsActionPending] = useState(false);
+
+  // Filters & Settings
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'WAITING' | 'SERVING' | 'COMPLETED'>('ALL');
   const [autoAnnounce, setAutoAnnounce] = useState(true);
 
-  const currentServing = queue.find((item) => item.status === 'NOW_SERVING');
+  // Load live data from Neon PostgreSQL DB
+  const loadLiveData = useCallback(async () => {
+    try {
+      const [rosterData, queueData] = await Promise.all([
+        fetchOperatorRoster(centreId),
+        fetchCentreQueue(centreId),
+      ]);
 
-  const waitingList = queue.filter((item) => item.status === 'WAITING');
-  const totalInQueue = waitingList.length;
+      if (Array.isArray(rosterData)) {
+        setRoster(rosterData);
+      }
+      if (queueData) {
+        setCentreQueue(queueData);
+      }
+    } catch (err) {
+      console.warn('Operator queue live data fetch error:', err);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [centreId]);
 
-  const handleCallNext = () => {
-    const nextItem = waitingList[0];
-    if (!nextItem) {
-      Toast.show({ type: 'info', text1: 'Queue Empty', text2: 'No waiting vehicles left in line.' });
+  useEffect(() => {
+    loadLiveData();
+    const interval = setInterval(loadLiveData, 6000);
+    return () => clearInterval(interval);
+  }, [loadLiveData]);
+
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    loadLiveData();
+    Toast.show({ type: 'success', text1: 'Live Queue Refreshed 🔄' });
+  };
+
+  // Find currently serving vehicle
+  const currentServing = roster.find(
+    (item) => item.status === 'CALLED' || item.status === 'IN_PROCUREMENT'
+  );
+
+  // Filtered waiting list
+  const waitingList = roster.filter(
+    (item) => item.status === 'WAITING' || item.status === 'CHECKED_IN'
+  );
+
+  // Call Next Token via backend API
+  const handleCallNext = async () => {
+    if (waitingList.length === 0) {
+      Toast.show({
+        type: 'info',
+        text1: 'Queue Empty',
+        text2: 'No waiting vehicles in yard right now.',
+      });
       return;
     }
 
-    setQueue((prev) =>
-      prev.map((item) => {
-        if (item.status === 'NOW_SERVING') return { ...item, status: 'COMPLETED' };
-        if (item.id === nextItem.id) return { ...item, status: 'NOW_SERVING' };
-        return item;
-      })
-    );
+    try {
+      setIsActionPending(true);
+      const res = await advanceQueueSimulation({
+        centreId,
+        action: 'CALL_NEXT',
+        counterNumber: 1,
+      });
 
-    Toast.show({
-      type: 'success',
-      text1: `📢 Called #${nextItem.token}!`,
-      text2: `${nextItem.farmer} summoned to ${nextItem.bay}.`,
-    });
+      const nextItem = waitingList[0];
+      Toast.show({
+        type: 'success',
+        text1: `📢 Called Token #${nextItem?.token || res?.nowServingToken}!`,
+        text2: `${nextItem?.farmerName || 'Farmer'} summoned to Weighbridge #1.`,
+      });
+
+      await loadLiveData();
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Call Next Failed',
+        text2: err.response?.data?.message || 'Could not advance queue.',
+      });
+    } finally {
+      setIsActionPending(false);
+    }
   };
 
-  const handleSkipToken = (id: string) => {
-    setQueue((prev) => {
-      const idx = prev.findIndex((item) => item.id === id);
-      if (idx === -1 || idx === prev.length - 1) return prev;
-      const copy = [...prev];
-      const [moved] = copy.splice(idx, 1);
-      copy.push(moved);
-      return copy;
-    });
+  // Skip token via backend API
+  const handleSkipToken = async (bookingId?: string, token?: string) => {
+    try {
+      setIsActionPending(true);
+      await advanceQueueSimulation({
+        centreId,
+        action: 'SKIP',
+        bookingId: bookingId || token,
+      });
 
-    Toast.show({
-      type: 'info',
-      text1: 'Token Skipped',
-      text2: 'Farmer moved to the bottom of the queue.',
-    });
+      Toast.show({
+        type: 'info',
+        text1: 'Vehicle Skipped',
+        text2: `Token #${token} moved to the back of the queue.`,
+      });
+
+      await loadLiveData();
+    } catch (err: any) {
+      Toast.show({
+        type: 'error',
+        text1: 'Skip Failed',
+        text2: err.response?.data?.message || 'Could not skip token.',
+      });
+    } finally {
+      setIsActionPending(false);
+    }
   };
 
-  const handleRemoveToken = (id: string, token: string) => {
-    Alert.alert('Remove from Queue', `Are you sure you want to remove token #${token}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: () => {
-          setQueue((prev) => prev.filter((item) => item.id !== id));
-          Toast.show({ type: 'error', text1: 'Token Removed', text2: `Token #${token} cancelled.` });
-        },
+  // Navigate directly to Weighment Intake with pre-filled farmer
+  const handleProceedToWeighment = (item: RosterItem) => {
+    router.push({
+      pathname: '/(operator)/intake',
+      params: {
+        token: item.token,
+        name: item.farmerName,
+        phone: item.farmerPhone || '',
+        crop: item.cropName,
+        vehicle: item.vehicleNumber || '',
+        quantity: (item.quantity || item.expectedQuantity || 50).toString(),
       },
-    ]);
-  };
-
-  const handleMoveUp = (idx: number) => {
-    if (idx <= 0) return;
-    setQueue((prev) => {
-      const copy = [...prev];
-      const temp = copy[idx - 1];
-      copy[idx - 1] = copy[idx];
-      copy[idx] = temp;
-      return copy;
-    });
-  };
-
-  const handleMoveDown = (idx: number) => {
-    if (idx >= queue.length - 1) return;
-    setQueue((prev) => {
-      const copy = [...prev];
-      const temp = copy[idx + 1];
-      copy[idx + 1] = copy[idx];
-      copy[idx] = temp;
-      return copy;
-    });
-  };
-
-  const handleSendProximityAlert = (token: string, name: string) => {
-    Toast.show({
-      type: 'success',
-      text1: 'SMS Alert Dispatched! 📲',
-      text2: `Sent proximity alert to ${name} (#${token}).`,
     });
   };
 
   // Filter items
-  const filteredQueue = queue.filter((item) => {
-    if (filterStatus !== 'ALL' && item.status !== filterStatus) return false;
-    if (selectedBay !== 'ALL' && item.bay !== selectedBay) return false;
-    return true;
+  const filteredRoster = roster.filter((item) => {
+    if (filterStatus === 'WAITING') {
+      return item.status === 'WAITING' || item.status === 'CHECKED_IN';
+    }
+    if (filterStatus === 'SERVING') {
+      return item.status === 'CALLED' || item.status === 'IN_PROCUREMENT';
+    }
+    if (filterStatus === 'COMPLETED') {
+      return item.status === 'COMPLETED';
+    }
+    return true; // ALL
   });
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Queue Control Desk</Text>
-          <Text style={styles.headerSubtitle}>Live Mandi Yard Sequencing</Text>
+          <Text style={styles.headerSubtitle} numberOfLines={1}>
+            {centreName}
+          </Text>
         </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={() => setQueue(INITIAL_QUEUE)}>
-          <RefreshCw size={16} color="#E66919" />
+
+        <TouchableOpacity
+          style={styles.refreshBtn}
+          onPress={handleManualRefresh}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? (
+            <ActivityIndicator size="small" color="#E66919" />
+          ) : (
+            <RefreshCw size={18} color="#E66919" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -173,31 +225,38 @@ export default function OperatorQueueScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Stats Bar */}
+        {/* Live Metrics Row from DB */}
         <View style={styles.statsBar}>
           <View style={styles.statBox}>
-            <Text style={styles.statVal}>{totalInQueue}</Text>
-            <Text style={styles.statLabel}>In Queue</Text>
+            <Text style={styles.statVal}>
+              {centreQueue?.waitingCount ?? waitingList.length}
+            </Text>
+            <Text style={styles.statLabel}>In Yard</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
-            <Text style={styles.statVal}>18 min</Text>
+            <Text style={styles.statVal}>
+              {centreQueue?.avgTurnaroundMins ? `${centreQueue.avgTurnaroundMins}m` : '15m'}
+            </Text>
             <Text style={styles.statLabel}>Avg Wait</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
-            <Text style={[styles.statVal, { color: '#E66919' }]}>36 min</Text>
-            <Text style={styles.statLabel}>Longest Wait</Text>
+            <Text style={[styles.statVal, { color: '#16A34A' }]}>
+              {centreQueue?.completedTodayCount ?? roster.filter((r) => r.status === 'COMPLETED').length}
+            </Text>
+            <Text style={styles.statLabel}>Completed</Text>
           </View>
         </View>
 
-        {/* Active Token Call Box */}
+        {/* Active Token Call Hero Box (NOW SERVING AT SCALE) */}
         <View style={styles.activeBox}>
           <View style={styles.activeHeader}>
             <View style={styles.servingBadge}>
               <View style={styles.greenDot} />
-              <Text style={styles.servingBadgeText}>NOW SERVING AT WEIGHBRIDGE</Text>
+              <Text style={styles.servingBadgeText}>NOW SERVING AT SCALE</Text>
             </View>
+
             <View style={styles.toggleRow}>
               <Volume2 size={14} color="#666666" />
               <Switch
@@ -213,54 +272,77 @@ export default function OperatorQueueScreen() {
             <View style={styles.activeDetails}>
               <View style={styles.activeRow}>
                 <Text style={styles.activeToken}>#{currentServing.token}</Text>
-                <Text style={styles.activeBay}>{currentServing.bay}</Text>
+                <View style={styles.bayBadge}>
+                  <Text style={styles.bayBadgeText}>Weighbridge #1</Text>
+                </View>
               </View>
-              <Text style={styles.activeFarmer}>{currentServing.farmer}</Text>
+
+              <Text style={styles.activeFarmer}>{currentServing.farmerName}</Text>
               <Text style={styles.activeSub}>
-                Vehicle: {currentServing.vehicle} • {currentServing.crop}
+                {currentServing.cropName} ({currentServing.quantity || currentServing.expectedQuantity || 50} Qt) • {currentServing.vehicleNumber || 'Trolley'}
               </Text>
+
+              {/* Direct Go to Weighment Button */}
+              <TouchableOpacity
+                style={styles.activeWeighBtn}
+                onPress={() => handleProceedToWeighment(currentServing)}
+              >
+                <Scale size={16} color="#FFFFFF" />
+                <Text style={styles.activeWeighBtnText}>Record Weighment & Form J</Text>
+                <ArrowRight size={16} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
           ) : (
-            <Text style={styles.emptyText}>No vehicle being weighed right now.</Text>
+            <View style={{ paddingVertical: 10 }}>
+              <Text style={styles.emptyText}>
+                No vehicle currently on the scale.
+              </Text>
+              <Text style={{ fontSize: 11, color: '#888888', marginTop: 2 }}>
+                {waitingList.length > 0
+                  ? `${waitingList.length} vehicles waiting in yard. Tap Call Next below.`
+                  : 'Yard queue is empty.'}
+              </Text>
+            </View>
           )}
 
-          <TouchableOpacity style={styles.callNextBtn} activeOpacity={0.85} onPress={handleCallNext}>
-            <Bell size={18} color="#FFFFFF" />
-            <Text style={styles.callNextText}>CALL NEXT TOKEN</Text>
+          <TouchableOpacity
+            style={[styles.callNextBtn, isActionPending && { opacity: 0.6 }]}
+            activeOpacity={0.85}
+            disabled={isActionPending}
+            onPress={handleCallNext}
+          >
+            {isActionPending ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Bell size={18} color="#FFFFFF" />
+            )}
+            <Text style={styles.callNextText}>
+              {isActionPending ? 'CALLING...' : 'CALL NEXT TOKEN'}
+            </Text>
             <ArrowRight size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {/* Bay / Scale Filters */}
-        <View style={styles.bayChipsRow}>
-          {['ALL', 'Weighbridge A', 'Weighbridge B'].map((bay) => (
-            <TouchableOpacity
-              key={bay}
-              style={[styles.bayChip, selectedBay === bay && styles.bayChipActive]}
-              onPress={() => setSelectedBay(bay)}
-            >
-              <Text style={[styles.bayChipText, selectedBay === bay && styles.bayChipTextActive]}>
-                {bay === 'ALL' ? 'All Scales' : bay}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         {/* Status Filter Tabs */}
         <View style={styles.filterTabsRow}>
-          {(['ALL', 'WAITING', 'NOW_SERVING', 'COMPLETED'] as const).map((st) => (
+          {(['ALL', 'WAITING', 'SERVING', 'COMPLETED'] as const).map((st) => (
             <TouchableOpacity
               key={st}
               style={[styles.filterTab, filterStatus === st && styles.filterTabActive]}
               onPress={() => setFilterStatus(st)}
             >
-              <Text style={[styles.filterTabText, filterStatus === st && styles.filterTabTextActive]}>
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filterStatus === st && styles.filterTabTextActive,
+                ]}
+              >
                 {st === 'ALL'
-                  ? 'All'
+                  ? `All (${roster.length})`
                   : st === 'WAITING'
-                  ? 'Waiting'
-                  : st === 'NOW_SERVING'
-                  ? 'Serving'
+                  ? `Waiting (${waitingList.length})`
+                  : st === 'SERVING'
+                  ? `Serving (${currentServing ? 1 : 0})`
                   : 'Done'}
               </Text>
             </TouchableOpacity>
@@ -269,85 +351,108 @@ export default function OperatorQueueScreen() {
 
         {/* Queue Board List */}
         <View style={styles.queueListSection}>
-          {filteredQueue.map((item, idx) => {
-            const isServing = item.status === 'NOW_SERVING';
-            const isDone = item.status === 'COMPLETED';
+          {isLoading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#E66919" />
+              <Text style={{ marginTop: 12, fontSize: 13, color: '#667064' }}>
+                Loading live yard queue from database...
+              </Text>
+            </View>
+          ) : filteredRoster.length === 0 ? (
+            <View style={styles.emptyCard}>
+              <Text style={{ fontSize: 32, marginBottom: 8 }}>🌾</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#141713' }}>
+                No records matching filter
+              </Text>
+              <Text style={{ fontSize: 12, color: '#667064', marginTop: 2 }}>
+                Scan incoming QR passes at the gate to admit vehicles into yard.
+              </Text>
+            </View>
+          ) : (
+            filteredRoster.map((item, idx) => {
+              const isServing =
+                item.status === 'CALLED' || item.status === 'IN_PROCUREMENT';
+              const isDone = item.status === 'COMPLETED';
 
-            return (
-              <View
-                key={item.id}
-                style={[
-                  styles.queueCard,
-                  isServing && styles.queueCardServing,
-                  isDone && styles.queueCardDone,
-                ]}
-              >
-                {/* Left: Position & Token */}
-                <View style={styles.cardLeft}>
-                  <View style={[styles.positionBadge, isServing && styles.posServing]}>
-                    <Text style={[styles.positionText, isServing && styles.posServingText]}>
-                      {isDone ? '✓' : `#${idx + 1}`}
-                    </Text>
-                  </View>
-
-                  <View style={{ gap: 2 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={styles.tokenText}>#{item.token}</Text>
-                      {isServing && (
-                        <View style={styles.servingTag}>
-                          <Text style={styles.servingTagText}>SERVING</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.farmerText}>{item.farmer}</Text>
-                    <Text style={styles.cropText}>{item.crop} • {item.vehicle}</Text>
-                    <Text style={styles.waitText}>Wait time: {item.waitTime} • {item.bay}</Text>
-                  </View>
-                </View>
-
-                {/* Right: Actions */}
-                <View style={styles.cardActions}>
-                  {/* SMS Proximity Alert */}
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleSendProximityAlert(item.token, item.farmer)}
-                  >
-                    <MessageSquare size={16} color="#0284C7" />
-                  </TouchableOpacity>
-
-                  {/* Skip to Back */}
-                  {!isDone && (
-                    <TouchableOpacity
-                      style={styles.actionIconBtn}
-                      onPress={() => handleSkipToken(item.id)}
+              return (
+                <View
+                  key={item.id || item.token || idx}
+                  style={[
+                    styles.queueCard,
+                    isServing && styles.queueCardServing,
+                    isDone && styles.queueCardDone,
+                  ]}
+                >
+                  {/* Left: Position & Token Details */}
+                  <View style={styles.cardLeft}>
+                    <View
+                      style={[
+                        styles.positionBadge,
+                        isServing && styles.posServing,
+                        isDone && styles.posDone,
+                      ]}
                     >
-                      <SkipForward size={16} color="#E66919" />
-                    </TouchableOpacity>
-                  )}
-
-                  {/* Remove */}
-                  <TouchableOpacity
-                    style={styles.actionIconBtn}
-                    onPress={() => handleRemoveToken(item.id, item.token)}
-                  >
-                    <Trash2 size={16} color="#DC2626" />
-                  </TouchableOpacity>
-
-                  {/* Move Up / Move Down */}
-                  {!isDone && (
-                    <View style={styles.reorderColumn}>
-                      <TouchableOpacity onPress={() => handleMoveUp(idx)} disabled={idx === 0}>
-                        <ArrowUp size={14} color={idx === 0 ? '#CCCCCC' : '#141713'} />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleMoveDown(idx)} disabled={idx === filteredQueue.length - 1}>
-                        <ArrowDown size={14} color={idx === filteredQueue.length - 1 ? '#CCCCCC' : '#141713'} />
-                      </TouchableOpacity>
+                      <Text
+                        style={[
+                          styles.positionText,
+                          isServing && styles.posServingText,
+                          isDone && styles.posDoneText,
+                        ]}
+                      >
+                        {isDone ? '✓' : `#${item.queuePosition || idx + 1}`}
+                      </Text>
                     </View>
-                  )}
+
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={styles.tokenText}>#{item.token}</Text>
+                        {isServing && (
+                          <View style={styles.servingTag}>
+                            <Text style={styles.servingTagText}>AT SCALE</Text>
+                          </View>
+                        )}
+                        {isDone && (
+                          <View style={styles.doneTag}>
+                            <Text style={styles.doneTagText}>COMPLETED</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <Text style={styles.farmerText}>{item.farmerName}</Text>
+                      <Text style={styles.cropText}>
+                        {item.cropName} • {item.quantity || item.expectedQuantity || 50} Qt
+                      </Text>
+                      <Text style={styles.waitText}>
+                        Vehicle: {item.vehicleNumber || 'Trolley'} • Gate In: {item.checkInTime || '—'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Right Actions */}
+                  <View style={styles.cardActions}>
+                    {!isDone && (
+                      <TouchableOpacity
+                        style={styles.weighSmallBtn}
+                        onPress={() => handleProceedToWeighment(item)}
+                      >
+                        <Scale size={14} color="#FFFFFF" />
+                        <Text style={styles.weighSmallBtnText}>Weigh</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {!isDone && !isServing && (
+                      <TouchableOpacity
+                        style={styles.actionIconBtn}
+                        onPress={() => handleSkipToken(item.id, item.token)}
+                      >
+                        <SkipForward size={16} color="#E66919" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -363,7 +468,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
@@ -378,46 +483,46 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 11,
     color: '#667064',
-    marginTop: 2,
+    marginTop: 1,
   },
   refreshBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FFF4EC',
+    backgroundColor: '#FAF9F5',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#FED7AA',
+    borderColor: '#E8E4D8',
   },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 14,
-    paddingBottom: 120,
+    paddingBottom: 130,
     gap: 14,
   },
   statsBar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#E8E4D8',
-    alignItems: 'center',
   },
   statBox: {
-    flex: 1,
     alignItems: 'center',
   },
   statVal: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#141713',
   },
   statLabel: {
     fontSize: 10,
-    color: '#888888',
     fontWeight: '700',
+    color: '#667064',
     marginTop: 2,
   },
   statDivider: {
@@ -426,9 +531,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8E4D8',
   },
   activeBox: {
-    backgroundColor: '#1C1E1B',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
+    borderWidth: 1.5,
+    borderColor: '#E66919',
     gap: 12,
   },
   activeHeader: {
@@ -440,7 +547,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#2C3028',
+    backgroundColor: '#DCFCE7',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -454,7 +561,7 @@ const styles = StyleSheet.create({
   servingBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#F59E0B',
+    color: '#16A34A',
     letterSpacing: 0.5,
   },
   toggleRow: {
@@ -463,7 +570,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   activeDetails: {
-    gap: 3,
+    backgroundColor: '#FAF9F5',
+    borderRadius: 14,
+    padding: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
   },
   activeRow: {
     flexDirection: 'row',
@@ -471,101 +583,100 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   activeToken: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#E66919',
   },
-  activeBay: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#F59E0B',
-    backgroundColor: '#2C3028',
+  bayBadge: {
+    backgroundColor: '#1C1E1B',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
+  bayBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#F59E0B',
+  },
   activeFarmer: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#E8E4D8',
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#141713',
   },
   activeSub: {
     fontSize: 12,
-    color: '#A0AAB0',
+    color: '#667064',
+  },
+  activeWeighBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#16A34A',
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginTop: 6,
+  },
+  activeWeighBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   emptyText: {
     fontSize: 13,
-    color: '#A0AAB0',
-    fontStyle: 'italic',
+    fontWeight: '700',
+    color: '#141713',
   },
   callNextBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#E66919',
     borderRadius: 14,
     paddingVertical: 14,
-    gap: 8,
   },
   callNextText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
-  bayChipsRow: {
+  filterTabsRow: {
     flexDirection: 'row',
     gap: 8,
   },
-  bayChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  filterTab: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E8E4D8',
-  },
-  bayChipActive: {
-    backgroundColor: '#1C1E1B',
-    borderColor: '#1C1E1B',
-  },
-  bayChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#555555',
-  },
-  bayChipTextActive: {
-    color: '#FFFFFF',
-  },
-  filterTabsRow: {
-    flexDirection: 'row',
-    backgroundColor: '#F3EFE6',
-    borderRadius: 12,
-    padding: 3,
-  },
-  filterTab: {
-    flex: 1,
-    paddingVertical: 7,
     alignItems: 'center',
-    borderRadius: 9,
   },
   filterTabActive: {
-    backgroundColor: '#FFFFFF',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    backgroundColor: '#1C1E1B',
+    borderColor: '#1C1E1B',
   },
   filterTabText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#888888',
+    color: '#667064',
   },
   filterTabTextActive: {
-    color: '#141713',
+    color: '#FFFFFF',
   },
   queueListSection: {
     gap: 10,
+  },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E4D8',
   },
   queueCard: {
     flexDirection: 'row',
@@ -573,51 +684,60 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#E8E4D8',
   },
   queueCardServing: {
     borderColor: '#E66919',
-    backgroundColor: '#FFFBF7',
+    backgroundColor: '#FFFBF5',
   },
   queueCardDone: {
-    opacity: 0.6,
-    backgroundColor: '#FAF9F5',
+    opacity: 0.7,
   },
   cardLeft: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    flex: 1,
   },
   positionBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F3EFE6',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FAF9F5',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E8E4D8',
   },
   posServing: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: '#E66919',
+    borderColor: '#E66919',
+  },
+  posDone: {
+    backgroundColor: '#DCFCE7',
+    borderColor: '#16A34A',
   },
   positionText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     color: '#141713',
   },
   posServingText: {
-    color: '#D97706',
+    color: '#FFFFFF',
+  },
+  posDoneText: {
+    color: '#16A34A',
   },
   tokenText: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '900',
     color: '#141713',
   },
   servingTag: {
     backgroundColor: '#FEF3C7',
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
   },
@@ -625,6 +745,17 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     color: '#D97706',
+  },
+  doneTag: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  doneTagText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#16A34A',
   },
   farmerText: {
     fontSize: 13,
@@ -634,16 +765,31 @@ const styles = StyleSheet.create({
   cropText: {
     fontSize: 11,
     color: '#667064',
+    fontWeight: '600',
   },
   waitText: {
     fontSize: 10,
     color: '#888888',
-    marginTop: 2,
   },
   cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginLeft: 8,
+  },
+  weighSmallBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#16A34A',
+    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+  },
+  weighSmallBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   actionIconBtn: {
     width: 32,
@@ -654,9 +800,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E8E4D8',
-  },
-  reorderColumn: {
-    gap: 4,
-    marginLeft: 2,
   },
 });

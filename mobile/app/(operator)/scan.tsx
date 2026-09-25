@@ -555,7 +555,17 @@ export default function GateScanScreen() {
                 style={styles.goToWeighBtn}
                 onPress={() => {
                   setShowSuccessModal(false);
-                  router.push('/(operator)/intake');
+                  router.push({
+                    pathname: '/(operator)/intake',
+                    params: {
+                      token: scannedResult?.token || '',
+                      name: scannedResult?.name || '',
+                      phone: scannedResult?.phone || '',
+                      crop: scannedResult?.crop || '',
+                      vehicle: scannedResult?.vehicle || '',
+                      quantity: scannedResult?.quantity || '',
+                    },
+                  });
                 }}
               >
                 <Text style={styles.goToWeighBtnText}>Go to Weighment</Text>

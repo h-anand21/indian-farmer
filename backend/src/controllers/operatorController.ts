@@ -90,8 +90,14 @@ export async function getBookingDetails(req: Request, res: Response, next: NextF
       return;
     }
 
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          { id: bookingId },
+          { token: bookingId },
+          { token: { contains: bookingId, mode: "insensitive" } },
+        ],
+      },
       include: {
         centre: true,
         crop: true,
