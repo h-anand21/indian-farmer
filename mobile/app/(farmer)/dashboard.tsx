@@ -233,9 +233,11 @@ export default function DynamicDashboard() {
         {myBookings.length > 0 ? (
           <View style={styles.spotlightCard}>
             <View style={styles.spotlightCardHeader}>
-              <View>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={styles.tokenNumberText}>Token #{myBookings[0].token}</Text>
-                <Text style={styles.mandiLocationText}>📍 {myBookings[0].mandi}</Text>
+                <Text style={styles.mandiLocationText} numberOfLines={1} ellipsizeMode="tail">
+                  📍 {myBookings[0].mandi}
+                </Text>
               </View>
               <View style={styles.confirmedBadge}>
                 <Text style={styles.confirmedBadgeText}>✓ {myBookings[0].status}</Text>
@@ -253,7 +255,9 @@ export default function DynamicDashboard() {
               </View>
               <View style={styles.detailChip}>
                 <Wheat size={14} color={Colors.light.textSecondary} />
-                <Text style={styles.chipText}>{myBookings[0].crop}</Text>
+                <Text style={styles.chipText} numberOfLines={1} ellipsizeMode="tail">
+                  {myBookings[0].crop}
+                </Text>
               </View>
             </View>
 
@@ -658,6 +662,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 10,
     elevation: 3,
+    overflow: 'hidden',
   },
   spotlightCardHeader: {
     flexDirection: 'row',
@@ -688,17 +693,20 @@ const styles = StyleSheet.create({
   },
   spotlightDetailsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 16,
   },
   detailChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     backgroundColor: '#F7F4E9',
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 10,
+    maxWidth: '100%',
+    flexShrink: 1,
   },
   chipText: {
     fontSize: 12,
