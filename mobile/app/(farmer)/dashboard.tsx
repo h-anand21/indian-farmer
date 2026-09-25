@@ -582,6 +582,67 @@ export default function DynamicDashboard() {
           </View>
         </View>
       </ScrollView>
+
+      {/* ── REGIONAL LANGUAGE SELECTION MODAL (22 LANGUAGES) ── */}
+      <Modal visible={showLangModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxHeight: '82%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Globe size={20} color="#0C5432" />
+                <Text style={styles.modalTitle}>{t('chooseLanguage')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowLangModal(false)}>
+                <X size={20} color="#4A5548" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSub}>
+              {t('selectPreferredLang')}
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+              <View style={styles.langGridModal}>
+                {INDIAN_LANGUAGES.map((lang) => {
+                  const isSelected = currentLanguage === lang.code;
+                  return (
+                    <TouchableOpacity
+                      key={lang.code}
+                      style={[
+                        styles.langModalCard,
+                        isSelected && styles.langModalCardSelected,
+                      ]}
+                      onPress={async () => {
+                        await setLanguage(lang.code);
+                        setShowLangModal(false);
+                        Toast.show({
+                          type: 'success',
+                          text1: `${lang.nativeName} selected!`,
+                          text2: `App language updated to ${lang.name}`,
+                        });
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <View style={[styles.langAvatarModal, { backgroundColor: lang.avatarColor }]}>
+                        <Text style={styles.langAvatarText}>{lang.shortTag}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.langNativeModal, isSelected && { color: '#0C5432', fontWeight: '900' }]}>
+                          {lang.nativeName}
+                        </Text>
+                        <Text style={styles.langEnglishModal}>{lang.name}</Text>
+                      </View>
+                      {isSelected && (
+                        <CheckCircle2 size={18} color="#15803D" />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -990,5 +1051,96 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: Colors.light.primary,
+  },
+  langHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#D7ECD5',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    shadowColor: '#1B4D2E',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  langHeaderText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0C5432',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(12, 33, 20, 0.65)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: '#FFFDF5',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 28,
+    borderWidth: 1,
+    borderColor: '#CBE3BE',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0C5432',
+  },
+  modalSub: {
+    fontSize: 12,
+    color: '#4B6B56',
+    marginBottom: 14,
+  },
+  langGridModal: {
+    gap: 8,
+  },
+  langModalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E6EFE2',
+    gap: 12,
+  },
+  langModalCardSelected: {
+    borderColor: '#16A34A',
+    backgroundColor: '#F0FDF4',
+  },
+  langAvatarModal: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  langNativeModal: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  langEnglishModal: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 1,
   },
 });

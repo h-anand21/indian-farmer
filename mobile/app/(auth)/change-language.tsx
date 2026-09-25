@@ -63,7 +63,7 @@ export default function ChangeLanguageScreen() {
         </View>
 
         <TouchableOpacity onPress={handleContinue} style={styles.skipButton}>
-          <Text style={styles.skipText}>{router.canGoBack() ? 'Done' : 'Skip'}</Text>
+          <Text style={styles.skipText}>{router.canGoBack() ? 'Done' : t('skip')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -72,11 +72,11 @@ export default function ChangeLanguageScreen() {
         <View style={styles.titleSection}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>
-              Choose Your <Text style={styles.titleHighlight}>Language</Text>
+              {t('chooseLanguage')}
             </Text>
           </View>
           <Text style={styles.hindiScriptTag}>🌾 Har Kisan Ki Boli Mein</Text>
-          <Text style={styles.subtitle}>Select your preferred language to continue</Text>
+          <Text style={styles.subtitle}>{t('selectPreferredLang')}</Text>
         </View>
 
         {/* 3-Column Languages Grid */}
