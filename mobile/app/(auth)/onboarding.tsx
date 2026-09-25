@@ -21,10 +21,19 @@ import {
   Check,
 } from 'lucide-react-native';
 
+import {
+  MandiSlotBookingSvg,
+  DigitalWeighmentSvg,
+  LiveQueueTrackingSvg,
+  GovtSchemesKycSvg,
+} from '../../src/components/onboarding/OnboardingSvgs';
+import { useLanguage } from '../../src/context/LanguageContext';
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { currentLanguage, activeLanguageInfo, setLanguage, t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -131,14 +140,24 @@ export default function OnboardingScreen() {
             resizeMode="contain"
           />
           <View style={styles.brandTextCol}>
-            <Text style={styles.brandTitle}>KisanQueue</Text>
-            <Text style={styles.brandSubtitle}>Smart Mandi. Stronger Bharat.</Text>
+            <Text style={styles.brandTitle}>{t('appName')}</Text>
+            <Text style={styles.brandSubtitle}>{t('tagline')}</Text>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.skipPill} onPress={handleSkip}>
-          <Text style={styles.skipPillText}>Skip</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <TouchableOpacity
+            style={styles.langPill}
+            onPress={() => router.push('/(auth)/change-language')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.langPillText}>{activeLanguageInfo.shortTag} {currentLanguage.toUpperCase()}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.skipPill} onPress={handleSkip}>
+            <Text style={styles.skipPillText}>{t('skip')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Main Swipeable Animated Slides */}
@@ -162,28 +181,24 @@ export default function OnboardingScreen() {
             {/* Headline with Radiant Rays */}
             <View style={styles.headlineBox}>
               <View style={styles.headlineRow}>
-                <Text style={styles.headlineDark}>Mandi me bina line lage</Text>
+                <Text style={styles.headlineDark}>{t('onboarding1Title')}</Text>
                 <View style={styles.raysContainer}>
                   <Sparkles size={16} color="#3B8A3E" />
                 </View>
               </View>
               <View style={styles.underlineKeywordRow}>
-                <Text style={styles.headlineGreen}>slot book karo</Text>
+                <Text style={styles.headlineGreen}>{t('onboarding1Highlight')}</Text>
                 <View style={styles.brushStrokeUnderline} />
               </View>
               <Text style={styles.subheadline}>
-                Apna samay bachaye, aasani se apni mandi ka slot book kare.
+                {t('onboarding1Desc')}
               </Text>
             </View>
 
-            {/* Interactive Realistic Illustration Stage */}
+            {/* Pure SVG Vector Illustration Stage */}
             <View style={styles.visualStage}>
               <Animated.View style={[styles.artworkWrapper, { transform: [{ translateY: floatAnim1 }] }]}>
-                <Image
-                  source={require('../../assets/onboarding_art_v2_slide1.png')}
-                  style={styles.artworkImage}
-                  resizeMode="contain"
-                />
+                <MandiSlotBookingSvg />
                 {/* Floating Highlight Pill */}
                 <Animated.View style={[styles.floatingHighlightBadge, { transform: [{ scale: pulseAnim }] }]}>
                   <Sparkles size={13} color="#0C5432" />
@@ -201,25 +216,21 @@ export default function OnboardingScreen() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.slideScrollContent}>
             <View style={styles.headlineBox}>
               <View style={styles.headlineRow}>
-                <Text style={styles.headlineDark}>Digital weighment,</Text>
+                <Text style={styles.headlineDark}>{t('onboarding2Title')}</Text>
                 <View style={styles.raysContainer}>
                   <Sparkles size={16} color="#3B8A3E" />
                 </View>
               </View>
-              <Text style={styles.headlineGreen}>transparent MSP payment</Text>
+              <Text style={styles.headlineGreen}>{t('onboarding2Highlight')}</Text>
               <Text style={styles.subheadline}>
-                Sahi tol, sahi daam, seedha aapke bank account me bina kisi katoti ke.
+                {t('onboarding2Desc')}
               </Text>
             </View>
 
-            {/* Interactive Realistic Illustration Stage */}
+            {/* Pure SVG Vector Illustration Stage */}
             <View style={styles.visualStage}>
               <Animated.View style={[styles.artworkWrapper, { transform: [{ translateY: floatAnim2 }] }]}>
-                <Image
-                  source={require('../../assets/onboarding_art_v2_slide2.png')}
-                  style={styles.artworkImage}
-                  resizeMode="contain"
-                />
+                <DigitalWeighmentSvg />
                 {/* Floating Highlight Pill */}
                 <Animated.View style={[styles.floatingHighlightBadge, { transform: [{ scale: pulseAnim }] }]}>
                   <Scale size={13} color="#0C5432" />
@@ -237,25 +248,21 @@ export default function OnboardingScreen() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.slideScrollContent}>
             <View style={styles.headlineBox}>
               <View style={styles.headlineRow}>
-                <Text style={styles.headlineDark}>Real-time queue</Text>
+                <Text style={styles.headlineDark}>{t('onboarding3Title')}</Text>
                 <View style={styles.raysContainer}>
                   <Sparkles size={16} color="#3B8A3E" />
                 </View>
               </View>
-              <Text style={styles.headlineGreen}>tracking apke phone par</Text>
+              <Text style={styles.headlineGreen}>{t('onboarding3Highlight')}</Text>
               <Text style={styles.subheadline}>
-                Apni position, status aur estimated time live dekhe aur Mandi bheed se bachein.
+                {t('onboarding3Desc')}
               </Text>
             </View>
 
-            {/* Interactive Realistic Illustration Stage */}
+            {/* Pure SVG Vector Illustration Stage */}
             <View style={styles.visualStage}>
               <Animated.View style={[styles.artworkWrapper, { transform: [{ translateY: floatAnim1 }] }]}>
-                <Image
-                  source={require('../../assets/onboarding_art_v2_slide3.png')}
-                  style={styles.artworkImage}
-                  resizeMode="contain"
-                />
+                <LiveQueueTrackingSvg />
                 {/* Floating Highlight Pill */}
                 <Animated.View style={[styles.floatingHighlightBadge, { transform: [{ scale: pulseAnim }] }]}>
                   <Clock size={13} color="#0C5432" />
@@ -273,25 +280,21 @@ export default function OnboardingScreen() {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.slideScrollContent}>
             <View style={styles.headlineBox}>
               <View style={styles.headlineRow}>
-                <Text style={styles.headlineDark}>Government schemes &</Text>
+                <Text style={styles.headlineDark}>{t('onboarding4Title')}</Text>
                 <View style={styles.raysContainer}>
                   <Sparkles size={16} color="#3B8A3E" />
                 </View>
               </View>
-              <Text style={styles.headlineGreen}>DigiLocker KYC</Text>
+              <Text style={styles.headlineGreen}>{t('onboarding4Highlight')}</Text>
               <Text style={styles.subheadline}>
-                Sarkari yojnaon ki jaankari, eligibility check aur aasaan KYC - sab ek jagah.
+                {t('onboarding4Desc')}
               </Text>
             </View>
 
-            {/* Interactive Realistic Illustration Stage */}
+            {/* Pure SVG Vector Illustration Stage */}
             <View style={styles.visualStage}>
               <Animated.View style={[styles.artworkWrapper, { transform: [{ translateY: floatAnim2 }] }]}>
-                <Image
-                  source={require('../../assets/onboarding_art_v2_slide4.png')}
-                  style={styles.artworkImage}
-                  resizeMode="contain"
-                />
+                <GovtSchemesKycSvg />
                 {/* Floating Highlight Pill */}
                 <Animated.View style={[styles.floatingHighlightBadge, { transform: [{ scale: pulseAnim }] }]}>
                   <ShieldCheck size={13} color="#0C5432" />
@@ -313,7 +316,7 @@ export default function OnboardingScreen() {
             activeOpacity={activeIndex === 1 || activeIndex === 2 ? 0.7 : 1}
           >
             {activeIndex === 1 || activeIndex === 2 ? (
-              <Text style={styles.bottomSkipText}>Skip</Text>
+              <Text style={styles.bottomSkipText}>{t('skip')}</Text>
             ) : (
               <View style={styles.stepCountBox}>
                 <Text style={styles.stepCountActive}>0{activeIndex + 1}</Text>
@@ -375,7 +378,7 @@ export default function OnboardingScreen() {
             activeOpacity={0.88}
           >
             <Text style={styles.actionButtonText}>
-              {activeIndex === 3 ? 'Get Started' : 'Next'}
+              {activeIndex === 3 ? t('getStarted') : t('next')}
             </Text>
             <ArrowRight size={17} color="#FFFFFF" strokeWidth={2.4} />
           </TouchableOpacity>
@@ -434,6 +437,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6A7568',
     marginTop: -2,
+  },
+  langPill: {
+    backgroundColor: '#FAFBEF',
+    borderWidth: 1,
+    borderColor: '#DDE5D2',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+  },
+  langPillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#0C5432',
   },
   skipPill: {
     backgroundColor: '#EDE7D8',

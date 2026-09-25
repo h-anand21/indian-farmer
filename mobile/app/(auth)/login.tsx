@@ -27,6 +27,7 @@ import {
   Leaf,
   FlaskConical,
   X,
+  CheckCircle2,
 } from 'lucide-react-native';
 import Svg, {
   Path,
@@ -40,6 +41,8 @@ import Svg, {
 import Toast from 'react-native-toast-message';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
+import { INDIAN_LANGUAGES } from '../../src/lib/languages';
 import { auth } from '../../src/config/firebase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -59,7 +62,7 @@ if (!__DEV__) {
 
 function GoogleIcon() {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24">
+    <Svg width={18} height={18} viewBox="0 0 24 24">
       <Path
         fill="#4285F4"
         d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
@@ -83,7 +86,7 @@ function GoogleIcon() {
 function EmeraldWaveDivider() {
   return (
     <View style={styles.waveWrapper}>
-      <Svg width={SCREEN_WIDTH} height={38} viewBox="0 0 400 38">
+      <Svg width={SCREEN_WIDTH} height={32} viewBox="0 0 400 32">
         <Defs>
           <LinearGradient id="waveEmerald" x1="0" y1="0" x2="1" y2="0">
             <Stop offset="0" stopColor="#1E7A38" />
@@ -92,13 +95,13 @@ function EmeraldWaveDivider() {
           </LinearGradient>
         </Defs>
         <Path
-          d="M0,0 Q100,28 200,16 T400,20 L400,38 L0,38 Z"
+          d="M0,0 Q100,24 200,12 T400,16 L400,32 L0,32 Z"
           fill="#FFFFFF"
         />
         <Path
-          d="M0,0 Q100,28 200,16 T400,20"
+          d="M0,0 Q100,24 200,12 T400,16"
           stroke="url(#waveEmerald)"
-          strokeWidth="3.5"
+          strokeWidth="3"
           fill="none"
         />
       </Svg>
@@ -109,8 +112,10 @@ function EmeraldWaveDivider() {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, loginAsDemo } = useAuth();
+  const { currentLanguage, activeLanguageInfo, setLanguage, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
+  const [showLangModal, setShowLangModal] = useState(false);
   const [devEmail, setDevEmail] = useState('');
   const [devPassword, setDevPassword] = useState('');
 
@@ -212,32 +217,32 @@ export default function LoginScreen() {
                 Kisan<Text style={styles.brandGreen}>Queue</Text>
               </Text>
               <Text style={styles.tagline}>
-                Smart Mandi. Fair Prices. Better Tomorrow.
+                {t('tagline')}
               </Text>
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.languageButton}
-            onPress={() => router.push('/(auth)/change-language')}
+            onPress={() => setShowLangModal(true)}
             activeOpacity={0.8}
           >
-            <Globe size={18} color="#123B2B" strokeWidth={2} />
-            <Text style={styles.language}>EN</Text>
-            <ChevronDown size={16} color="#123B2B" strokeWidth={2.5} />
+            <Globe size={16} color="#123B2B" strokeWidth={2} />
+            <Text style={styles.language}>{activeLanguageInfo.shortTag} {currentLanguage.toUpperCase()}</Text>
+            <ChevronDown size={14} color="#123B2B" strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
 
         {/* ── 2. HERO HEADLINE SECTION ── */}
         <View style={styles.heroTextSection}>
-          <Text style={styles.heroTitleDark}>Farmers First</Text>
+          <Text style={styles.heroTitleDark}>{t('farmersFirst')}</Text>
           <View style={styles.heroTitleGreenRow}>
-            <Text style={styles.heroTitleGreen}>A Brighter Tomorrow</Text>
-            <Leaf size={26} color="#25852C" fill="#25852C" style={styles.leafIcon} />
+            <Text style={styles.heroTitleGreen}>{t('brighterTomorrow')}</Text>
+            <Leaf size={22} color="#25852C" fill="#25852C" style={styles.leafIcon} />
           </View>
           <View style={styles.orangeLine} />
           <Text style={styles.heroDescription}>
-            Book mandi slots, track your produce, get fair prices — all in one app.
+            {t('heroDesc')}
           </Text>
         </View>
 
@@ -256,31 +261,31 @@ export default function LoginScreen() {
           <View style={styles.featureCardsStack}>
             <View style={styles.featureCard}>
               <View style={styles.featureCardIconWrap}>
-                <Calendar size={17} color="#15803D" strokeWidth={2.5} />
+                <Calendar size={14} color="#15803D" strokeWidth={2.5} />
               </View>
               <View>
-                <Text style={styles.featureCardTitle}>Easy Booking</Text>
-                <Text style={styles.featureCardSub}>No long queues</Text>
+                <Text style={styles.featureCardTitle}>{t('easyBooking')}</Text>
+                <Text style={styles.featureCardSub}>{t('noQueues')}</Text>
               </View>
             </View>
 
             <View style={styles.featureCard}>
               <View style={[styles.featureCardIconWrap, { backgroundColor: '#FEF3C7' }]}>
-                <IndianRupee size={17} color="#B45309" strokeWidth={2.5} />
+                <IndianRupee size={14} color="#B45309" strokeWidth={2.5} />
               </View>
               <View>
-                <Text style={styles.featureCardTitle}>Fair Prices</Text>
-                <Text style={styles.featureCardSub}>Transparent MSP</Text>
+                <Text style={styles.featureCardTitle}>{t('fairPrices')}</Text>
+                <Text style={styles.featureCardSub}>{t('transparentMSP')}</Text>
               </View>
             </View>
 
             <View style={styles.featureCard}>
               <View style={styles.featureCardIconWrap}>
-                <Users size={17} color="#15803D" strokeWidth={2.5} />
+                <Users size={14} color="#15803D" strokeWidth={2.5} />
               </View>
               <View>
-                <Text style={styles.featureCardTitle}>Empowered</Text>
-                <Text style={styles.featureCardSub}>Digital & Hassle Free</Text>
+                <Text style={styles.featureCardTitle}>{t('empowered')}</Text>
+                <Text style={styles.featureCardSub}>{t('digitalHassleFree')}</Text>
               </View>
             </View>
           </View>
@@ -296,17 +301,17 @@ export default function LoginScreen() {
           </View>
         </View>
 
-        {/* ── 4. WHITE LOGIN CARD ── */}
+        {/* ── 4. COMPACT SLEEK LOGIN CARD ── */}
         <View style={styles.loginCard}>
-          <Text style={styles.welcomeText}>Welcome to</Text>
+          <Text style={styles.welcomeText}>{t('welcomeTo')}</Text>
 
           <View style={styles.loginBrandRow}>
-            <Leaf size={22} color="#25852C" fill="#25852C" style={{ marginRight: 6 }} />
+            <Leaf size={18} color="#25852C" fill="#25852C" style={{ marginRight: 6 }} />
             <Text style={styles.loginBrand}>
               Kisan<Text style={styles.brandGreen}>Queue</Text>
             </Text>
             <Leaf
-              size={22}
+              size={18}
               color="#25852C"
               fill="#25852C"
               style={{ marginLeft: 6, transform: [{ scaleX: -1 }] }}
@@ -314,7 +319,7 @@ export default function LoginScreen() {
           </View>
 
           <Text style={styles.loginSubtitle}>
-            Sign in with your Google account to get started
+            {t('signInGoogleDesc')}
           </Text>
 
           {/* Google Login Button */}
@@ -334,8 +339,8 @@ export default function LoginScreen() {
                 <View style={styles.btnIconLeft}>
                   <GoogleIcon />
                 </View>
-                <Text style={styles.googleButtonText}>Continue with Google</Text>
-                <ArrowRight size={22} color="#111827" strokeWidth={2.4} />
+                <Text style={styles.googleButtonText}>{t('continueWithGoogle')}</Text>
+                <ArrowRight size={18} color="#111827" strokeWidth={2.4} />
               </>
             )}
           </Pressable>
@@ -343,7 +348,7 @@ export default function LoginScreen() {
           {/* OR Divider */}
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OR</Text>
+            <Text style={styles.dividerText}>{t('or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
@@ -358,71 +363,136 @@ export default function LoginScreen() {
             disabled={isLoading}
           >
             <View style={styles.btnIconLeft}>
-              <Sprout size={24} color="#15803D" />
+              <Sprout size={20} color="#15803D" />
             </View>
-            <Text style={styles.demoButtonText}>Instant Demo Login (1-Tap)</Text>
-            <ArrowRight size={22} color="#164D28" strokeWidth={2.4} />
+            <Text style={styles.demoButtonText}>{t('instantDemoLogin')}</Text>
+            <ArrowRight size={18} color="#164D28" strokeWidth={2.4} />
           </Pressable>
 
           {/* Security Note */}
           <View style={styles.securityRow}>
-            <ShieldCheck size={16} color="#15803D" strokeWidth={2.2} />
+            <ShieldCheck size={14} color="#15803D" strokeWidth={2.2} />
             <Text style={styles.securityText}>
-              Secured by Google & Firebase Authentication
+              {t('securedBy')}
             </Text>
           </View>
         </View>
 
-        {/* ── 5. THREE COLUMN BENEFITS ROW ── */}
+        {/* ── 5. THREE COLUMN BENEFITS ROW (COMPACT) ── */}
         <View style={styles.benefitsRow}>
           <View style={styles.benefitCol}>
             <View style={styles.benefitIconCircle}>
-              <Calendar size={22} color="#15803D" strokeWidth={2.2} />
+              <Calendar size={18} color="#15803D" strokeWidth={2.2} />
             </View>
-            <Text style={styles.benefitTitle}>Easy Booking</Text>
-            <Text style={styles.benefitSub}>Book mandi slots{'\n'}in minutes</Text>
+            <Text style={styles.benefitTitle}>{t('easyBooking')}</Text>
+            <Text style={styles.benefitSub}>{t('bookMandiSlotsInMin')}</Text>
           </View>
 
           <View style={styles.benefitDivider} />
 
           <View style={styles.benefitCol}>
             <View style={[styles.benefitIconCircle, { backgroundColor: '#FEF3C7' }]}>
-              <IndianRupee size={22} color="#B45309" strokeWidth={2.2} />
+              <IndianRupee size={18} color="#B45309" strokeWidth={2.2} />
             </View>
-            <Text style={styles.benefitTitle}>Transparent</Text>
-            <Text style={styles.benefitSub}>Get fair prices{'\n'}with MSP</Text>
+            <Text style={styles.benefitTitle}>{t('transparent')}</Text>
+            <Text style={styles.benefitSub}>{t('getFairPricesMsp')}</Text>
           </View>
 
           <View style={styles.benefitDivider} />
 
           <View style={styles.benefitCol}>
             <View style={styles.benefitIconCircle}>
-              <Users size={22} color="#15803D" strokeWidth={2.2} />
+              <Users size={18} color="#15803D" strokeWidth={2.2} />
             </View>
-            <Text style={styles.benefitTitle}>Empowered</Text>
-            <Text style={styles.benefitSub}>Digital services{'\n'}for every farmer</Text>
+            <Text style={styles.benefitTitle}>{t('empowered')}</Text>
+            <Text style={styles.benefitSub}>{t('digitalServicesEveryFarmer')}</Text>
           </View>
         </View>
 
         {/* ── 6. FOOTER: TERMS & PRIVACY ── */}
         <View style={styles.termsBox}>
-          <Text style={styles.termsLead}>By continuing, you agree to KisanQueue's</Text>
+          <Text style={styles.termsLead}>{t('termsAgreement')}</Text>
           <View style={styles.termsLinksRow}>
             <TouchableOpacity onPress={() => router.push('/(shared)/terms')}>
-              <Text style={styles.termsLink}>Terms of Service</Text>
+              <Text style={styles.termsLink}>{t('termsOfService')}</Text>
             </TouchableOpacity>
             <Text style={styles.termsLead}> & </Text>
             <TouchableOpacity onPress={() => router.push('/(shared)/privacy')}>
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              <Text style={styles.termsLink}>{t('privacyPolicy')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ── 7. PURE VECTOR COUNTRYSIDE HILLS FOOTER ── */}
+        {/* ── 7. COUNTRYSIDE HILLS FOOTER ── */}
         <View style={styles.bottomLandscapeWrap}>
-          <BottomLandscapeSvg />
+          <Image
+            source={require('../../assets/login_bottom_landscape.jpg')}
+            style={styles.bottomLandscapeImage}
+            resizeMode="cover"
+          />
         </View>
       </ScrollView>
+
+      {/* ── REGIONAL LANGUAGE SELECTION MODAL (INSTANT 1-TAP SWITCHING) ── */}
+      <Modal visible={showLangModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxHeight: '82%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Globe size={20} color="#0C5432" />
+                <Text style={styles.modalTitle}>{t('chooseLanguage')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowLangModal(false)}>
+                <X size={20} color="#4A5548" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSub}>
+              {t('selectPreferredLang')}
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+              <View style={styles.langGridModal}>
+                {INDIAN_LANGUAGES.map((lang) => {
+                  const isSelected = currentLanguage === lang.code;
+                  return (
+                    <TouchableOpacity
+                      key={lang.code}
+                      style={[
+                        styles.langModalCard,
+                        isSelected && styles.langModalCardSelected,
+                      ]}
+                      onPress={async () => {
+                        await setLanguage(lang.code);
+                        setShowLangModal(false);
+                        Toast.show({
+                          type: 'success',
+                          text1: `${lang.nativeName} selected!`,
+                          text2: `App language updated to ${lang.name}`,
+                        });
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <View style={[styles.langAvatarModal, { backgroundColor: lang.avatarColor }]}>
+                        <Text style={styles.langAvatarText}>{lang.shortTag}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.langNativeModal, isSelected && { color: '#0C5432', fontWeight: '900' }]}>
+                          {lang.nativeName}
+                        </Text>
+                        <Text style={styles.langEnglishModal}>{lang.name}</Text>
+                      </View>
+                      {isSelected && (
+                        <CheckCircle2 size={18} color="#15803D" />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── DEV TESTING SWITCHER MODAL ── */}
       <Modal visible={showDevModal} transparent animationType="slide">
@@ -555,187 +625,210 @@ const styles = StyleSheet.create({
   },
   /* 2. Hero Text Section */
   heroTextSection: {
-    paddingHorizontal: 22,
-    marginTop: 14,
-    marginBottom: 6,
+    paddingHorizontal: 18,
+    marginTop: 8,
+    marginBottom: 4,
   },
   heroTitleDark: {
-    fontSize: 32,
-    lineHeight: 36,
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: '900',
     color: '#102E25',
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
   heroTitleGreenRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   heroTitleGreen: {
-    fontSize: 32,
-    lineHeight: 36,
+    fontSize: 26,
+    lineHeight: 30,
     fontWeight: '900',
     color: '#25852C',
-    letterSpacing: -1,
+    letterSpacing: -0.5,
   },
   leafIcon: {
     marginLeft: 6,
   },
   orangeLine: {
-    width: 220,
-    height: 5,
+    width: 170,
+    height: 4,
     backgroundColor: '#F4A900',
     borderRadius: 6,
-    marginTop: 6,
+    marginTop: 4,
     transform: [{ rotate: '-1.5deg' }],
   },
   heroDescription: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 12.5,
+    lineHeight: 17,
     color: '#52605A',
     fontWeight: '500',
-    marginTop: 10,
+    marginTop: 6,
   },
-  /* 3. Hero Vector Scene */
+  /* 3. Hero Farmer Scene */
   heroSceneContainer: {
     width: SCREEN_WIDTH,
-    height: 220,
+    height: 195,
     position: 'relative',
-    marginTop: 6,
+    marginTop: 4,
+    overflow: 'hidden',
+  },
+  heroFarmerImage: {
+    width: SCREEN_WIDTH,
+    height: 195,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  heroLeftOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: SCREEN_WIDTH * 0.58,
+    height: 195,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  waveWrapper: {
+    position: 'absolute',
+    bottom: -1,
+    left: 0,
+    right: 0,
   },
   featureCardsStack: {
     position: 'absolute',
-    left: 18,
-    top: 14,
-    gap: 8,
+    left: 12,
+    top: 10,
+    gap: 5,
     zIndex: 2,
   },
   featureCard: {
-    width: SCREEN_WIDTH * 0.52,
+    width: SCREEN_WIDTH * 0.48,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.9)',
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   featureCardIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: '#EAF6D9',
     alignItems: 'center',
     justifyContent: 'center',
   },
   featureCardTitle: {
-    fontSize: 12.5,
+    fontSize: 11,
     fontWeight: '800',
     color: '#17251F',
   },
   featureCardSub: {
-    fontSize: 10.5,
+    fontSize: 9,
     color: '#65716B',
     fontWeight: '600',
   },
   dotsRow: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 4,
     alignSelf: 'center',
     flexDirection: 'row',
-    gap: 6,
+    gap: 5,
     zIndex: 2,
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#D1D9C9',
   },
   dotActive: {
-    width: 18,
+    width: 15,
+    height: 6,
     backgroundColor: '#166534',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  /* 4. Login Card */
+  /* 4. Login Card (Compact & Sleek) */
   loginCard: {
-    marginHorizontal: 16,
-    marginTop: 10,
+    marginHorizontal: 12,
+    marginTop: -10,
     backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 22,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 14,
     borderWidth: 1,
     borderColor: 'rgba(18, 59, 43, 0.08)',
     shadowColor: '#2A4A32',
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   welcomeText: {
     textAlign: 'center',
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#123B2B',
   },
   loginBrandRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
+    marginTop: 1,
   },
   loginBrand: {
-    fontSize: 34,
+    fontSize: 24,
     fontWeight: '900',
     color: '#123B2B',
-    letterSpacing: -1,
+    letterSpacing: -0.8,
   },
   loginSubtitle: {
     textAlign: 'center',
     color: '#626C67',
-    fontSize: 14,
-    marginTop: 6,
-    marginBottom: 20,
+    fontSize: 11.5,
+    marginTop: 2,
+    marginBottom: 12,
     fontWeight: '500',
   },
   googleButton: {
-    height: 56,
-    borderRadius: 28,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
+    borderWidth: 1.2,
     borderColor: '#D6D9D6',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   btnIconLeft: {
-    width: 32,
+    width: 28,
     alignItems: 'center',
   },
   googleButtonText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#17201C',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 18,
+    marginVertical: 8,
   },
   dividerLine: {
     flex: 1,
@@ -743,37 +836,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4D6D2',
   },
   dividerText: {
-    fontSize: 13,
+    fontSize: 11.5,
     fontWeight: '800',
     color: '#626C67',
-    marginHorizontal: 14,
+    marginHorizontal: 10,
   },
   demoButton: {
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 1.8,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1.5,
     borderColor: '#277A2B',
     backgroundColor: '#F4FAE9',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   demoButtonText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     color: '#164D28',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   securityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 7,
-    marginTop: 18,
+    gap: 5,
+    marginTop: 8,
   },
   securityText: {
-    fontSize: 12.5,
+    fontSize: 11,
     color: '#4B634E',
     fontWeight: '600',
   },
@@ -784,10 +877,10 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  /* 5. Benefits Row */
+  /* 5. Benefits Row (Compact) */
   benefitsRow: {
-    marginTop: 24,
-    marginHorizontal: 16,
+    marginTop: 12,
+    marginHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
@@ -795,19 +888,19 @@ const styles = StyleSheet.create({
   benefitCol: {
     flex: 1,
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
   },
   benefitIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#EDF6D9',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   benefitTitle: {
-    fontSize: 13.5,
+    fontSize: 11.5,
     fontWeight: '800',
     color: '#16271E',
     textAlign: 'center',
@@ -815,26 +908,26 @@ const styles = StyleSheet.create({
   benefitSub: {
     textAlign: 'center',
     color: '#68716B',
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 9.5,
+    lineHeight: 12,
     marginTop: 2,
     fontWeight: '500',
   },
   benefitDivider: {
     width: 1,
-    height: 50,
+    height: 38,
     backgroundColor: '#D8DED3',
-    marginTop: 6,
+    marginTop: 4,
   },
   /* 6. Terms */
   termsBox: {
     alignItems: 'center',
-    marginTop: 22,
-    marginBottom: 10,
-    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingHorizontal: 16,
   },
   termsLead: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#6C756F',
     fontWeight: '500',
   },
@@ -844,7 +937,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   termsLink: {
-    fontSize: 12.5,
+    fontSize: 10.5,
     color: '#176B2D',
     fontWeight: '800',
     textDecorationLine: 'underline',
@@ -852,8 +945,56 @@ const styles = StyleSheet.create({
   /* 7. Bottom Landscape */
   bottomLandscapeWrap: {
     width: SCREEN_WIDTH,
-    height: 85,
+    height: 65,
+    marginTop: 4,
+    overflow: 'hidden',
+  },
+  bottomLandscapeImage: {
+    width: SCREEN_WIDTH,
+    height: 65,
+  },
+  /* Language Modal Styles */
+  langGridModal: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: 8,
+  },
+  langModalCard: {
+    width: '48%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  langModalCardSelected: {
+    borderColor: '#15803D',
+    backgroundColor: '#F0FDF4',
+  },
+  langAvatarModal: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langAvatarText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  langNativeModal: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  langEnglishModal: {
+    fontSize: 10,
+    color: '#64748B',
   },
   /* Dev Modal */
   modalOverlay: {

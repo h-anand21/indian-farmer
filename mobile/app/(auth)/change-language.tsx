@@ -11,20 +11,18 @@ import {
 import { useRouter } from 'expo-router';
 import { ArrowRight, ArrowLeft, CheckCircle2, Sprout } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { INDIAN_LANGUAGES, getCurrentLanguage, setLanguage } from '../../src/lib/languages';
+import { INDIAN_LANGUAGES } from '../../src/lib/languages';
+import { useLanguage } from '../../src/context/LanguageContext';
 import Colors from '../../src/theme/colors';
 
 export default function ChangeLanguageScreen() {
-  const [selectedLang, setSelectedLang] = useState('hi');
+  const { currentLanguage, setLanguage, t } = useLanguage();
+  const [selectedLang, setSelectedLang] = useState(currentLanguage);
   const router = useRouter();
 
   useEffect(() => {
-    async function loadLang() {
-      const current = await getCurrentLanguage();
-      setSelectedLang(current);
-    }
-    loadLang();
-  }, []);
+    setSelectedLang(currentLanguage);
+  }, [currentLanguage]);
 
   const handleSelect = async (code: string, nativeName: string) => {
     setSelectedLang(code);
