@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { Calendar, CalendarPlus, QrCode, Building2, Users, BarChart3, IndianRupee, FileText, Wheat } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const ALLOWED_ROUTES = [
   'dashboard',
@@ -23,6 +24,7 @@ const ALLOWED_ROUTES = [
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { role } = useAuth();
+  const { t } = useLanguage();
   const bottomOffset = Math.max(insets.bottom + 10, 24);
 
   // Filter allowed visible routes
@@ -49,15 +51,15 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               : route.name;
 
           if (route.name === 'dashboard') {
-            label = 'Home';
+            label = t('tabHome');
           } else if (route.name === 'bookings' || route.name === 'bookings/index') {
-            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Bookings';
+            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : t('tabBookings');
           } else if (route.name === 'book-slot') {
-            label = 'Book Slot';
+            label = t('tabBookSlot');
           } else if (route.name === 'scan') {
             label = 'Scan QR';
           } else if (route.name === 'queue') {
-            label = 'Live Queue';
+            label = t('tabLiveQueue');
           } else if (route.name === 'daily-report') {
             label = 'Reports';
           } else if (route.name === 'analytics') {
@@ -69,7 +71,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           } else if (route.name === 'payments' || route.name === 'payments/index') {
             label = 'Payments';
           } else if (route.name === 'profile') {
-            label = 'Profile';
+            label = t('tabProfile');
           }
 
           const onPress = () => {

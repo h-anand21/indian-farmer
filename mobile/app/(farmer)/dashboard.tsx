@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -26,8 +27,14 @@ import {
   MapPin,
   CloudSun,
   FileText,
+  Globe,
+  X,
+  CheckCircle2,
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
+import { INDIAN_LANGUAGES } from '../../src/lib/languages';
 import Colors from '../../src/theme/colors';
 import OperatorDashboard from '../(operator)/dashboard';
 import AdminDashboardScreen from '../(admin)/dashboard';
@@ -37,6 +44,8 @@ import { useFocusEffect } from 'expo-router';
 
 export default function DynamicDashboard() {
   const { user, role } = useAuth();
+  const { currentLanguage, activeLanguageInfo, setLanguage, t } = useLanguage();
+  const [showLangModal, setShowLangModal] = useState(false);
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
@@ -208,6 +217,16 @@ export default function DynamicDashboard() {
         </View>
 
         <View style={styles.headerRight}>
+          {/* Language Switcher Button (Direct 1-Tap) */}
+          <TouchableOpacity
+            style={styles.langHeaderBtn}
+            onPress={() => setShowLangModal(true)}
+            activeOpacity={0.8}
+          >
+            <Globe size={15} color="#15803D" />
+            <Text style={styles.langHeaderText}>{activeLanguageInfo.shortTag}</Text>
+          </TouchableOpacity>
+
           {/* Notification Bell Button -> Route to Notifications Center */}
           <TouchableOpacity
             style={styles.bellButton}
@@ -237,12 +256,12 @@ export default function DynamicDashboard() {
         {/* Greeting Banner */}
         <View style={styles.greetingBanner}>
           <View style={styles.greetingContent}>
-            <Text style={styles.greetingTitle}>Namaste, {farmerName}! 🌱</Text>
-            <Text style={styles.greetingSub}>Good to see you again</Text>
-            <Text style={styles.greetingSub2}>Let's make farming more rewarding today.</Text>
+            <Text style={styles.greetingTitle}>{t('greetingNamaste')}, {farmerName}! 🌱</Text>
+            <Text style={styles.greetingSub}>{t('goodToSeeYou')}</Text>
+            <Text style={styles.greetingSub2}>{t('makeFarmingRewarding')}</Text>
             
             <View style={styles.sloganTag}>
-              <Text style={styles.sloganText}>🌾 Kisan Ki Mehnat, Desh Ki Shakti 🌾</Text>
+              <Text style={styles.sloganText}>{t('farmerSlogan')}</Text>
             </View>
           </View>
         </View>
@@ -257,7 +276,7 @@ export default function DynamicDashboard() {
               <Calendar size={20} color={Colors.light.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.statLabel}>Active Bookings</Text>
+              <Text style={styles.statLabel}>{t('activeBookings')}</Text>
               <Text style={styles.statValue}>{myBookings.length}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
@@ -271,7 +290,7 @@ export default function DynamicDashboard() {
               <Users size={20} color="#2B70C9" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.statLabel}>Queue Position</Text>
+              <Text style={styles.statLabel}>{t('queuePosition')}</Text>
               <Text style={styles.statValue}>{myBookings.length > 0 ? '#1' : 'None'}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
@@ -285,7 +304,7 @@ export default function DynamicDashboard() {
               <IndianRupee size={20} color="#D4A836" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.statLabel}>Pending Payments</Text>
+              <Text style={styles.statLabel}>{t('pendingPayments')}</Text>
               <Text style={styles.statValue}>{pendingPaymentsText}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
@@ -299,7 +318,7 @@ export default function DynamicDashboard() {
               <Wheat size={20} color={Colors.light.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.statLabel}>Total Procured</Text>
+              <Text style={styles.statLabel}>{t('totalProcured')}</Text>
               <Text style={styles.statValue}>{totalProcuredText}</Text>
             </View>
             <ChevronRight size={16} color={Colors.light.textMuted} />
@@ -310,11 +329,11 @@ export default function DynamicDashboard() {
         <View style={styles.spotlightHeader}>
           <Text style={styles.sectionTitle}>
             {myBookings.length > 0 && myBookings[0].status === 'COMPLETED'
-              ? 'Procurement Completed'
-              : 'Active Booking'}
+              ? t('spotlightCompleted')
+              : t('spotlightActive')}
           </Text>
           <TouchableOpacity onPress={() => router.push('/(farmer)/bookings')}>
-            <Text style={styles.viewAllText}>View All ›</Text>
+            <Text style={styles.viewAllText}>{t('viewAll')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -403,21 +422,21 @@ export default function DynamicDashboard() {
         ) : (
           <View style={{ backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: '#E8E4D8', marginBottom: 20 }}>
             <Text style={{ fontSize: 32, marginBottom: 8 }}>🌱</Text>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.light.textPrimary, marginBottom: 4 }}>No Active Bookings</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.light.textPrimary, marginBottom: 4 }}>{t('noActiveBookings')}</Text>
             <Text style={{ fontSize: 12, color: Colors.light.textSecondary, textAlign: 'center', marginBottom: 14 }}>
-              Aapne abhi koi mandi slot book nahi kiya hai. Fasal bechne ke liye naya slot book karein.
+              {t('noActiveBookingsDesc')}
             </Text>
             <TouchableOpacity
               style={{ backgroundColor: Colors.light.primary, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 24 }}
               onPress={() => router.push('/(farmer)/book-slot')}
             >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>🌱 Book New Slot</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>{t('bookNewSlot')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Quick Actions (4 Colored Cards) */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{t('quickActions')}</Text>
         <View style={styles.quickActionsGrid}>
           <TouchableOpacity
             style={[styles.actionCard, { backgroundColor: '#EBF4E5' }]}
@@ -426,7 +445,7 @@ export default function DynamicDashboard() {
             <View style={[styles.actionIconCircle, { backgroundColor: Colors.light.primary }]}>
               <Calendar size={20} color="#FFFFFF" />
             </View>
-            <Text style={styles.actionCardText}>Book Slot</Text>
+            <Text style={styles.actionCardText}>{t('bookSlot')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -436,7 +455,7 @@ export default function DynamicDashboard() {
             <View style={[styles.actionIconCircle, { backgroundColor: '#E66919' }]}>
               <Clock size={20} color="#FFFFFF" />
             </View>
-            <Text style={styles.actionCardText}>Live Queue</Text>
+            <Text style={styles.actionCardText}>{t('liveQueue')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -446,7 +465,7 @@ export default function DynamicDashboard() {
             <View style={[styles.actionIconCircle, { backgroundColor: '#D4A836' }]}>
               <IndianRupee size={20} color="#FFFFFF" />
             </View>
-            <Text style={styles.actionCardText}>My Payments</Text>
+            <Text style={styles.actionCardText}>{t('myPayments')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -456,14 +475,14 @@ export default function DynamicDashboard() {
             <View style={[styles.actionIconCircle, { backgroundColor: '#2B70C9' }]}>
               <Landmark size={20} color="#FFFFFF" />
             </View>
-            <Text style={styles.actionCardText}>Govt Schemes</Text>
+            <Text style={styles.actionCardText}>{t('govtSchemes')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* MSP Rates Ticker (Today) */}
         <View style={styles.spotlightHeader}>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', paddingRight: 8 }}>
-            <Text style={styles.sectionTitle}>MSP Rates (2026-27)</Text>
+            <Text style={styles.sectionTitle}>{t('mspRates')}</Text>
             <View style={styles.liveBadgeMini}>
               <Text style={styles.liveBadgeMiniText}>13 Sep 2026</Text>
             </View>
