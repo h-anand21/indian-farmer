@@ -203,7 +203,7 @@ export default function LiveQueueScreen() {
   const displayPos = queuePosData?.position ? `#${queuePosData.position}` : '#1';
   const tokensAheadCount = queuePosData?.tokensAhead ?? Math.max(0, myBookings.length - 1);
   const estimatedMins = queuePosData?.estimatedMinutes ?? (tokensAheadCount * 8);
-  const nowServingTokenStr = centreQueueState?.nowServingToken || 'KQ-1048';
+  const nowServingTokenStr = centreQueueState?.nowServingToken || 'None (Queue Idle)';
   const currentStatus = queuePosData?.status || primaryBooking?.status || 'BOOKED';
 
   // Determine active stage index for 5-stage timeline
@@ -218,7 +218,7 @@ export default function LiveQueueScreen() {
 
   const qrValue = primaryBooking
     ? `KISANQUEUE|TOKEN:${primaryBooking.token}|CENTRE:${primaryBooking.mandiId}|STATUS:${currentStatus}`
-    : 'KISANQUEUE|DEMO';
+    : '';
 
   // Ahead vehicles list from centre queue
   const entriesAhead = (centreQueueState?.queueEntries || centreQueueState?.recentWaitingTokens || []).slice(0, 5);

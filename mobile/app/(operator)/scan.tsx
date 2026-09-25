@@ -49,30 +49,7 @@ interface ScannedFarmer {
   quotaRemaining: string;
 }
 
-const SAMPLE_FARMERS: Record<string, ScannedFarmer> = {
-  'KQ-1048': {
-    token: 'KQ-1048',
-    name: 'Ram Singh Gurjar',
-    phone: '+91 98765 43210',
-    aadhaar: 'XXXX-XXXX-4921',
-    crop: 'Wheat (Sharbati)',
-    quantity: '50.0 Quintals',
-    slot: 'Today, 08:00 - 10:00 AM (ACTIVE)',
-    vehicle: 'MP-04-AB-1234 (Tractor-Trolley)',
-    quotaRemaining: '65.0 Qt Remaining / 100 Qt Limit',
-  },
-  'KQ-1049': {
-    token: 'KQ-1049',
-    name: 'Sita Devi',
-    phone: '+91 98123 45678',
-    aadhaar: 'XXXX-XXXX-8823',
-    crop: 'Paddy (Basmati)',
-    quantity: '32.0 Quintals',
-    slot: 'Today, 08:00 - 10:00 AM (ACTIVE)',
-    vehicle: 'MP-04-CD-5678 (Mahindra Bolero)',
-    quotaRemaining: '45.0 Qt Remaining / 75 Qt Limit',
-  },
-};
+}
 
 export default function GateScanScreen() {
   const router = useRouter();
