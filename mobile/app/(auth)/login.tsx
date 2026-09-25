@@ -111,7 +111,7 @@ function EmeraldWaveDivider() {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { isAuthenticated, role, login, loginAsDemo } = useAuth();
+  const { isAuthenticated, isRegistered, role, login, loginAsDemo } = useAuth();
   const { currentLanguage, activeLanguageInfo, setLanguage, t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showDevModal, setShowDevModal] = useState(false);
@@ -119,10 +119,13 @@ export default function LoginScreen() {
   const [devEmail, setDevEmail] = useState('');
   const [devPassword, setDevPassword] = useState('');
 
-  // ── Auto-navigate as soon as user is authenticated ──
+  // ── Auto-navigate: New users go to Registration, registered users go to Role Dashboard ──
   useEffect(() => {
     if (isAuthenticated) {
-      if (role === 'OPERATOR') {
+      if (!isRegistered) {
+        // New user has no database record yet -> Must complete Farmer KYC / Registration!
+        router.replace('/(auth)/register');
+      } else if (role === 'OPERATOR') {
         router.replace('/(operator)/dashboard');
       } else if (role === 'ADMIN') {
         router.replace('/(admin)/dashboard');
@@ -130,7 +133,7 @@ export default function LoginScreen() {
         router.replace('/(farmer)/dashboard');
       }
     }
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, isRegistered, role]);
 
   // ── Production APK: Native Google Sign-In ──
   const handleGoogleLogin = async () => {

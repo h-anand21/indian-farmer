@@ -47,11 +47,15 @@ const CROPS_LIST = [
 export default function RegisterScreen() {
   const { phone: queryPhone } = useLocalSearchParams<{ phone: string }>();
   const [currentStep, setCurrentStep] = useState(1);
+  const { firebaseUser, setUser } = useAuth();
+  const router = useRouter();
 
-  // Step 1 Form Data
-  const [fullName, setFullName] = useState('');
-  const [mobile] = useState(queryPhone || '9876543210');
-  const [email, setEmail] = useState('');
+  // Step 1 Form Data - Pre-fill from Google account if available!
+  const [fullName, setFullName] = useState(firebaseUser?.displayName || '');
+  const [mobile, setMobile] = useState(
+    queryPhone || (firebaseUser?.phoneNumber ? firebaseUser.phoneNumber.replace('+91', '') : '')
+  );
+  const [email, setEmail] = useState(firebaseUser?.email || '');
   const [aadhaar, setAadhaar] = useState('');
   const [state, setState] = useState('Delhi');
   const [district, setDistrict] = useState('North Delhi');
@@ -64,9 +68,6 @@ export default function RegisterScreen() {
   // Step 3 Terms
   const [agreed, setAgreed] = useState(true);
 
-  const { setUser } = useAuth();
-  const router = useRouter();
-
   const toggleCrop = (id: string) => {
     setSelectedCrops((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -76,6 +77,10 @@ export default function RegisterScreen() {
   const handleNextStep1 = () => {
     if (!fullName.trim()) {
       Toast.show({ type: 'error', text1: 'Name Required', text2: 'Please enter your full name.' });
+      return;
+    }
+    if (!mobile.trim() || mobile.length < 10) {
+      Toast.show({ type: 'error', text1: 'Mobile Required', text2: 'Please enter a valid 10-digit mobile number.' });
       return;
     }
     setCurrentStep(2);
@@ -96,10 +101,11 @@ export default function RegisterScreen() {
     }
 
     try {
+      const cleanPhone = mobile.startsWith('+91') ? mobile : `+91${mobile}`;
       const res = await registerUser({
-        name: fullName || 'Ramesh Kumar',
-        phone: mobile,
-        email: email || undefined,
+        name: fullName.trim(),
+        phone: cleanPhone,
+        email: email.trim() || undefined,
         role: 'FARMER',
         state,
         district,
@@ -225,10 +231,18 @@ export default function RegisterScreen() {
               </View>
 
               {/* Mobile Number */}
-              <Text style={styles.label}>Mobile Number</Text>
-              <View style={[styles.inputRow, styles.inputDisabled]}>
+              <Text style={styles.label}>Mobile Number *</Text>
+              <View style={styles.inputRow}>
                 <Phone size={18} color={Colors.light.textMuted} />
-                <Text style={styles.disabledText}>+91 {mobile}</Text>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: Colors.light.textPrimary, marginRight: 6 }}>+91</Text>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="Enter 10-digit mobile number"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  value={mobile}
+                  onChangeText={setMobile}
+                />
               </View>
 
               {/* Email Address */}

@@ -139,42 +139,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Fallback auto-provisioning for authenticated Google users
-      const fallbackUser: UserData = {
-        id: fbUser.uid,
-        firebaseUid: fbUser.uid,
-        email: fbUser.email || null,
-        phone: fbUser.phoneNumber || null,
-        name: fbUser.displayName || (fbUser.email ? fbUser.email.split('@')[0] : 'Kisan Mitra'),
-        role: requestedRole || 'FARMER',
-        avatarUrl: fbUser.photoURL || null,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        farmer: {
-          id: `farmer-${fbUser.uid}`,
-          farmerId: `KQ-${Math.floor(1000 + Math.random() * 9000)}`,
-          state: 'Delhi',
-          district: 'North Delhi',
-          tehsil: null,
-          village: null,
-          pincode: null,
-          landArea: null,
-          ownershipType: 'OWNED',
-        },
-        operator: null,
-      };
-
-      await Storage.setItem(STORAGE_USER_KEY, fallbackUser);
-      await Storage.setItem(STORAGE_ROLE_KEY, fallbackUser.role);
-
+      // No cached user and token verification says not registered -> Mark as NOT registered!
       setState({
         firebaseUser: fbUser,
-        user: fallbackUser,
+        user: null,
         isLoading: false,
         isAuthenticated: true,
-        isRegistered: true,
-        role: (fallbackUser.role as any) || 'FARMER',
+        isRegistered: false,
+        role: null,
       });
     }
   }, []);
