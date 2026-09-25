@@ -436,8 +436,8 @@ export default function LandingPage() {
         >
           {/* Logo */}
           <div className="kq-logo-group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="kq-logo-icon">
-              <Leaf size={22} color="#186341" />
+            <div className="kq-logo-icon" style={{ padding: 2 }}>
+              <img src="/icon.png" alt="KisanQueue" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px' }} />
             </div>
             <span className="kq-logo-text">KisanQueue</span>
           </div>
@@ -925,8 +925,8 @@ export default function LandingPage() {
           <div className="kq-footer-top">
             <div>
               <div className="kq-logo-group">
-                <div className="kq-logo-icon" style={{ width: '32px', height: '32px' }}>
-                  <Leaf size={18} color="#186341" />
+                <div className="kq-logo-icon" style={{ width: '32px', height: '32px', padding: 2 }}>
+                  <img src="/icon.png" alt="KisanQueue" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px' }} />
                 </div>
                 <span className="kq-logo-text">KisanQueue</span>
               </div>

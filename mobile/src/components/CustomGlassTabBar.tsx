@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
@@ -118,7 +117,7 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
                       <Calendar size={24} color="#FFFFFF" strokeWidth={2.4} />
                     )}
                     <View style={styles.sproutBadge}>
-                      <Text style={{ fontSize: 10 }}>🌱</Text>
+                      <Image source={require('../../assets/icon.png')} style={{ width: 14, height: 14, borderRadius: 3 }} resizeMode="contain" />
                     </View>
                   </View>
                 </View>

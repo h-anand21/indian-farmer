@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -80,7 +81,14 @@ export default function OnboardingSlidesScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.brandText}>KisanQueue 🌱</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Image
+            source={require('../../assets/icon.png')}
+            style={{ width: 28, height: 28, borderRadius: 6 }}
+            resizeMode="contain"
+          />
+          <Text style={styles.brandText}>KisanQueue</Text>
+        </View>
         <TouchableOpacity style={styles.skipBtn} onPress={handleSkip}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>

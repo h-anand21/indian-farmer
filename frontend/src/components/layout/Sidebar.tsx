@@ -102,7 +102,7 @@ export default function Sidebar({ isCollapsed = false, onToggleCollapse }: Sideb
           className="sidebar-logo flex items-center justify-center shrink-0 border-none cursor-pointer hover:opacity-90 transition-opacity"
           title={isCollapsed ? "Click to Expand Sidebar" : "KisanQueue"}
         >
-          <Leaf size={22} color="#ffffff" />
+          <img src="/icon.png" alt="KisanQueue Logo" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'contain' }} />
         </button>
 
         {!isCollapsed && (

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ArrowRight, ArrowLeft, CheckCircle2, Sprout } from 'lucide-react-native';
@@ -54,7 +55,11 @@ export default function ChangeLanguageScreen() {
             </TouchableOpacity>
           )}
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.logoText}>KisanQueue</Text>
         </View>
@@ -112,7 +117,11 @@ export default function ChangeLanguageScreen() {
         {/* Info Banner */}
         <View style={styles.infoBanner}>
           <View style={styles.sproutIconCircle}>
-            <Sprout size={20} color={Colors.light.primary} />
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 22, height: 22, borderRadius: 5 }}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.infoText}>
             A stronger farming community in every language

@@ -481,8 +481,8 @@ export default function RegisterPage() {
       {/* ── TOP NAVBAR ── */}
       <nav className="reg-top-navbar">
         <div className="reg-brand-group" onClick={() => navigate({ to: "/" })}>
-          <div className="reg-brand-icon">
-            <Leaf size={22} />
+          <div className="reg-brand-icon" style={{ padding: 2 }}>
+            <img src="/icon.png" alt="KisanQueue" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px' }} />
           </div>
           <div>
             <div className="reg-brand-title">

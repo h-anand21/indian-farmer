@@ -188,7 +188,11 @@ export default function DynamicDashboard() {
       <View style={styles.header}>
         <View style={styles.logoRow}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              resizeMode="contain"
+            />
           </View>
           <View>
             <Text style={styles.logoText}>KisanQueue</Text>

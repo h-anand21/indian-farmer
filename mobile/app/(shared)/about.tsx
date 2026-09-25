@@ -7,6 +7,7 @@ import {
   ScrollView,
   Linking,
   Modal,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -49,7 +50,11 @@ export default function AboutScreen() {
         {/* Brand Banner */}
         <View style={styles.brandCard}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 60, height: 60, borderRadius: 15 }}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.appName}>KisanQueue</Text>
           <Text style={styles.appTagline}>Smart Farming | Fair Prices | Better Tomorrow</Text>

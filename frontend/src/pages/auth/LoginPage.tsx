@@ -168,8 +168,8 @@ export default function LoginPage() {
       {/* ── TOP NAVBAR ── */}
       <nav className="auth-top-navbar">
         <div className="auth-brand-logo-group" onClick={() => navigate({ to: "/" })}>
-          <div className="auth-brand-icon-box">
-            <Leaf size={22} />
+          <div className="auth-brand-icon-box" style={{ padding: 2 }}>
+            <img src="/icon.png" alt="KisanQueue" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px' }} />
           </div>
           <div>
             <div className="auth-brand-title">
@@ -364,9 +364,9 @@ export default function LoginPage() {
         {/* ════ RIGHT: FLOATING AUTHENTICATION CARD ════ */}
         <div className="auth-right-container">
           <div className="auth-login-card-main">
-            {/* Top Leaf Icon */}
-            <div className="auth-card-leaf-header">
-              <Leaf size={22} />
+            {/* Top Logo */}
+            <div className="auth-card-leaf-header" style={{ padding: 4 }}>
+              <img src="/icon.png" alt="KisanQueue" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '8px' }} />
             </div>
 
             <div>

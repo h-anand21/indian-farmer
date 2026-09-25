@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -33,7 +34,11 @@ export default function PaymentDetailScreen() {
 
         <View style={styles.logoRow}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../../assets/icon.png')}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.logoText}>Payment Details</Text>
         </View>

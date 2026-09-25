@@ -34,7 +34,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <View style={styles.logoBadge}>
-        <Image source={require('../assets/image.png')} style={styles.logoImage} resizeMode="contain" />
+        <Image source={require('../assets/icon.png')} style={styles.logoImage} resizeMode="contain" />
       </View>
       <Text style={styles.title}>KisanQueue</Text>
       <Text style={styles.subtitle}>Smart Farming | Fair Prices | Better Tomorrow</Text>

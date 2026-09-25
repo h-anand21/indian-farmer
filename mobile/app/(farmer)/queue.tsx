@@ -7,6 +7,7 @@ import {
   ScrollView,
   Modal,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -233,7 +234,11 @@ export default function LiveQueueScreen() {
 
         <View style={styles.logoRow}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.logoText}>KisanQueue</Text>
         </View>

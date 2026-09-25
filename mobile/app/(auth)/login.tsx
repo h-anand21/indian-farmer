@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -114,7 +115,11 @@ export default function LoginScreen() {
       <View style={styles.header}>
         <View style={styles.logoGroup}>
           <View style={styles.logoBadge}>
-            <Text style={styles.logoEmoji}>🌱</Text>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={{ width: 34, height: 34, borderRadius: 8 }}
+              resizeMode="contain"
+            />
           </View>
           <View>
             <Text style={styles.logoText}>KisanQueue</Text>
