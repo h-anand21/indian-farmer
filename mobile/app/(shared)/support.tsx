@@ -27,6 +27,7 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 const FAQS = [
   {
@@ -65,6 +66,7 @@ const TICKET_CATEGORIES = ['Booking Token', 'DBT Payment', 'DigiLocker KYC', 'We
 
 export default function SupportScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [expandedFaq, setExpandedFaq] = useState<number | null>(0);
   const [faqSearch, setFaqSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Booking Token');
@@ -85,14 +87,14 @@ export default function SupportScreen() {
     setHasAttachment(true);
     Toast.show({
       type: 'info',
-      text1: 'Screenshot Attached 📎',
+      text1: `${t('Screenshot Attached 📎')}`,
       text2: 'mandi_receipt_screenshot.png attached to ticket.',
     });
   };
 
   const handleSubmitTicket = () => {
     if (!subject.trim() || !message.trim()) {
-      Toast.show({ type: 'error', text1: 'Subject & Message Required', text2: 'Please fill out all fields.' });
+      Toast.show({ type: 'error', text1: t('Subject & Message Required'), text2: t('Please fill out all fields.') });
       return;
     }
 
@@ -104,8 +106,8 @@ export default function SupportScreen() {
       setHasAttachment(false);
       Toast.show({
         type: 'success',
-        text1: 'Support Ticket Raised! 🎫',
-        text2: 'Ticket #KQ-SUP-8921. Our team will contact you within 2 hours.',
+        text1: `${t('Support Ticket Raised! 🎫')}`,
+        text2: t('Ticket #KQ-SUP-8921. Our team will contact you within 2 hours.'),
       });
     }, 1200);
   };
@@ -124,7 +126,7 @@ export default function SupportScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={20} color={Colors.light.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Help & Support</Text>
+        <Text style={styles.headerTitle}>{t('Help & Support')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -136,17 +138,17 @@ export default function SupportScreen() {
               <PhoneCall size={24} color="#FFFFFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.callTitle}>Kisan Call Centre (Toll-Free)</Text>
+              <Text style={styles.callTitle}>{t('Kisan Call Centre (Toll-Free)')}</Text>
               <Text style={styles.callNumber}>1800-180-1551</Text>
               <View style={styles.timeBadge}>
                 <Clock size={12} color="#F3CF65" />
-                <Text style={styles.callSub}>24x7 Helpline (Hindi/English/Punjabi)</Text>
+                <Text style={styles.callSub}>{t('24x7 Helpline (Hindi/English/Punjabi)')}</Text>
               </View>
             </View>
           </View>
 
           <TouchableOpacity style={styles.callNowBtn} onPress={handleCallHelpline}>
-            <Text style={styles.callNowText}>Call Now</Text>
+            <Text style={styles.callNowText}>{t('Call Now')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -156,8 +158,8 @@ export default function SupportScreen() {
             <View style={[styles.contactIconBg, { backgroundColor: '#DCF8C6' }]}>
               <MessageSquare size={20} color="#075E54" />
             </View>
-            <Text style={styles.contactTitle}>WhatsApp Support</Text>
-            <Text style={styles.contactSub}>Instant chat assistance</Text>
+            <Text style={styles.contactTitle}>{t('WhatsApp Support')}</Text>
+            <Text style={styles.contactSub}>{t('Instant chat assistance')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -167,7 +169,7 @@ export default function SupportScreen() {
             <View style={[styles.contactIconBg, { backgroundColor: '#E0F2FE' }]}>
               <Mail size={20} color="#0284C7" />
             </View>
-            <Text style={styles.contactTitle}>Email Us</Text>
+            <Text style={styles.contactTitle}>{t('Email Us')}</Text>
             <Text style={styles.contactSub}>support@kisanqueue.gov.in</Text>
           </TouchableOpacity>
         </View>
@@ -176,7 +178,7 @@ export default function SupportScreen() {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <HelpCircle size={20} color="#3B7A1E" />
-            <Text style={styles.sectionTitle}>Frequently Asked Questions (FAQs)</Text>
+            <Text style={styles.sectionTitle}>{t('Frequently Asked Questions (FAQs)')}</Text>
           </View>
 
           {/* Search FAQs */}
@@ -184,7 +186,7 @@ export default function SupportScreen() {
             <Search size={16} color="#888" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search help topics (e.g. slot, DBT, KYC)..."
+              placeholder={t('Search help topics (e.g. slot, DBT, KYC)...')}
               placeholderTextColor="#999"
               value={faqSearch}
               onChangeText={setFaqSearch}

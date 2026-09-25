@@ -49,7 +49,7 @@ import Colors from '../../src/theme/colors';
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, logout, switchRole } = useAuth();
-  const { currentLanguage, activeLanguageInfo, t } = useLanguage();
+  const { currentLanguage, activeLanguageInfo, t, version } = useLanguage();
 
   // Local settings states
   const [weightUnit, setWeightUnit] = useState<'QTL' | 'KG'>('QTL');
@@ -60,7 +60,8 @@ export default function ProfileScreen() {
   const handleRoleSwitch = async (newRole: 'FARMER' | 'OPERATOR' | 'ADMIN') => {
     try {
       await switchRole(newRole);
-      Toast.show({ type: 'success', text1: `Switched to ${newRole} mode!` });
+      const roleLabel = newRole === 'ADMIN' ? t('Admin') : newRole === 'OPERATOR' ? t('Operator') : t('Farmer');
+      Toast.show({ type: 'success', text1: `${t('Switched to')} ${roleLabel} ${t('mode')}!` });
       if (newRole === 'ADMIN') {
         router.replace('/(admin)/dashboard');
       } else if (newRole === 'OPERATOR') {
@@ -69,15 +70,15 @@ export default function ProfileScreen() {
         router.replace('/(farmer)/dashboard');
       }
     } catch (e: any) {
-      Alert.alert('Role Switch Error', e?.message || 'Could not switch role');
+      Alert.alert(t('Role Switch Error'), e?.message || t('Could not switch role'));
     }
   };
 
   const handleLogout = async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to log out of KisanQueue?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('Sign Out'), t('Are you sure you want to log out of KisanQueue?'), [
+      { text: t('Cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('Sign Out'),
         style: 'destructive',
         onPress: async () => {
           await logout();
@@ -91,8 +92,8 @@ export default function ProfileScreen() {
     setShowDeleteModal(false);
     Toast.show({
       type: 'success',
-      text1: 'Data Erasure Request Submitted 🔒',
-      text2: 'Your DigiLocker linked records will be archived in 30 days.',
+      text1: `${t('Data Erasure Request Submitted 🔒')}`,
+      text2: t('Your DigiLocker linked records will be archived in 30 days.'),
     });
   };
 
@@ -100,7 +101,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.container, darkMode && styles.darkContainer]} edges={['top']}>
       {/* Header */}
       <View style={[styles.header, darkMode && styles.darkHeader]}>
-        <Text style={[styles.headerTitle, darkMode && styles.darkText]}>Account & Settings</Text>
+        <Text style={[styles.headerTitle, darkMode && styles.darkText]}>{t('Account & Settings')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -115,16 +116,16 @@ export default function ProfileScreen() {
           <View style={styles.roleBadge}>
             <ShieldCheck size={14} color="#3B7A1E" />
             <Text style={styles.roleText}>
-              Active: {role?.toUpperCase() || 'FARMER'} • DigiLocker KYC Verified
+              {t('Active:')} {role === 'ADMIN' ? t('Admin') : role === 'OPERATOR' ? t('Operator') : t('Farmer')} • {t('DigiLocker KYC Verified')}
             </Text>
           </View>
         </View>
 
         {/* Switch Role Card (Multi-Role Portal) */}
         <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
-          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>🔄 Switch Portal View Mode</Text>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>🔄 {t('Switch Portal View Mode')}</Text>
           <Text style={{ fontSize: 12, color: darkMode ? '#AAAAAA' : Colors.light.textMuted, marginBottom: 8 }}>
-            Switch between Farmer, Operator, and Admin roles:
+            {t('Switch between Farmer, Operator, and Admin roles:')}
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -139,7 +140,7 @@ export default function ProfileScreen() {
             >
               <Text style={{ fontSize: 16 }}>🌾</Text>
               <Text style={[styles.roleSwitchText, role === 'FARMER' && { color: '#3B7A1E', fontWeight: '800' }]}>
-                Farmer
+                {t('Farmer')}
               </Text>
             </TouchableOpacity>
 
@@ -154,7 +155,7 @@ export default function ProfileScreen() {
             >
               <Text style={{ fontSize: 16 }}>🚜</Text>
               <Text style={[styles.roleSwitchText, role === 'OPERATOR' && { color: '#0284C7', fontWeight: '800' }]}>
-                Operator
+                {t('Operator')}
               </Text>
             </TouchableOpacity>
 
@@ -169,7 +170,7 @@ export default function ProfileScreen() {
             >
               <Text style={{ fontSize: 16 }}>👑</Text>
               <Text style={[styles.roleSwitchText, role === 'ADMIN' && { color: '#7C3AED', fontWeight: '800' }]}>
-                Admin
+                {t('Admin')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -178,7 +179,7 @@ export default function ProfileScreen() {
         {/* Operator Tools (Visible when Operator mode is active) */}
         {role === 'OPERATOR' && (
           <View style={[styles.sectionCard, darkMode && styles.darkCard, { borderColor: '#0284C7' }]}>
-            <Text style={[styles.sectionTitle, { color: '#0284C7' }]}>🚜 Operator Mandi Desk Tools</Text>
+            <Text style={[styles.sectionTitle, { color: '#0284C7' }]}>🚜 {t('Operator Mandi Desk Tools')}</Text>
 
             <TouchableOpacity
               style={styles.settingItem}
@@ -188,8 +189,8 @@ export default function ProfileScreen() {
                 <QrCode size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Gate QR Code Scanner</Text>
-                <Text style={styles.settingSub}>Scan farmer entry tokens & vehicle passes</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Gate QR Code Scanner')}</Text>
+                <Text style={styles.settingSub}>{t('Scan farmer entry tokens & vehicle passes')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -202,8 +203,8 @@ export default function ProfileScreen() {
                 <Wheat size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Crop Intake & Weighment</Text>
-                <Text style={styles.settingSub}>Record gross weight, tare & moisture grade</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Crop Intake & Weighment')}</Text>
+                <Text style={styles.settingSub}>{t('Record gross weight, tare & moisture grade')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -216,8 +217,8 @@ export default function ProfileScreen() {
                 <BarChart3 size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Daily Procurement Report</Text>
-                <Text style={styles.settingSub}>Download daily mandi weighment summaries</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Daily Procurement Report')}</Text>
+                <Text style={styles.settingSub}>{t('Download daily mandi weighment summaries')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -230,8 +231,8 @@ export default function ProfileScreen() {
                 <BarChart3 size={18} color="#0284C7" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Operator Stats & Performance</Text>
-                <Text style={styles.settingSub}>View weighbridge speed, efficiency & officer rank</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Operator Stats & Performance')}</Text>
+                <Text style={styles.settingSub}>{t('View weighbridge speed, efficiency & officer rank')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -241,7 +242,7 @@ export default function ProfileScreen() {
         {/* Admin Master Tools (Visible when Admin mode is active) */}
         {role === 'ADMIN' && (
           <View style={[styles.sectionCard, darkMode && styles.darkCard, { borderColor: '#7C3AED' }]}>
-            <Text style={[styles.sectionTitle, { color: '#7C3AED' }]}>👑 Admin Master Controls</Text>
+            <Text style={[styles.sectionTitle, { color: '#7C3AED' }]}>👑 {t('Admin Master Controls')}</Text>
 
             <TouchableOpacity
               style={styles.settingItem}
@@ -251,8 +252,8 @@ export default function ProfileScreen() {
                 <Building2 size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Admin Dashboard</Text>
-                <Text style={styles.settingSub}>Pan-India Mandi Control Room</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Admin Dashboard')}</Text>
+                <Text style={styles.settingSub}>{t('Pan-India Mandi Control Room')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -265,8 +266,8 @@ export default function ProfileScreen() {
                 <BarChart3 size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>State Analytics & Insights</Text>
-                <Text style={styles.settingSub}>Real-time mandi volumes, payouts & trends</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('State Analytics & Insights')}</Text>
+                <Text style={styles.settingSub}>{t('Real-time mandi volumes, payouts & trends')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -279,8 +280,8 @@ export default function ProfileScreen() {
                 <Building2 size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>APMC Mandi Centres</Text>
-                <Text style={styles.settingSub}>Manage procurement hubs, gates & capacity</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('APMC Mandi Centres')}</Text>
+                <Text style={styles.settingSub}>{t('Manage procurement hubs, gates & capacity')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -293,8 +294,8 @@ export default function ProfileScreen() {
                 <Wheat size={18} color="#7C3AED" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>MSP Crop Master</Text>
-                <Text style={styles.settingSub}>Configure MSP rates, seasons & commodities</Text>
+                <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('MSP Crop Master')}</Text>
+                <Text style={styles.settingSub}>{t('Configure MSP rates, seasons & commodities')}</Text>
               </View>
               <ChevronRight size={18} color={Colors.light.textMuted} />
             </TouchableOpacity>
@@ -303,7 +304,7 @@ export default function ProfileScreen() {
 
         {/* Complete Services & Hub Shortcuts */}
         <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
-          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Mandi Services & Portals</Text>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>{t('Mandi Services & Portals')}</Text>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -313,8 +314,8 @@ export default function ProfileScreen() {
               <Calendar size={18} color="#2E7D32" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>My Bookings & QR Token Passes</Text>
-              <Text style={styles.settingSub}>View gate passes, token QR codes & entry times</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('My Bookings & QR Token Passes')}</Text>
+              <Text style={styles.settingSub}>{t('View gate passes, token QR codes & entry times')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -327,8 +328,8 @@ export default function ProfileScreen() {
               <CalendarPlus size={18} color="#1565C0" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Book Mandi Entry Slot</Text>
-              <Text style={styles.settingSub}>Reserve arrival slot for wheat, paddy or mustard</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Book Mandi Entry Slot')}</Text>
+              <Text style={styles.settingSub}>{t('Reserve arrival slot for wheat, paddy or mustard')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -341,8 +342,8 @@ export default function ProfileScreen() {
               <IndianRupee size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Payments & DBT Credits Log</Text>
-              <Text style={styles.settingSub}>Direct bank transfers, settlement receipts & ledger</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Payments & DBT Credits Log')}</Text>
+              <Text style={styles.settingSub}>{t('Direct bank transfers, settlement receipts & ledger')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -355,8 +356,8 @@ export default function ProfileScreen() {
               <Wheat size={18} color="#E66919" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Procurements & Form J Slips</Text>
-              <Text style={styles.settingSub}>Weighment certificates, quality grades & invoices</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Procurements & Form J Slips')}</Text>
+              <Text style={styles.settingSub}>{t('Weighment certificates, quality grades & invoices')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -369,8 +370,8 @@ export default function ProfileScreen() {
               <Landmark size={18} color="#0284C7" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Government Hub & MSP Rates</Text>
-              <Text style={styles.settingSub}>PM-Kisan, Fasal Bima, MSP pricing & subsidies</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Government Hub & MSP Rates')}</Text>
+              <Text style={styles.settingSub}>{t('PM-Kisan, Fasal Bima, MSP pricing & subsidies')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -383,8 +384,8 @@ export default function ProfileScreen() {
               <Bell size={18} color="#F57F17" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Alerts & Notifications</Text>
-              <Text style={styles.settingSub}>Gate call announcements & MSP updates</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Alerts & Notifications')}</Text>
+              <Text style={styles.settingSub}>{t('Gate call announcements & MSP updates')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -392,15 +393,15 @@ export default function ProfileScreen() {
 
         {/* Farm & Account Metadata */}
         <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
-          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>Farmer & Land Verification</Text>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>{t('Farmer & Land Verification')}</Text>
           
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
               <MapPin size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Registered Mandi Location</Text>
-              <Text style={[styles.infoVal, darkMode && styles.darkText]}>Khanna APMC Grain Market, Punjab</Text>
+              <Text style={styles.infoLabel}>{t('Registered Mandi Location')}</Text>
+              <Text style={[styles.infoVal, darkMode && styles.darkText]}>{t('Khanna APMC Grain Market, Punjab')}</Text>
             </View>
           </View>
 
@@ -409,7 +410,7 @@ export default function ProfileScreen() {
               <FileCheck size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Land Khasra ID (Bhoomi Abhilekh)</Text>
+              <Text style={styles.infoLabel}>{t('Land Khasra ID (Bhoomi Abhilekh)')}</Text>
               <Text style={[styles.infoVal, darkMode && styles.darkText]}>PMK-984210 (4.5 Hectares Registered)</Text>
             </View>
           </View>
@@ -419,7 +420,7 @@ export default function ProfileScreen() {
               <CreditCard size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>DBT Bank Account (Aadhaar Linked)</Text>
+              <Text style={styles.infoLabel}>{t('DBT Bank Account (Aadhaar Linked)')}</Text>
               <Text style={[styles.infoVal, darkMode && styles.darkText]}>State Bank of India (•••• 8901)</Text>
             </View>
           </View>
@@ -427,7 +428,7 @@ export default function ProfileScreen() {
 
         {/* Preferences & Toggles */}
         <View style={[styles.sectionCard, darkMode && styles.darkCard]}>
-          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>App Preferences</Text>
+          <Text style={[styles.sectionTitle, darkMode && styles.darkText]}>{t('App Preferences')}</Text>
 
           {/* Weight Unit Toggle */}
           <View style={styles.settingToggleItem}>
@@ -435,8 +436,10 @@ export default function ProfileScreen() {
               <Scale size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Weight Measurement Unit</Text>
-              <Text style={styles.settingSub}>Current unit: {weightUnit === 'QTL' ? 'Quintal (100 Kg)' : 'Kilograms (Kg)'}</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Weight Measurement Unit')}</Text>
+              <Text style={styles.settingSub}>
+                {t('Current unit:')} {weightUnit === 'QTL' ? t('Quintal (100 Kg)') : t('Kilograms (Kg)')}
+              </Text>
             </View>
             <View style={styles.unitPills}>
               <TouchableOpacity
@@ -460,8 +463,8 @@ export default function ProfileScreen() {
               <Bell size={18} color="#F57F17" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Push Notifications</Text>
-              <Text style={styles.settingSub}>Gate call alerts & token status changes</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Push Notifications')}</Text>
+              <Text style={styles.settingSub}>{t('Gate call alerts & token status changes')}</Text>
             </View>
             <Switch
               value={notificationsEnabled}
@@ -477,8 +480,8 @@ export default function ProfileScreen() {
               <Moon size={18} color="#7C3AED" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Dark Theme Mode</Text>
-              <Text style={styles.settingSub}>High contrast night view for mandis</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Dark Theme Mode')}</Text>
+              <Text style={styles.settingSub}>{t('High contrast night view for mandis')}</Text>
             </View>
             <Switch
               value={darkMode}
@@ -514,8 +517,8 @@ export default function ProfileScreen() {
               <HelpCircle size={18} color="#3B7A1E" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Help & Support Helpline</Text>
-              <Text style={styles.settingSub}>Toll-Free 1800-180-1551 & WhatsApp</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Help & Support Helpline')}</Text>
+              <Text style={styles.settingSub}>{t('Toll-Free 1800-180-1551 & WhatsApp')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -529,8 +532,8 @@ export default function ProfileScreen() {
               <Info size={18} color="#7C3AED" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>About KisanQueue</Text>
-              <Text style={styles.settingSub}>Version 2.4.0 • National Agritech Portal</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('About KisanQueue')}</Text>
+              <Text style={styles.settingSub}>{t('Version 2.4.0 • National Agritech Portal')}</Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>
@@ -542,13 +545,13 @@ export default function ProfileScreen() {
           onPress={() => setShowDeleteModal(true)}
         >
           <Trash2 size={16} color="#DC2626" />
-          <Text style={styles.deleteDataText}>Request Account Data Erasure (GDPR/DPDP)</Text>
+          <Text style={styles.deleteDataText}>{t('Request Account Data Erasure (GDPR/DPDP)')}</Text>
         </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <LogOut size={20} color="#C62828" />
-          <Text style={styles.logoutText}>Sign Out from KisanQueue</Text>
+          <Text style={styles.logoutText}>{t('Sign Out from KisanQueue')}</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -558,20 +561,20 @@ export default function ProfileScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Trash2 size={24} color="#DC2626" />
-              <Text style={styles.modalTitle}>Request Data Erasure</Text>
+              <Text style={styles.modalTitle}>{t('Request Data Erasure')}</Text>
               <TouchableOpacity onPress={() => setShowDeleteModal(false)}>
                 <X size={20} color="#666" />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalBody}>
-              Under the Digital Personal Data Protection (DPDP) Act 2023, you can request erasure of your active app sessions. Land & DBT history will remain archived with DigiLocker for statutory government compliance.
+              {t('Under the Digital Personal Data Protection (DPDP) Act 2023, you can request erasure of your active app sessions. Land & DBT history will remain archived with DigiLocker for statutory government compliance.')}
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.cancelModalBtn} onPress={() => setShowDeleteModal(false)}>
-                <Text style={styles.cancelModalText}>Cancel</Text>
+                <Text style={styles.cancelModalText}>{t('Cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.confirmDeleteBtn} onPress={handleDeleteAccount}>
-                <Text style={styles.confirmDeleteText}>Confirm Request</Text>
+                <Text style={styles.confirmDeleteText}>{t('Confirm Request')}</Text>
               </TouchableOpacity>
             </View>
           </View>
