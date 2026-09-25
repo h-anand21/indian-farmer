@@ -25,9 +25,11 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 export default function AboutScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   const handleOpenGovLink = (url: string, name: string) => {
@@ -42,7 +44,7 @@ export default function AboutScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={20} color={Colors.light.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>About KisanQueue</Text>
+        <Text style={styles.headerTitle}>{t('About KisanQueue')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -57,55 +59,55 @@ export default function AboutScreen() {
             />
           </View>
           <Text style={styles.appName}>KisanQueue</Text>
-          <Text style={styles.appTagline}>Smart Farming | Fair Prices | Better Tomorrow</Text>
+          <Text style={styles.appTagline}>{t('Smart Farming | Fair Prices | Better Tomorrow')}</Text>
           
           <View style={styles.versionBadge}>
-            <Text style={styles.versionText}>Version 2.4.0 (Build 2026.09)</Text>
+            <Text style={styles.versionText}>{t('Version 2.4.0 • National Agritech Portal')}</Text>
           </View>
         </View>
 
         {/* Slogan */}
         <View style={styles.sloganCard}>
           <Text style={styles.sloganText}>🌾 किसान समृद्ध भारत 🌾</Text>
-          <Text style={styles.sloganSub}>Empowering 100M+ Indian Farmers with Transparent Mandi Queues</Text>
+          <Text style={styles.sloganSub}>{t('Empowering 100M+ Indian Farmers with Transparent Mandi Queues')}</Text>
         </View>
 
         {/* Mission Statement */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Our Mission</Text>
+          <Text style={styles.sectionTitle}>{t('Our Mission')}</Text>
           <Text style={styles.bodyText}>
-            KisanQueue is a national digital transformation platform built under the Ministry of Agriculture & Farmers Welfare. Our mission is to eliminate long mandi queue delays, guarantee transparent digital weighment, and ensure instant Direct Benefit Transfer (DBT) payouts straight to farmer bank accounts.
+            {t('KisanQueue is a national digital transformation platform built under the Ministry of Agriculture & Farmers Welfare. Our mission is to eliminate long mandi queue delays, guarantee transparent digital weighment, and ensure instant Direct Benefit Transfer (DBT) payouts straight to farmer bank accounts.')}
           </Text>
         </View>
 
         {/* Key Features */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Core Highlights</Text>
+          <Text style={styles.sectionTitle}>{t('Core Highlights')}</Text>
           
           <View style={styles.featureRow}>
             <ShieldCheck size={18} color="#3B7A1E" />
-            <Text style={styles.featureText}>DigiLocker Aadhaar & Khasra KYC Integration</Text>
+            <Text style={styles.featureText}>{t('DigiLocker Aadhaar & Khasra KYC Integration')}</Text>
           </View>
 
           <View style={styles.featureRow}>
             <Globe size={18} color="#0284C7" />
-            <Text style={styles.featureText}>Multi-Language Support (Hindi, Punjabi, English)</Text>
+            <Text style={styles.featureText}>{t('Multi-Language Support (22 Official Languages)')}</Text>
           </View>
 
           <View style={styles.featureRow}>
             <Award size={18} color="#E66919" />
-            <Text style={styles.featureText}>Real-Time Token Queue Tracking & SMS Alerts</Text>
+            <Text style={styles.featureText}>{t('Real-Time Token Queue Tracking & SMS Alerts')}</Text>
           </View>
 
           <View style={styles.featureRow}>
             <Code2 size={18} color="#7C3AED" />
-            <Text style={styles.featureText}>Form J Digital Receipts & Automated MSP Payouts</Text>
+            <Text style={styles.featureText}>{t('Form J Digital Receipts & Automated MSP Payouts')}</Text>
           </View>
         </View>
 
         {/* Government Portal Links */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Official Government Integrations</Text>
+          <Text style={styles.sectionTitle}>{t('Official Government Integrations')}</Text>
           
           <TouchableOpacity
             style={styles.portalRow}

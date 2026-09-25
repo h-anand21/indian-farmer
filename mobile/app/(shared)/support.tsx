@@ -223,11 +223,11 @@ export default function SupportScreen() {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <ShieldAlert size={20} color="#E66919" />
-            <Text style={styles.sectionTitle}>Raise Support Ticket / Report Issue</Text>
+            <Text style={styles.sectionTitle}>{t('Raise Support Ticket / Report Issue')}</Text>
           </View>
 
           {/* Category Picker */}
-          <Text style={styles.inputLabel}>Select Issue Category:</Text>
+          <Text style={styles.inputLabel}>{t('Select Issue Category:')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catScroll}>
             {TICKET_CATEGORIES.map((cat) => (
               <TouchableOpacity
@@ -236,7 +236,7 @@ export default function SupportScreen() {
                 onPress={() => setSelectedCategory(cat)}
               >
                 <Text style={[styles.catChipText, selectedCategory === cat && styles.activeCatChipText]}>
-                  {cat}
+                  {t(cat)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -244,7 +244,7 @@ export default function SupportScreen() {
 
           <TextInput
             style={styles.input}
-            placeholder="Issue Subject (e.g. Booking Token Problem)"
+            placeholder={t('Issue Subject (e.g. Booking Token Problem)')}
             placeholderTextColor="#999"
             value={subject}
             onChangeText={setSubject}
@@ -252,7 +252,7 @@ export default function SupportScreen() {
 
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="Describe your issue in detail..."
+            placeholder={t('Describe your issue in detail...')}
             placeholderTextColor="#999"
             multiline
             numberOfLines={4}
@@ -264,13 +264,13 @@ export default function SupportScreen() {
           <TouchableOpacity style={styles.attachBtn} onPress={handleSimulateAttachment}>
             <Paperclip size={16} color={hasAttachment ? '#3B7A1E' : '#666'} />
             <Text style={[styles.attachText, hasAttachment && { color: '#3B7A1E', fontWeight: '700' }]}>
-              {hasAttachment ? 'Screenshot Attached (mandi_receipt.png)' : 'Attach Screenshot or Mandi Token Slip'}
+              {hasAttachment ? t('Screenshot Attached (mandi_receipt.png)') : t('Attach Screenshot or Mandi Token Slip')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.submitBtn} onPress={handleSubmitTicket} disabled={isSubmitting}>
             <Send size={18} color="#FFFFFF" />
-            <Text style={styles.submitBtnText}>{isSubmitting ? 'Submitting Ticket...' : 'Submit Support Ticket'}</Text>
+            <Text style={styles.submitBtnText}>{isSubmitting ? t('Submitting Ticket...') : t('Submit Support Ticket')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -199,19 +199,26 @@ export default function DynamicDashboard() {
           <View style={styles.logoBadge}>
             <Image
               source={require('../../assets/icon.png')}
-              style={{ width: 34, height: 34, borderRadius: 8 }}
+              style={styles.logoImage}
               resizeMode="contain"
             />
           </View>
-          <View>
-            <Text style={styles.logoText}>KisanQueue</Text>
+          <View style={styles.logoTextCol}>
+            <View style={styles.logoTitleRow}>
+              <Text style={styles.logoText}>KisanQueue</Text>
+              <View style={styles.govPill}>
+                <Text style={styles.govPillText}>APMC</Text>
+              </View>
+            </View>
             {/* Live Weather & Location Badge Pill */}
             <View style={styles.weatherLocationRow}>
-              <MapPin size={11} color="#3B7A1E" />
-              <Text style={styles.locationText}>{locationText}</Text>
+              <MapPin size={10} color="#15803D" />
+              <Text style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">
+                {locationText || 'Khanna, Punjab'}
+              </Text>
               <Text style={styles.weatherDot}>•</Text>
-              <CloudSun size={12} color="#D4A836" />
-              <Text style={styles.weatherText}>28°C Sunny</Text>
+              <CloudSun size={11} color="#D97706" />
+              <Text style={styles.weatherText}>28°C</Text>
             </View>
           </View>
         </View>
@@ -223,16 +230,17 @@ export default function DynamicDashboard() {
             onPress={() => setShowLangModal(true)}
             activeOpacity={0.8}
           >
-            <Globe size={15} color="#15803D" />
-            <Text style={styles.langHeaderText}>{activeLanguageInfo.shortTag}</Text>
+            <Globe size={14} color="#15803D" />
+            <Text style={styles.langHeaderText}>{activeLanguageInfo?.shortTag || 'EN'}</Text>
           </TouchableOpacity>
 
           {/* Notification Bell Button -> Route to Notifications Center */}
           <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push('/(shared)/notifications')}
+            activeOpacity={0.8}
           >
-            <Bell size={20} color={Colors.light.textPrimary} />
+            <Bell size={18} color="#1E293B" strokeWidth={2.2} />
             <View style={styles.badgeDot}>
               <Text style={styles.badgeText}>3</Text>
             </View>
@@ -242,8 +250,12 @@ export default function DynamicDashboard() {
           <TouchableOpacity
             style={styles.avatarButton}
             onPress={() => router.push('/(shared)/profile')}
+            activeOpacity={0.8}
           >
-            <Text style={styles.avatarEmoji}>👨‍🌾</Text>
+            <Text style={styles.avatarText}>
+              {user?.name ? user.name[0].toUpperCase() : 'K'}
+            </Text>
+            <View style={styles.onlineStatusDot} />
           </TouchableOpacity>
         </View>
       </View>
@@ -656,53 +668,99 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: 16,
+    paddingTop: 10,
     paddingBottom: 10,
-    backgroundColor: '#FFFBEF',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDE8D5',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+    flex: 1,
+    marginRight: 8,
   },
   logoBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: '#EBF4E5',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    borderColor: '#3B7A1E',
+    shadowColor: '#3B7A1E',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  logoEmoji: {
-    fontSize: 18,
+  logoImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+  },
+  logoTextCol: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  logoTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   logoText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontWeight: '900',
+    color: '#134E23',
+    letterSpacing: -0.3,
+  },
+  govPill: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    borderWidth: 0.8,
+    borderColor: '#86EFAC',
+  },
+  govPillText: {
+    fontSize: 9,
     fontWeight: '800',
-    color: Colors.light.primary,
+    color: '#15803D',
   },
   weatherLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    marginTop: 1,
+    gap: 4,
+    marginTop: 2,
+    backgroundColor: '#F7F6EE',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    maxWidth: 165,
   },
   locationText: {
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: '700',
-    color: '#3B7A1E',
+    color: '#2E7D32',
+    maxWidth: 90,
   },
   weatherDot: {
-    fontSize: 10,
-    color: '#9CA3AF',
+    fontSize: 8,
+    color: '#A8A29E',
   },
   weatherText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#B58A00',
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#B45309',
   },
   logoTagline: {
     fontSize: 9,
@@ -712,47 +770,95 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+  },
+  langHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1.2,
+    borderColor: '#86EFAC',
+    paddingHorizontal: 9,
+    height: 36,
+    borderRadius: 18,
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  langHeaderText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#15803D',
   },
   bellButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#FFFFFF',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E8E4D8',
+    borderWidth: 1.2,
+    borderColor: '#E2E8F0',
     position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   badgeDot: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 16,
+    top: -2,
+    right: -2,
+    minWidth: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#D93838',
+    backgroundColor: '#DC2626',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 2,
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 9,
+    fontWeight: '900',
     color: '#FFFFFF',
   },
   avatarButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#EBF4E5',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1E5E2B',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    borderColor: '#86EFAC',
+    position: 'relative',
+    shadowColor: '#1E5E2B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
   },
-  avatarEmoji: {
-    fontSize: 20,
+  avatarText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+  onlineStatusDot: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#22C55E',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -1051,27 +1157,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     color: Colors.light.primary,
-  },
-  langHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#D7ECD5',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    shadowColor: '#1B4D2E',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  langHeaderText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#0C5432',
   },
   modalOverlay: {
     flex: 1,
