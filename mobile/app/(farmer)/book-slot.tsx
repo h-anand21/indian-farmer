@@ -35,7 +35,7 @@ import Colors from '../../src/theme/colors';
 
 import { useAuth } from '../../src/context/AuthContext';
 import { createBooking } from '../../src/lib/bookingStore';
-import { fetchCentres, fetchSlots, submitBooking } from '../../src/services/bookingService';
+import { fetchCentres, fetchCrops, fetchSlots, fetchAvailableDates, submitBooking } from '../../src/services/bookingService';
 import { downloadOrShareQrPass } from '../../src/services/qrPassService';
 
 const DEFAULT_MANDIS = [
@@ -65,16 +65,18 @@ const getAvailableDates = () => {
     const dayNum = d.getDate().toString().padStart(2, '0');
     const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
     const monthName = d.toLocaleDateString('en-US', { month: 'short' });
+    const dateStr = d.toISOString().split('T')[0];
     const formattedDate = `${dayName}, ${dayNum} ${monthName} ${d.getFullYear()}`;
     const relativeLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayName;
     dates.push({
-      id: formattedDate,
+      id: dateStr,
+      dateStr,
       dayNum,
       dayName,
       monthName,
       formattedDate,
       relativeLabel,
-      slots: i % 2 === 0 ? '28 slots' : '15 slots',
+      slots: 'Available',
     });
   }
   return dates;
@@ -85,13 +87,13 @@ export default function BookSlotScreen() {
   const [step, setStep] = useState(1);
 
   // Dynamic Date List & State
-  const [availableDates] = useState(getAvailableDates());
-  const [selectedDateObj, setSelectedDateObj] = useState(availableDates[1] || availableDates[0]);
+  const [availableDates, setAvailableDates] = useState(getAvailableDates());
+  const [selectedDateObj, setSelectedDateObj] = useState(availableDates[0]);
 
   // Form State
   const [mandiList, setMandiList] = useState(DEFAULT_MANDIS);
   const [selectedMandi, setSelectedMandi] = useState(DEFAULT_MANDIS[0]);
-  const [selectedDate, setSelectedDate] = useState(selectedDateObj.formattedDate);
+  const [selectedDate, setSelectedDate] = useState(availableDates[0].formattedDate);
   const [selectedSlot, setSelectedSlot] = useState(TIME_SLOTS[0]);
   const [cropType, setCropType] = useState('Wheat');
   const [cropList, setCropList] = useState<{ name: string; mspPrice: number }[]>([]);
@@ -114,7 +116,7 @@ export default function BookSlotScreen() {
         const liveCentres = await fetchCentres();
         if (Array.isArray(liveCentres) && liveCentres.length > 0) {
           const mapped = liveCentres.map((c) => ({
-            id: c.id || c.code || `mandi-${c.name}`,
+            id: c.id,
             name: c.name,
             location: `${c.district || c.state || 'Grain Market'}, ${c.state || ''}`,
             congestion: c.congestion ? `${c.congestion} Congestion` : 'Low Congestion',
@@ -125,20 +127,18 @@ export default function BookSlotScreen() {
           setSelectedMandi(mapped[0]);
         }
       } catch (e) {
-        console.log('Using default database mandi list for offline mode');
+        console.warn('Centres fetch fallback:', e);
       }
     }
 
     async function loadCrops() {
       try {
-        const { fetchCrops } = require('../../src/services/bookingService');
         const crops = await fetchCrops();
         if (Array.isArray(crops) && crops.length > 0) {
           setCropList(crops.map((c: any) => ({ name: c.name, mspPrice: c.mspPrice || c.mspRate || 2275 })));
           setCropType(crops[0].name);
         }
       } catch (e) {
-        console.log('Using default crop list');
         setCropList([
           { name: 'Wheat', mspPrice: 2275 },
           { name: 'Paddy (Rice)', mspPrice: 2300 },
@@ -154,28 +154,48 @@ export default function BookSlotScreen() {
     loadCrops();
   }, []);
 
+  // Fetch real available dates when mandi changes
+  React.useEffect(() => {
+    if (!selectedMandi?.id) return;
+    async function loadDates() {
+      try {
+        const apiDates = await fetchAvailableDates(selectedMandi.id);
+        if (Array.isArray(apiDates) && apiDates.length > 0) {
+          const mapped = apiDates.map((d: any) => ({
+            id: d.dateStr,
+            dateStr: d.dateStr,
+            dayNum: d.dayNum,
+            dayName: d.dayName,
+            monthName: d.monthStr,
+            formattedDate: `${d.dayName}, ${d.dayNum} ${d.monthStr}`,
+            relativeLabel: d.badgeLabel || d.dayName,
+            slots: 'Available',
+          }));
+          setAvailableDates(mapped);
+          setSelectedDateObj(mapped[0]);
+          setSelectedDate(mapped[0].formattedDate);
+        }
+      } catch (e) {
+        // keep dynamic dates
+      }
+    }
+    loadDates();
+  }, [selectedMandi?.id]);
+
   // Fetch real slots when mandi or date changes
   React.useEffect(() => {
+    if (!selectedMandi?.id || !selectedDateObj?.dateStr) return;
     async function loadSlots() {
-      if (!selectedMandi?.id) return;
       setLoadingSlots(true);
       try {
-        const dateForApi = selectedDateObj.formattedDate;
-        // Try to get ISO date from the selected date object
-        const today = new Date();
-        const idx = availableDates.findIndex((d) => d.id === selectedDateObj.id);
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() + (idx >= 0 ? idx : 0));
-        const isoDate = targetDate.toISOString().split('T')[0];
-
-        const apiSlots = await fetchSlots(selectedMandi.id, isoDate);
+        const apiSlots = await fetchSlots(selectedMandi.id, selectedDateObj.dateStr);
         if (Array.isArray(apiSlots) && apiSlots.length > 0) {
           const mapped = apiSlots.map((s: any) => {
             const available = s.availableCapacity ?? (s.capacity - (s.booked || s.bookedCount || 0));
             const isFull = s.isFull || available <= 0;
             return {
               id: s.id,
-              window: `${s.startTime || '06:00'} - ${s.endTime || '08:00'}`,
+              window: `${s.startTime || '08:00'} - ${s.endTime || '10:00'}`,
               status: isFull ? 'Fully Booked' : `${available} slots available`,
               type: isFull ? 'FULL' : available <= 5 ? 'FEW' : 'AVAILABLE',
             };
@@ -186,13 +206,12 @@ export default function BookSlotScreen() {
           else setSelectedSlot(mapped[0]);
         }
       } catch (e) {
-        console.log('Using default time slots for offline mode');
-        setSlotList(TIME_SLOTS);
+        console.warn('Real slots fetch error:', e);
       }
       setLoadingSlots(false);
     }
     loadSlots();
-  }, [selectedMandi?.id, selectedDateObj.id]);
+  }, [selectedMandi?.id, selectedDateObj?.dateStr]);
 
   const handleConfirmBooking = async () => {
     if (!agreed) {

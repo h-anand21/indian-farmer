@@ -112,6 +112,23 @@ export async function fetchSlots(centreId: string, date: string) {
   return res.data.data;
 }
 
+export async function fetchAvailableDates(centreId: string) {
+  const res = await api.get<{
+    success: boolean;
+    data: Array<{
+      dateStr: string;
+      dayName: string;
+      dayNum: string;
+      monthStr: string;
+      isNew?: boolean;
+      badgeLabel?: string;
+    }>;
+  }>("/bookings/available-dates", {
+    params: { centreId },
+  });
+  return res.data.data;
+}
+
 export async function submitBooking(payload: CreateBookingPayload) {
   const res = await api.post<{
     success: boolean;
