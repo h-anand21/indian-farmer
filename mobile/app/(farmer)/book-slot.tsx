@@ -402,44 +402,74 @@ export default function BookSlotScreen() {
                 style={styles.searchInput}
                 placeholder="Search mandi, city or area..."
                 placeholderTextColor={Colors.light.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
               />
               <MapPin size={18} color={Colors.light.primary} />
             </View>
 
-            {/* Mandi Cards List */}
-            {mandiList.map((mandiItem) => {
-              const isSelected = selectedMandi.id === mandiItem.id;
-              return (
-                <TouchableOpacity
-                  key={mandiItem.id}
-                  style={[styles.mandiCard, isSelected && styles.mandiCardSelected]}
-                  onPress={() => setSelectedMandi(mandiItem)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.mandiThumb}>
-                    <Text style={{ fontSize: 24 }}>🏢</Text>
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.mandiCardName}>{mandiItem.name}</Text>
-                    <Text style={styles.mandiCardLoc}>{mandiItem.location}</Text>
-                    <View style={styles.congestionRow}>
-                      <View style={[styles.congestionDot, { backgroundColor: mandiItem.congestionColor }]} />
-                      <Text style={[styles.congestionText, { color: mandiItem.congestionColor }]}>
-                        {mandiItem.congestion}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.slotsCountBadge}>
-                    <Text style={styles.slotsCountNum}>{mandiItem.slots}</Text>
-                    <Text style={styles.slotsCountSub}>slots today</Text>
-                  </View>
+            {/* Mandi Cards List / Live Loading State */}
+            {loadingMandis ? (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+                <Text style={{ marginTop: 12, fontSize: 14, color: Colors.light.textSecondary }}>
+                  Connecting to Live APMC Mandi database...
+                </Text>
+              </View>
+            ) : mandiList.length === 0 ? (
+              <View style={{ padding: 30, alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: Colors.light.textSecondary, marginBottom: 12 }}>
+                  No mandis found. Please check connection.
+                </Text>
+                <TouchableOpacity onPress={loadCentres} style={styles.backPillBtn}>
+                  <Text style={styles.backPillText}>Refresh Mandis</Text>
                 </TouchableOpacity>
-              );
-            })}
+              </View>
+            ) : (
+              mandiList
+                .filter(
+                  (m) =>
+                    m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    m.location.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((mandiItem) => {
+                  const isSelected = selectedMandi?.id === mandiItem.id;
+                  return (
+                    <TouchableOpacity
+                      key={mandiItem.id}
+                      style={[styles.mandiCard, isSelected && styles.mandiCardSelected]}
+                      onPress={() => setSelectedMandi(mandiItem)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.mandiThumb}>
+                        <Text style={{ fontSize: 24 }}>🏢</Text>
+                      </View>
 
-            <TouchableOpacity style={styles.nextPillBtn} onPress={() => setStep(2)}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.mandiCardName}>{mandiItem.name}</Text>
+                        <Text style={styles.mandiCardLoc}>{mandiItem.location}</Text>
+                        <View style={styles.congestionRow}>
+                          <View style={[styles.congestionDot, { backgroundColor: mandiItem.congestionColor }]} />
+                          <Text style={[styles.congestionText, { color: mandiItem.congestionColor }]}>
+                            {mandiItem.congestion}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.slotsCountBadge}>
+                        <Text style={styles.slotsCountNum}>{mandiItem.slots}</Text>
+                        <Text style={styles.slotsCountSub}>slots today</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
+            )}
+
+            <TouchableOpacity
+              style={[styles.nextPillBtn, (!selectedMandi?.id || loadingMandis) && { opacity: 0.5 }]}
+              disabled={!selectedMandi?.id || loadingMandis}
+              onPress={() => setStep(2)}
+            >
               <Text style={styles.nextPillText}>Next</Text>
               <View style={styles.arrowCircle}>
                 <ArrowRight size={18} color="#FFFFFF" />
@@ -497,7 +527,9 @@ export default function BookSlotScreen() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.selectedDateTitle}>Selected Arrival Date</Text>
                 <Text style={styles.selectedDateVal}>{selectedDate}</Text>
-                <Text style={styles.selectedDateSub}>28 counters open at {selectedMandi.name}</Text>
+                <Text style={styles.selectedDateSub}>
+                  {selectedMandi?.name ? `${selectedMandi.name} Procurement Yard` : 'Mandi Procurement Centre'}
+                </Text>
               </View>
             </View>
 
@@ -522,36 +554,62 @@ export default function BookSlotScreen() {
             <Text style={styles.stepTitle}>Select Time Slot</Text>
             <Text style={styles.stepSubtitle}>Choose an available time slot</Text>
 
-            {/* Slot Radio Cards List */}
-            {slotList.map((slotItem) => {
-              const isSelected = selectedSlot.id === slotItem.id;
-              const isFull = slotItem.type === 'FULL';
-              return (
-                <TouchableOpacity
-                  key={slotItem.id}
-                  disabled={isFull}
-                  style={[
-                    styles.slotRadioCard,
-                    isSelected && styles.slotRadioSelected,
-                    isFull && styles.slotRadioFull,
-                  ]}
-                  onPress={() => setSelectedSlot(slotItem)}
-                >
-                  <Clock size={20} color={isFull ? '#D93838' : Colors.light.primary} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.slotWindowText, isFull && styles.fullText]}>{slotItem.window}</Text>
-                    <Text style={[styles.slotStatusText, isFull && styles.fullTextSub]}>{slotItem.status}</Text>
-                  </View>
-                  <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]} />
+            {/* Slot Radio Cards List / Live Loading State */}
+            {loadingSlots ? (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+                <Text style={{ marginTop: 12, fontSize: 14, color: Colors.light.textSecondary }}>
+                  Checking live slot availability from database...
+                </Text>
+              </View>
+            ) : slotList.length === 0 ? (
+              <View style={{ padding: 30, alignItems: 'center' }}>
+                <Text style={{ fontSize: 14, color: Colors.light.textSecondary, textAlign: 'center', marginBottom: 12 }}>
+                  No slots provisioned for this date in the database.
+                </Text>
+                <TouchableOpacity onPress={() => setStep(2)} style={styles.backPillBtn}>
+                  <Text style={styles.backPillText}>Choose Another Date</Text>
                 </TouchableOpacity>
-              );
-            })}
+              </View>
+            ) : (
+              slotList.map((slotItem) => {
+                const isSelected = selectedSlot?.id === slotItem.id;
+                const isFull = slotItem.type === 'FULL';
+                return (
+                  <TouchableOpacity
+                    key={slotItem.id}
+                    disabled={isFull}
+                    style={[
+                      styles.slotRadioCard,
+                      isSelected && styles.slotRadioSelected,
+                      isFull && styles.slotRadioFull,
+                    ]}
+                    onPress={() => setSelectedSlot(slotItem)}
+                  >
+                    <Clock size={20} color={isFull ? '#D93838' : Colors.light.primary} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.slotWindowText, isFull && styles.fullText]}>{slotItem.window}</Text>
+                      <Text style={[styles.slotStatusText, isFull && styles.fullTextSub]}>{slotItem.status}</Text>
+                    </View>
+                    <View style={[styles.radioCircle, isSelected && styles.radioCircleActive]} />
+                  </TouchableOpacity>
+                );
+              })
+            )}
 
             <View style={styles.btnRow}>
               <TouchableOpacity style={styles.backPillBtn} onPress={() => setStep(2)}>
                 <Text style={styles.backPillText}>Back</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.nextPillBtn, { flex: 1 }]} onPress={() => setStep(4)}>
+              <TouchableOpacity
+                style={[
+                  styles.nextPillBtn,
+                  { flex: 1 },
+                  (!selectedSlot?.id || selectedSlot.type === 'FULL' || loadingSlots) && { opacity: 0.5 },
+                ]}
+                disabled={!selectedSlot?.id || selectedSlot.type === 'FULL' || loadingSlots}
+                onPress={() => setStep(4)}
+              >
                 <Text style={styles.nextPillText}>Next</Text>
                 <View style={styles.arrowCircle}><ArrowRight size={18} color="#FFFFFF" /></View>
               </TouchableOpacity>
@@ -568,9 +626,36 @@ export default function BookSlotScreen() {
             <Text style={styles.stepSubtitle}>Tell us what you are bringing</Text>
 
             <Text style={styles.label}>Crop Type *</Text>
+            {cropList.length > 0 && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {cropList.map((c) => {
+                    const isSel = cropType === c.name;
+                    return (
+                      <TouchableOpacity
+                        key={c.name}
+                        onPress={() => setCropType(c.name)}
+                        style={{
+                          paddingVertical: 6,
+                          paddingHorizontal: 12,
+                          borderRadius: 20,
+                          backgroundColor: isSel ? Colors.light.primary : '#FFFFFF',
+                          borderWidth: 1.5,
+                          borderColor: isSel ? Colors.light.primary : '#E8E4D8',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: isSel ? '#FFFFFF' : Colors.light.textPrimary }}>
+                          {c.name} (₹{c.mspPrice}/Qt)
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            )}
             <View style={styles.inputRow}>
               <Wheat size={18} color={Colors.light.primary} />
-              <TextInput style={styles.input} value={cropType} onChangeText={setCropType} />
+              <TextInput style={styles.input} value={cropType} onChangeText={setCropType} placeholder="e.g. Wheat (Kanak)" />
             </View>
 
             <Text style={styles.label}>Estimated Quantity *</Text>
@@ -624,7 +709,7 @@ export default function BookSlotScreen() {
             <View style={styles.reviewCard}>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>🏢 Mandi</Text>
-                <Text style={styles.reviewVal}>{selectedMandi.name}</Text>
+                <Text style={styles.reviewVal}>{selectedMandi?.name || 'Mandi Centre'}</Text>
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>📅 Date</Text>
@@ -632,7 +717,7 @@ export default function BookSlotScreen() {
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>⏰ Time Slot</Text>
-                <Text style={styles.reviewVal}>{selectedSlot.window}</Text>
+                <Text style={styles.reviewVal}>{selectedSlot?.window || 'Time Slot'}</Text>
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>🌾 Crop</Text>
@@ -712,7 +797,7 @@ export default function BookSlotScreen() {
               <TouchableOpacity
                 style={styles.qrShareBtn}
                 activeOpacity={0.8}
-                onPress={() => handleSharePass(generatedToken, selectedMandi.name, selectedDate, selectedSlot.window)}
+                onPress={() => handleSharePass(generatedToken, selectedMandi?.name || 'Mandi Centre', selectedDate, selectedSlot?.window || 'Time Slot')}
               >
                 <Share2 size={16} color="#FFFFFF" />
                 <Text style={styles.qrShareText}>Share Pass</Text>

@@ -49,7 +49,6 @@ interface ScannedFarmer {
   quotaRemaining: string;
 }
 
-}
 
 export default function GateScanScreen() {
   const router = useRouter();
