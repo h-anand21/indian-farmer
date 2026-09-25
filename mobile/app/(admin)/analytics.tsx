@@ -25,6 +25,7 @@ import {
   ArrowLeft,
 } from 'lucide-react-native';
 import Colors from '../../src/theme/colors';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
@@ -48,6 +49,7 @@ const STATE_COMPARISON = [
 
 export default function AdminAnalyticsScreen() {
   const router = useRouter();
+  const { t, version } = useLanguage();
   const [timeRange, setTimeRange] = useState<'TODAY' | '7D' | '30D' | 'SEASON'>('7D');
   const [activeMetric, setActiveMetric] = useState<'VOLUME' | 'FARMERS' | 'REVENUE' | 'WAIT'>('VOLUME');
 
@@ -73,8 +75,8 @@ export default function AdminAnalyticsScreen() {
             <ArrowLeft size={20} color="#1F291E" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.headerTitle}>Deep Analytics Hub</Text>
-            <Text style={styles.headerSubtitle}>Real-time Volume, Footfall & Revenue Trends</Text>
+            <Text style={styles.headerTitle}>{t('Deep Analytics Hub')}</Text>
+            <Text style={styles.headerSubtitle}>{t('Real-time Volume, Footfall & Revenue Trends')}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.exportBtn} onPress={handleExportCSV}>
@@ -101,7 +103,7 @@ export default function AdminAnalyticsScreen() {
                   timeRange === range && styles.tabTextActive,
                 ]}
               >
-                {range === 'TODAY' ? 'Today' : range === '7D' ? '7 Days' : range === '30D' ? '30 Days' : 'Full Season'}
+                {range === 'TODAY' ? t('Today') : range === '7D' ? t('7 Days') : range === '30D' ? t('30 Days') : t('Full Season')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -114,7 +116,7 @@ export default function AdminAnalyticsScreen() {
             onPress={() => setActiveMetric('VOLUME')}
           >
             <Wheat size={16} color={activeMetric === 'VOLUME' ? '#3B7A1E' : '#5A6658'} />
-            <Text style={[styles.metricTabText, activeMetric === 'VOLUME' && styles.metricTabTextActive]}>Volume</Text>
+            <Text style={[styles.metricTabText, activeMetric === 'VOLUME' && styles.metricTabTextActive]}>{t('Volume')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -122,7 +124,7 @@ export default function AdminAnalyticsScreen() {
             onPress={() => setActiveMetric('FARMERS')}
           >
             <Users size={16} color={activeMetric === 'FARMERS' ? '#3B7A1E' : '#5A6658'} />
-            <Text style={[styles.metricTabText, activeMetric === 'FARMERS' && styles.metricTabTextActive]}>Farmers</Text>
+            <Text style={[styles.metricTabText, activeMetric === 'FARMERS' && styles.metricTabTextActive]}>{t('Farmers')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -130,7 +132,7 @@ export default function AdminAnalyticsScreen() {
             onPress={() => setActiveMetric('REVENUE')}
           >
             <DollarSign size={16} color={activeMetric === 'REVENUE' ? '#3B7A1E' : '#5A6658'} />
-            <Text style={[styles.metricTabText, activeMetric === 'REVENUE' && styles.metricTabTextActive]}>Revenue</Text>
+            <Text style={[styles.metricTabText, activeMetric === 'REVENUE' && styles.metricTabTextActive]}>{t('Revenue')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -138,7 +140,7 @@ export default function AdminAnalyticsScreen() {
             onPress={() => setActiveMetric('WAIT')}
           >
             <Clock size={16} color={activeMetric === 'WAIT' ? '#3B7A1E' : '#5A6658'} />
-            <Text style={[styles.metricTabText, activeMetric === 'WAIT' && styles.metricTabTextActive]}>Wait Time</Text>
+            <Text style={[styles.metricTabText, activeMetric === 'WAIT' && styles.metricTabTextActive]}>{t('Wait Time')}</Text>
           </TouchableOpacity>
         </View>
 

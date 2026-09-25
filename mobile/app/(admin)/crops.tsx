@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react-native';
 import Colors from '../../src/theme/colors';
+import { useLanguage } from '../../src/context/LanguageContext';
 import { fetchAdminCrops, updateCropMsp, createAdminCrop, CropMaster } from '../../src/services/adminService';
 
 const INITIAL_CROPS = [
@@ -40,6 +41,7 @@ const INITIAL_CROPS = [
 
 export default function AdminCropsScreen() {
   const router = useRouter();
+  const { t, version } = useLanguage();
   const [crops, setCrops] = useState(INITIAL_CROPS);
   const [search, setSearch] = useState('');
   const [selectedCrop, setSelectedCrop] = useState<typeof INITIAL_CROPS[0] | null>(null);
@@ -163,14 +165,14 @@ export default function AdminCropsScreen() {
             <ArrowLeft size={20} color="#1F291E" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.headerTitle}>Crops & MSP Rates Master</Text>
-            <Text style={styles.headerSubtitle}>Official Govt Minimum Support Prices</Text>
+            <Text style={styles.headerTitle}>{t('Crops & MSP Rates Master')}</Text>
+            <Text style={styles.headerSubtitle}>{t('Official Govt Minimum Support Prices')}</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)}>
           <Plus size={16} color="#FFFFFF" />
-          <Text style={styles.addBtnText}>Add Crop</Text>
+          <Text style={styles.addBtnText}>{t('Add Crop')}</Text>
         </TouchableOpacity>
       </View>
 

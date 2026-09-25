@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import Colors from '../../../src/theme/colors';
 import { useAuth } from '../../../src/context/AuthContext';
+import { useLanguage } from '../../../src/context/LanguageContext';
 import GateScanScreen from '../../(operator)/scan';
 import AdminCentresListScreen from '../../(admin)/centres/index';
 import { getBookings, BookingRecord } from '../../../src/lib/bookingStore';
@@ -89,6 +90,7 @@ function mapApiBookingToRecord(b: BookingData): BookingRecord {
 
 export default function MyBookingsScreen() {
   const { role, user } = useAuth();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PAST' | 'CANCELLED'>('ACTIVE');
   const [bookingsList, setBookingsList] = useState<BookingRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -196,9 +198,9 @@ export default function MyBookingsScreen() {
       >
         {/* Title */}
         <Text style={styles.title}>
-          My <Text style={styles.titleHighlight}>Bookings</Text>
+          {t('My Bookings')}
         </Text>
-        <Text style={styles.subtitle}>Track and manage all your mandi bookings</Text>
+        <Text style={styles.subtitle}>{t('Track and manage all your mandi bookings')}</Text>
 
         {/* Segmented Filter Tabs */}
         <View style={styles.tabRow}>
@@ -207,7 +209,7 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('ACTIVE')}
           >
             <Text style={[styles.tabText, activeTab === 'ACTIVE' && styles.tabTextActive]}>
-              📅 Active ({activeBookings.length})
+              📅 {t('Active')} ({activeBookings.length})
             </Text>
           </TouchableOpacity>
 
@@ -216,7 +218,7 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('PAST')}
           >
             <Text style={[styles.tabText, activeTab === 'PAST' && styles.tabTextActive]}>
-              🕒 Past ({pastBookings.length})
+              🕒 {t('Past')} ({pastBookings.length})
             </Text>
           </TouchableOpacity>
 
@@ -225,7 +227,7 @@ export default function MyBookingsScreen() {
             onPress={() => setActiveTab('CANCELLED')}
           >
             <Text style={[styles.tabText, activeTab === 'CANCELLED' && styles.tabTextActive]}>
-              ❌ Cancelled ({cancelledBookings.length})
+              ❌ {t('Cancelled')} ({cancelledBookings.length})
             </Text>
           </TouchableOpacity>
         </View>
@@ -300,11 +302,11 @@ export default function MyBookingsScreen() {
         ) : (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyEmoji}>📅</Text>
-            <Text style={styles.emptyTitle}>No bookings found</Text>
+            <Text style={styles.emptyTitle}>{t('No bookings found')}</Text>
             <Text style={styles.emptySub}>
               {activeTab === 'ACTIVE'
-                ? "You don't have any upcoming bookings. Book a new slot to sell your produce."
-                : 'No records found under this filter.'}
+                ? t("You don't have any upcoming bookings. Book a new slot to sell your produce.")
+                : t('No records found under this filter.')}
             </Text>
 
             {activeTab === 'ACTIVE' && (
@@ -312,7 +314,7 @@ export default function MyBookingsScreen() {
                 style={styles.bookNewBtn}
                 onPress={() => router.push('/(farmer)/book-slot')}
               >
-                <Text style={styles.bookNewText}>Book New Slot</Text>
+                <Text style={styles.bookNewText}>{t('Book New Slot')}</Text>
                 <ArrowRight size={16} color="#FFFFFF" />
               </TouchableOpacity>
             )}

@@ -43,11 +43,13 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import Colors from '../../src/theme/colors';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, role, logout, switchRole } = useAuth();
+  const { currentLanguage, activeLanguageInfo, t } = useLanguage();
 
   // Local settings states
   const [weightUnit, setWeightUnit] = useState<'QTL' | 'KG'>('QTL');
@@ -495,8 +497,10 @@ export default function ProfileScreen() {
               <Globe size={18} color="#E66919" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>Change App Language</Text>
-              <Text style={styles.settingSub}>Hindi / Punjabi / English Available</Text>
+              <Text style={[styles.settingTitle, darkMode && styles.darkText]}>{t('Change App Language')}</Text>
+              <Text style={styles.settingSub}>
+                {activeLanguageInfo.nativeName} ({activeLanguageInfo.name}) • {t('22 Official Languages')}
+              </Text>
             </View>
             <ChevronRight size={18} color={Colors.light.textMuted} />
           </TouchableOpacity>

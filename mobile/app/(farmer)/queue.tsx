@@ -30,6 +30,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import OperatorQueueScreen from '../(operator)/queue';
 import AdminAnalyticsScreen from '../(admin)/analytics';
 import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
@@ -52,6 +53,7 @@ const QUEUE_STAGES = [
 
 export default function LiveQueueScreen() {
   const { role, user } = useAuth();
+  const { t } = useLanguage();
   const [showTurnAlert, setShowTurnAlert] = useState(false);
   const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
   const [selectedBookingIndex, setSelectedBookingIndex] = useState(0);
@@ -256,16 +258,16 @@ export default function LiveQueueScreen() {
         {/* Title & Live Badge */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
           <Text style={styles.title}>
-            Live <Text style={styles.titleHighlight}>Queue</Text>
+            {t('Live Queue')}
           </Text>
           <View style={styles.liveTag}>
             <View style={styles.redDot} />
-            <Text style={styles.liveTagText}>Live Mandi Board</Text>
+            <Text style={styles.liveTagText}>{t('Live Mandi Board')}</Text>
           </View>
         </View>
 
         <Text style={styles.subtitle}>
-          {primaryBooking ? `Live tracking at ${primaryBooking.mandi}` : 'Real-time mandi queue board'}
+          {primaryBooking ? `${t('Live tracking at')} ${primaryBooking.mandi}` : t('Real-time mandi queue board')}
         </Text>
 
         {/* Active Booking Switcher Pill Row (if farmer has multiple active bookings) */}

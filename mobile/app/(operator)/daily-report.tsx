@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 const PROCESSED_FARMERS = [
   { id: '1', token: '#KQ-1048', name: 'Gurdeep Singh', crop: 'Wheat (Sharbati)', weight: '45.5 Qt', amount: '₹ 1,03,513', time: '04:15 PM' },
@@ -45,6 +46,7 @@ const HOURLY_DATA = [
 
 export default function DailyReportScreen() {
   const router = useRouter();
+  const { t, version } = useLanguage();
   const [selectedDate, setSelectedDate] = useState('Today (12 Sep 2026)');
 
   const handleExportPDF = () => {
@@ -70,7 +72,7 @@ export default function DailyReportScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={20} color={Colors.light.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Operator Daily Report</Text>
+        <Text style={styles.headerTitle}>{t('Operator Daily Report')}</Text>
         <TouchableOpacity style={styles.shareHeaderBtn} onPress={handleShareWhatsApp}>
           <Share2 size={18} color="#3B7A1E" />
         </TouchableOpacity>
@@ -96,7 +98,7 @@ export default function DailyReportScreen() {
               <Users size={16} color="#3B7A1E" />
             </View>
             <Text style={styles.statVal}>42</Text>
-            <Text style={styles.statLabel}>Farmers Processed</Text>
+            <Text style={styles.statLabel}>{t('Farmers Processed')}</Text>
           </View>
 
           <View style={[styles.statCard, { borderLeftColor: '#0284C7' }]}>
@@ -104,7 +106,7 @@ export default function DailyReportScreen() {
               <Scale size={16} color="#0284C7" />
             </View>
             <Text style={styles.statVal}>1,820 Qt</Text>
-            <Text style={styles.statLabel}>Total Quantity</Text>
+            <Text style={styles.statLabel}>{t('Total Quantity')}</Text>
           </View>
 
           <View style={[styles.statCard, { borderLeftColor: '#E66919' }]}>
@@ -112,7 +114,7 @@ export default function DailyReportScreen() {
               <IndianRupee size={16} color="#E66919" />
             </View>
             <Text style={styles.statVal}>₹ 41.4 L</Text>
-            <Text style={styles.statLabel}>Disbursed Value</Text>
+            <Text style={styles.statLabel}>{t('Disbursed Value')}</Text>
           </View>
 
           <View style={[styles.statCard, { borderLeftColor: '#7C3AED' }]}>
@@ -120,13 +122,13 @@ export default function DailyReportScreen() {
               <TrendingUp size={16} color="#7C3AED" />
             </View>
             <Text style={styles.statVal}>14.2 min</Text>
-            <Text style={styles.statLabel}>Avg Process Time</Text>
+            <Text style={styles.statLabel}>{t('Avg Process Time')}</Text>
           </View>
         </View>
 
         {/* Crop Breakdown Visual Progress Bar */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Crop Procurement Breakdown</Text>
+          <Text style={styles.sectionTitle}>{t('Crop Procurement Breakdown')}</Text>
 
           <View style={styles.cropBarContainer}>
             <View style={[styles.cropBarSegment, { flex: 45, backgroundColor: '#3B7A1E' }]} />

@@ -34,6 +34,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import { operatorGateCheckIn, fetchBookingDetails } from '../../src/services/operatorService';
 import { getBookingByToken, updateBookingStatus } from '../../src/lib/bookingStore';
 
@@ -53,6 +54,7 @@ interface ScannedFarmer {
 export default function GateScanScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, version } = useLanguage();
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [torchOn, setTorchOn] = useState(false);
@@ -270,7 +272,7 @@ export default function GateScanScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={20} color={Colors.light.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Gate QR Check-In</Text>
+        <Text style={styles.headerTitle}>{t('Gate QR Check-In')}</Text>
         <TouchableOpacity
           style={[styles.torchBtn, torchOn && styles.torchBtnActive]}
           onPress={() => setTorchOn(!torchOn)}
@@ -383,7 +385,7 @@ export default function GateScanScreen() {
         {/* Manual Input Section */}
         <View style={styles.dividerRow}>
           <View style={styles.line} />
-          <Text style={styles.dividerText}>OR ENTER TOKEN MANUALLY</Text>
+          <Text style={styles.dividerText}>{t('OR ENTER TOKEN MANUALLY')}</Text>
           <View style={styles.line} />
         </View>
 
@@ -397,7 +399,7 @@ export default function GateScanScreen() {
             autoCapitalize="characters"
           />
           <TouchableOpacity style={styles.verifyBtn} onPress={handleManualSearch}>
-            <Text style={styles.verifyBtnText}>Verify</Text>
+            <Text style={styles.verifyBtnText}>{t('Verify')}</Text>
             <ArrowRight size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -413,7 +415,7 @@ export default function GateScanScreen() {
                 <View style={styles.tokenStatusRow}>
                   <Text style={styles.resultToken}>#{scannedResult.token}</Text>
                   <View style={styles.activeSlotBadge}>
-                    <Text style={styles.activeSlotText}>SLOT ACTIVE</Text>
+                    <Text style={styles.activeSlotText}>{t('SLOT ACTIVE')}</Text>
                   </View>
                 </View>
                 <Text style={styles.resultFarmerName}>{scannedResult.name}</Text>
@@ -424,38 +426,38 @@ export default function GateScanScreen() {
             </View>
 
             {/* Verification Checklist */}
-            <Text style={styles.checklistTitle}>Verification Checklist</Text>
+            <Text style={styles.checklistTitle}>{t('Verification Checklist')}</Text>
             <View style={styles.checklistBox}>
               <View style={styles.checkItem}>
                 <CheckCircle2 size={16} color="#16A34A" />
-                <Text style={styles.checkText}>Token Valid & Confirmed in APMC Database</Text>
+                <Text style={styles.checkText}>{t('Token Valid & Confirmed in APMC Database')}</Text>
               </View>
               <View style={styles.checkItem}>
                 <CheckCircle2 size={16} color="#16A34A" />
-                <Text style={styles.checkText}>Identity Matched (DigiLocker / Aadhaar Linked)</Text>
+                <Text style={styles.checkText}>{t('Identity Matched (DigiLocker / Aadhaar Linked)')}</Text>
               </View>
               <View style={styles.checkItem}>
                 <CheckCircle2 size={16} color="#16A34A" />
-                <Text style={styles.checkText}>Land MSP Quota OK ({scannedResult.quotaRemaining})</Text>
+                <Text style={styles.checkText}>{t('Land MSP Quota OK')} ({scannedResult.quotaRemaining})</Text>
               </View>
               <View style={styles.checkItem}>
                 <CheckCircle2 size={16} color="#16A34A" />
-                <Text style={styles.checkText}>Entry Time Slot Active (Arrived on Schedule)</Text>
+                <Text style={styles.checkText}>{t('Entry Time Slot Active (Arrived on Schedule)')}</Text>
               </View>
             </View>
 
             {/* Crop & Vehicle Summary */}
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>CROP & WEIGHT</Text>
+                <Text style={styles.metaLabel}>{t('CROP & WEIGHT')}</Text>
                 <Text style={styles.metaVal}>{scannedResult.crop}</Text>
                 <Text style={styles.metaSub}>{scannedResult.quantity}</Text>
               </View>
               <View style={styles.metaDivider} />
               <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>VEHICLE DETAILS</Text>
+                <Text style={styles.metaLabel}>{t('VEHICLE DETAILS')}</Text>
                 <Text style={styles.metaVal}>{scannedResult.vehicle}</Text>
-                <Text style={styles.metaSub}>Gate #1 Scale Entry</Text>
+                <Text style={styles.metaSub}>{t('Gate #1 Scale Entry')}</Text>
               </View>
             </View>
 
@@ -466,7 +468,7 @@ export default function GateScanScreen() {
                 onPress={() => setShowRejectModal(true)}
               >
                 <XCircle size={18} color="#DC2626" />
-                <Text style={styles.rejectBtnText}>Reject</Text>
+                <Text style={styles.rejectBtnText}>{t('Reject')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -474,14 +476,14 @@ export default function GateScanScreen() {
                 onPress={handleConfirmCheckIn}
               >
                 <CheckCircle2 size={18} color="#FFFFFF" />
-                <Text style={styles.checkInBtnText}>Check In Farmer</Text>
+                <Text style={styles.checkInBtnText}>{t('Check In Farmer')}</Text>
               </TouchableOpacity>
             </View>
 
             {/* Re-scan Next Farmer button */}
             <TouchableOpacity style={styles.reScanBtn} onPress={handleScanNext}>
               <RefreshCw size={14} color="#667064" />
-              <Text style={styles.reScanBtnText}>Scan Another Farmer QR</Text>
+              <Text style={styles.reScanBtnText}>{t('Scan Another Farmer QR')}</Text>
             </TouchableOpacity>
           </View>
         )}

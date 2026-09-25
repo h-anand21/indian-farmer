@@ -24,7 +24,7 @@ const ALLOWED_ROUTES = [
 export default function CustomGlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { role } = useAuth();
-  const { t } = useLanguage();
+  const { t, version } = useLanguage();
   const bottomOffset = Math.max(insets.bottom + 10, 24);
 
   // Filter allowed visible routes
@@ -51,15 +51,15 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
               : route.name;
 
           if (route.name === 'dashboard') {
-            label = t('tabHome');
+            label = 'Home';
           } else if (route.name === 'bookings' || route.name === 'bookings/index') {
-            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : t('tabBookings');
+            label = role === 'OPERATOR' ? 'Scan' : role === 'ADMIN' ? 'Centres' : 'Bookings';
           } else if (route.name === 'book-slot') {
-            label = t('tabBookSlot');
+            label = 'Book Slot';
           } else if (route.name === 'scan') {
             label = 'Scan QR';
           } else if (route.name === 'queue') {
-            label = t('tabLiveQueue');
+            label = 'Live Queue';
           } else if (route.name === 'daily-report') {
             label = 'Reports';
           } else if (route.name === 'analytics') {
@@ -71,8 +71,11 @@ export default function CustomGlassTabBar({ state, descriptors, navigation }: Bo
           } else if (route.name === 'payments' || route.name === 'payments/index') {
             label = 'Payments';
           } else if (route.name === 'profile') {
-            label = t('tabProfile');
+            label = 'Profile';
           }
+
+          // Dynamically translate the tab label without hardcoding
+          label = typeof label === 'string' ? t(label) : label;
 
           const onPress = () => {
             const event = navigation.emit({

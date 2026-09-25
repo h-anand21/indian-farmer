@@ -29,6 +29,7 @@ import {
   FileCheck,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import Colors from '../../src/theme/colors';
 
 const RECENT_PROCESSED = [
@@ -53,6 +54,7 @@ const LIVE_STRIP_ITEMS = [
 
 export default function OperatorDashboard() {
   const { user, logout } = useAuth();
+  const { t, version } = useLanguage();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [metrics, setMetrics] = useState<any>(null);
@@ -109,7 +111,7 @@ export default function OperatorDashboard() {
         <View style={styles.headerTitleGroup}>
           <View style={styles.operatorBadgeRow}>
             <View style={styles.roleTag}>
-              <Text style={styles.roleTagText}>MANDI DESK</Text>
+              <Text style={styles.roleTagText}>{t('MANDI DESK')}</Text>
             </View>
             <View style={styles.gateTag}>
               <Text style={styles.gateTagText}>{gateNumber}</Text>
@@ -141,8 +143,8 @@ export default function OperatorDashboard() {
             <AlertTriangle size={18} color="#D97706" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.alertTitle}>3 Farmers Waiting 30+ Mins!</Text>
-            <Text style={styles.alertSub}>Yard congestion threshold reached at Counter B.</Text>
+            <Text style={styles.alertTitle}>{t('3 Farmers Waiting 30+ Mins!')}</Text>
+            <Text style={styles.alertSub}>{t('Yard congestion threshold reached at Counter B.')}</Text>
           </View>
           <ChevronRight size={16} color="#D97706" />
         </TouchableOpacity>
@@ -152,10 +154,10 @@ export default function OperatorDashboard() {
           <View style={styles.stripHeader}>
             <View style={styles.liveIndicator}>
               <View style={styles.pulsingDot} />
-              <Text style={styles.stripTitle}>LIVE YARD ACTIVITY</Text>
+              <Text style={styles.stripTitle}>{t('LIVE YARD ACTIVITY')}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(operator)/queue')}>
-              <Text style={styles.viewAllQueueText}>Full Queue Board →</Text>
+              <Text style={styles.viewAllQueueText}>{t('Full Queue Board →')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -204,15 +206,15 @@ export default function OperatorDashboard() {
         </View>
 
         {/* Today's 4 Stats Cards */}
-        <Text style={styles.sectionTitle}>Today's Operational Overview</Text>
+        <Text style={styles.sectionTitle}>{t("Today's Operational Overview")}</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <View style={[styles.statIconCircle, { backgroundColor: '#EBF4E5' }]}>
               <CheckCircle2 size={18} color="#3B7A1E" />
             </View>
             <Text style={styles.statNumber}>{checkedIn}</Text>
-            <Text style={styles.statLabel}>Checked-In</Text>
-            <Text style={styles.statSub}>At Gate #1 & #2</Text>
+            <Text style={styles.statLabel}>{t('Checked-In')}</Text>
+            <Text style={styles.statSub}>{t('At Gate #1 & #2')}</Text>
           </View>
 
           <View style={styles.statCard}>
@@ -220,8 +222,8 @@ export default function OperatorDashboard() {
               <Users size={18} color="#E66919" />
             </View>
             <Text style={[styles.statNumber, { color: '#E66919' }]}>{inQueue}</Text>
-            <Text style={styles.statLabel}>In Queue</Text>
-            <Text style={styles.statSub}>Awaiting weighment</Text>
+            <Text style={styles.statLabel}>{t('In Queue')}</Text>
+            <Text style={styles.statSub}>{t('Awaiting weighment')}</Text>
           </View>
 
           <View style={styles.statCard}>
@@ -229,8 +231,8 @@ export default function OperatorDashboard() {
               <Scale size={18} color="#0284C7" />
             </View>
             <Text style={styles.statNumber}>{processed}</Text>
-            <Text style={styles.statLabel}>Processed Today</Text>
-            <Text style={styles.statSub}>Form J generated</Text>
+            <Text style={styles.statLabel}>{t('Processed Today')}</Text>
+            <Text style={styles.statSub}>{t('Form J generated')}</Text>
           </View>
 
           <View style={styles.statCard}>
@@ -238,13 +240,13 @@ export default function OperatorDashboard() {
               <Clock size={18} color="#7C3AED" />
             </View>
             <Text style={styles.statNumber}>{avgWait}</Text>
-            <Text style={styles.statLabel}>Avg Wait Time</Text>
-            <Text style={styles.statSub}>vs yesterday</Text>
+            <Text style={styles.statLabel}>{t('Avg Wait Time')}</Text>
+            <Text style={styles.statSub}>{t('vs yesterday')}</Text>
           </View>
         </View>
 
         {/* Quick Actions (6 Tiles) */}
-        <Text style={styles.sectionTitle}>Desk Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{t('Desk Quick Actions')}</Text>
         <View style={styles.actionsGrid}>
           <TouchableOpacity
             style={[styles.actionTile, { backgroundColor: '#EBF4E5' }]}
@@ -254,8 +256,8 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <QrCode size={24} color="#3B7A1E" />
             </View>
-            <Text style={styles.actionTitle}>Scan QR</Text>
-            <Text style={styles.actionSub}>Gate Token Check-In</Text>
+            <Text style={styles.actionTitle}>{t('Scan QR')}</Text>
+            <Text style={styles.actionSub}>{t('Gate Token Check-In')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -266,8 +268,8 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <Scale size={24} color="#E66919" />
             </View>
-            <Text style={styles.actionTitle}>Process Next</Text>
-            <Text style={styles.actionSub}>Weigh & Form J</Text>
+            <Text style={styles.actionTitle}>{t('Process Next')}</Text>
+            <Text style={styles.actionSub}>{t('Weigh & Form J')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -278,8 +280,8 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <Users size={24} color="#0284C7" />
             </View>
-            <Text style={styles.actionTitle}>View Queue</Text>
-            <Text style={styles.actionSub}>Yard Call Board</Text>
+            <Text style={styles.actionTitle}>{t('View Queue')}</Text>
+            <Text style={styles.actionSub}>{t('Yard Call Board')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -290,8 +292,8 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <FileText size={24} color="#7C3AED" />
             </View>
-            <Text style={styles.actionTitle}>Daily Report</Text>
-            <Text style={styles.actionSub}>Intake Summary & PDF</Text>
+            <Text style={styles.actionTitle}>{t('Daily Report')}</Text>
+            <Text style={styles.actionSub}>{t('Intake Summary & PDF')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -302,8 +304,8 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <IndianRupee size={24} color="#D97706" />
             </View>
-            <Text style={styles.actionTitle}>Payments</Text>
-            <Text style={styles.actionSub}>DBT Payouts Log</Text>
+            <Text style={styles.actionTitle}>{t('Payments')}</Text>
+            <Text style={styles.actionSub}>{t('DBT Payouts Log')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -314,15 +316,15 @@ export default function OperatorDashboard() {
             <View style={[styles.actionIconBox, { backgroundColor: '#FFFFFF' }]}>
               <BarChart3 size={24} color="#475569" />
             </View>
-            <Text style={styles.actionTitle}>Desk Stats</Text>
-            <Text style={styles.actionSub}>Speed & Performance</Text>
+            <Text style={styles.actionTitle}>{t('Desk Stats')}</Text>
+            <Text style={styles.actionSub}>{t('Speed & Performance')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Recent Activity (Last 10 Processed Farmers) */}
         <View style={styles.activityHeader}>
-          <Text style={styles.sectionTitle}>Recent Processed Farmers</Text>
-          <Text style={styles.activityCount}>Last 10 Completed</Text>
+          <Text style={styles.sectionTitle}>{t('Recent Processed Farmers')}</Text>
+          <Text style={styles.activityCount}>{t('Last 10 Completed')}</Text>
         </View>
 
         <View style={styles.activityCard}>

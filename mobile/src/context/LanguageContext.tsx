@@ -69,12 +69,7 @@ export type TranslationKey =
   | 'liveQueue'
   | 'myPayments'
   | 'govtSchemes'
-  | 'mspRates'
-  | 'tabHome'
-  | 'tabBookings'
-  | 'tabBookSlot'
-  | 'tabLiveQueue'
-  | 'tabProfile';
+  | 'mspRates';
 
 const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
   en: {
@@ -139,11 +134,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'My Payments',
     govtSchemes: 'Govt Schemes',
     mspRates: 'MSP Rates (2026-27)',
-    tabHome: 'Home',
-    tabBookings: 'Bookings',
-    tabBookSlot: 'Book Slot',
-    tabLiveQueue: 'Live Queue',
-    tabProfile: 'Profile',
+
+
+
+
   },
 
   hi: {
@@ -208,11 +202,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'भुगतान विवरण',
     govtSchemes: 'सरकारी योजनाएं',
     mspRates: 'एमएसपी दरें (2026-27)',
-    tabHome: 'होम',
-    tabBookings: 'बुकिंग्स',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'लाइव कतार',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   pa: {
@@ -277,11 +270,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ਮੇਰੇ ਭੁਗਤਾਨ',
     govtSchemes: 'ਸਰਕਾਰੀ ਸਕੀਮਾਂ',
     mspRates: 'ਐਮਐਸਪੀ ਦਰਾਂ (2026-27)',
-    tabHome: 'ਹੋਮ',
-    tabBookings: 'ਬੁਕਿੰਗਾਂ',
-    tabBookSlot: 'ਸਲਾਟ ਬੁੱਕ',
-    tabLiveQueue: 'ਲਾਈਵ ਕਤਾਰ',
-    tabProfile: 'ਪ੍ਰੋਫਾਈਲ',
+
+
+
+
   },
 
   mr: {
@@ -346,11 +338,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'माझी देयके',
     govtSchemes: 'शासकीय योजना',
     mspRates: 'हमीभाव दर (2026-27)',
-    tabHome: 'मुख्य',
-    tabBookings: 'बुकिंग',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'थेट रांग',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   gu: {
@@ -415,11 +406,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ચૂકવણી વિગતો',
     govtSchemes: 'સરકારી યોજનાઓ',
     mspRates: 'ટેકાના ભાવ (2026-27)',
-    tabHome: 'હોમ',
-    tabBookings: 'બુકિંગ્સ',
-    tabBookSlot: 'સ્લોટ બુક',
-    tabLiveQueue: 'લાઈવ લાઈન',
-    tabProfile: 'પ્રોફાઇલ',
+
+
+
+
   },
 
   te: {
@@ -484,11 +474,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'చెల్లింపులు',
     govtSchemes: 'పథకాలు',
     mspRates: 'MSP ధరలు (2026-27)',
-    tabHome: 'హోమ్',
-    tabBookings: 'బుకింగ్‌లు',
-    tabBookSlot: 'స్లాట్ బుక్',
-    tabLiveQueue: 'లైవ్ క్యూ',
-    tabProfile: 'ప్రొఫైల్',
+
+
+
+
   },
 
   bn: {
@@ -553,11 +542,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'আমার পেমেন্ট',
     govtSchemes: 'সরকারি প্রকল্প',
     mspRates: 'এমএসপি দর (2026-27)',
-    tabHome: 'হোম',
-    tabBookings: 'বুকিং',
-    tabBookSlot: 'স্লট বুক',
-    tabLiveQueue: 'লাইভ কিউ',
-    tabProfile: 'প্রোফাইল',
+
+
+
+
   },
 
   ta: {
@@ -622,11 +610,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'பணம் விவரம்',
     govtSchemes: 'அரசு திட்டங்கள்',
     mspRates: 'MSP விலை (2026-27)',
-    tabHome: 'முகப்பு',
-    tabBookings: 'பதிவுகள்',
-    tabBookSlot: 'ஸ்லாட் பதிவு',
-    tabLiveQueue: 'நேரலை வரிசை',
-    tabProfile: 'சுயவிவரம்',
+
+
+
+
   },
 
   kn: {
@@ -691,11 +678,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ನನ್ನ ಪಾವತಿಗಳು',
     govtSchemes: 'ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು',
     mspRates: 'MSP ದರಗಳು (2026-27)',
-    tabHome: 'ಮುಖಪುಟ',
-    tabBookings: 'ಬುಕಿಂಗ್‌ಗಳು',
-    tabBookSlot: 'ಸ್ಲಾಟ್ ಬುಕ್',
-    tabLiveQueue: 'ಲೈವ್ ಕ್ಯೂ',
-    tabProfile: 'ಪ್ರೊಫೈಲ್',
+
+
+
+
   },
 
   ml: {
@@ -760,11 +746,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'പേയ്‌മെന്റുകൾ',
     govtSchemes: 'പദ്ധതികൾ',
     mspRates: 'MSP നിരക്കുകൾ (2026-27)',
-    tabHome: 'ഹോം',
-    tabBookings: 'ബുക്കിംഗുകൾ',
-    tabBookSlot: 'സ്ലോട്ട് ബുക്ക്',
-    tabLiveQueue: 'ലൈവ് ക്യൂ',
-    tabProfile: 'പ്രൊഫൈൽ',
+
+
+
+
   },
 
   or: {
@@ -829,11 +814,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ମୋର ପେମେଣ୍ଟ',
     govtSchemes: 'ସରକାରୀ ଯୋଜନା',
     mspRates: 'ଏମଏସପି ଦର (2026-27)',
-    tabHome: 'ମୂଳପୃଷ୍ଠା',
-    tabBookings: 'ବୁକିଂଗୁଡ଼ିକ',
-    tabBookSlot: 'ସ୍ଲଟ୍ ବୁକ୍',
-    tabLiveQueue: 'ଲାଇଭ୍ ଧାଡ଼ି',
-    tabProfile: 'ପ୍ରୋଫାଇଲ୍',
+
+
+
+
   },
 
   as: {
@@ -898,11 +882,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'মোৰ ধন',
     govtSchemes: 'চৰকাৰী আঁচনি',
     mspRates: 'এমএছপি দৰ (2026-27)',
-    tabHome: 'হোম',
-    tabBookings: 'বুকিং',
-    tabBookSlot: 'স্লট বুক',
-    tabLiveQueue: 'লাইভ শাৰী',
-    tabProfile: 'প্ৰফাইল',
+
+
+
+
   },
 
   ur: {
@@ -967,11 +950,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ادائیگی کی تفصیلات',
     govtSchemes: 'سرکاری اسکیمیں',
     mspRates: 'ایم ایس پی ریٹس (2026-27)',
-    tabHome: 'ہوم',
-    tabBookings: 'بکنگز',
-    tabBookSlot: 'سلاٹ بک',
-    tabLiveQueue: 'لائیو قطار',
-    tabProfile: 'پروفائل',
+
+
+
+
   },
 
   bho: {
@@ -1036,11 +1018,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'भुगतान ब्योरा',
     govtSchemes: 'सरकारी योजना',
     mspRates: 'एमएसपी रेट (2026-27)',
-    tabHome: 'होम',
-    tabBookings: 'बुकिंग',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'लाइव कतार',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   mai: {
@@ -1105,11 +1086,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'भुगतान विवरण',
     govtSchemes: 'सरकारी योजना',
     mspRates: 'एमएसपी दर (2026-27)',
-    tabHome: 'होम',
-    tabBookings: 'बुकिंग',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'लाइव कतार',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   sa: {
@@ -1174,11 +1154,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'मम देयानि',
     govtSchemes: 'शासकीययोजनाः',
     mspRates: 'न्यूनतमसमर्थनमूल्यम् (2026-27)',
-    tabHome: 'मुख्यम्',
-    tabBookings: 'पञ्जीकरणम्',
-    tabBookSlot: 'स्थानम्',
-    tabLiveQueue: 'पङ्क्तिः',
-    tabProfile: 'विवरणम्',
+
+
+
+
   },
 
   kok: {
@@ -1243,11 +1222,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'म्हाका मेळिल्ले पयशे',
     govtSchemes: 'सरकारी येवजण्यो',
     mspRates: 'हमीभाव दर (2026-27)',
-    tabHome: 'घर',
-    tabBookings: 'बुकिंगां',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'थेट रांक',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   sd: {
@@ -1312,11 +1290,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'پئسن جا تفصيل',
     govtSchemes: 'سرڪاري اسڪيمون',
     mspRates: 'ايم ايس پي ريٽ (2026-27)',
-    tabHome: 'هوم',
-    tabBookings: 'بڪنگ',
-    tabBookSlot: 'سلاٽ بڪ',
-    tabLiveQueue: 'لائيو قطار',
-    tabProfile: 'پروفائل',
+
+
+
+
   },
 
   ne: {
@@ -1381,11 +1358,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'मेरो भुक्तानी',
     govtSchemes: 'सरकारी योजनाहरू',
     mspRates: 'समर्थन मूल्य (2026-27)',
-    tabHome: 'गृहपृष्ठ',
-    tabBookings: 'बुकिङ',
-    tabBookSlot: 'स्लट बुक',
-    tabLiveQueue: 'प्रत्यक्ष कतार',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   doi: {
@@ -1450,11 +1426,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'भुगतान ब्योरा',
     govtSchemes: 'सरकारी स्कीमां',
     mspRates: 'एमएसपी दर (2026-27)',
-    tabHome: 'होम',
-    tabBookings: 'बुकिंगां',
-    tabBookSlot: 'स्लॉट बुक',
-    tabLiveQueue: 'लाइव कतार',
-    tabProfile: 'प्रोफाइल',
+
+
+
+
   },
 
   ks: {
@@ -1519,11 +1494,10 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'پونسن ہٕنٛد تفصیٖل',
     govtSchemes: 'سرکٲرۍ سکیٖمہٕ',
     mspRates: 'ایم ایس پی ریٹ (2026-27)',
-    tabHome: 'ہوم',
-    tabBookings: 'بُکنگ',
-    tabBookSlot: 'سلاٹ بُک',
-    tabLiveQueue: 'لائیو قطار',
-    tabProfile: 'پروفائل',
+
+
+
+
   },
 
   'mni-Mtei': {
@@ -1588,11 +1562,256 @@ const TRANSLATIONS: Record<string, Record<TranslationKey, string>> = {
     myPayments: 'ঐহাক্কী শেল',
     govtSchemes: 'লৈঙাক্কী স্কিম',
     mspRates: 'এমএসপি মমল (2026-27)',
-    tabHome: 'য়ুম',
-    tabBookings: 'বুকিংশিং',
-    tabBookSlot: 'স্লট বুক',
-    tabLiveQueue: 'লাইভ পরেল',
-    tabProfile: 'প্রোফাইল',
+
+
+
+
+  },
+};
+
+const COMMON_STRINGS: Record<string, Record<string, string>> = {
+  hi: {
+    'Home': 'होम',
+    'Bookings': 'बुकिंग्स',
+    'Book Slot': 'स्लॉट बुक करें',
+    'Scan QR': 'QR स्कैन',
+    'Scan': 'स्कैन',
+    'Live Queue': 'लाइव कतार',
+    'Reports': 'रिपोर्ट्स',
+    'Analytics': 'एनालिटिक्स',
+    'Mandi Hubs': 'मंडी हब्स',
+    'MSP Master': 'MSP मास्टर',
+    'Centres': 'मंडी केंद्र',
+    'Payments': 'भुगतान',
+    'Profile': 'प्रोफाइल',
+    'MANDI DESK': 'मंडी डेस्क',
+    'Gate QR Check-In': 'गेट QR चेक-इन',
+    'Intake & Weighment': 'आवक एवं तौल',
+    'Operator Daily Report': 'ऑपरेटर दैनिक रिपोर्ट',
+    'Deep Analytics Hub': 'गहन एनालिटिक्स हब',
+    'Mandi Centres Master': 'मंडी केंद्र मास्टर',
+    'MSP Crops Master': 'MSP फसल मास्टर',
+    'Today\'s Operational Overview': 'आज का परिचालन विवरण',
+    'Checked-In': 'चेक-इन',
+    'In Queue': 'कतार में',
+    'Processed Today': 'आज संसाधित',
+    'Avg Wait Time': 'औसत प्रतीक्षा समय',
+    'Desk Quick Actions': 'डेस्क त्वरित सेवाएं',
+    'Process Next': 'अगला संसाधित करें',
+    'Weigh & Form J': 'तौल और फॉर्म जे',
+    'View Queue': 'कतार देखें',
+    'Yard Call Board': 'यार्ड कॉल बोर्ड',
+    'Daily Report': 'दैनिक रिपोर्ट',
+    'Intake Summary & PDF': 'आवक सारांश और PDF',
+    'DBT Payouts Log': 'DBT भुगतान लॉग',
+    'Desk Stats': 'डेस्क आंकड़े',
+    'Speed & Performance': 'गति एवं प्रदर्शन',
+    'Recent Processed Farmers': 'हाल ही में संसाधित किसान',
+    'Last 10 Completed': 'पिछले 10 पूर्ण',
+    'Pan-India Mandi Control': 'अखिल भारतीय मंडी नियंत्रण',
+    'Dept. of Food & Public Distribution': 'खाद्य एवं सार्वजनिक वितरण विभाग',
+    'NATIONAL LIVE MONITORING': 'राष्ट्रीय लाइव निगरानी',
+    'Key Operational Metrics (Pan-India)': 'मुख्य परिचालन मेट्रिक्स (अखिल भारतीय)',
+    'Total Mandi Centres': 'कुल मंडी केंद्र',
+    'Active Centres Today': 'आज सक्रिय केंद्र',
+    'Farmers Registered': 'पंजीकृत किसान',
+    'Today\'s Footfall': 'आज का फुटफॉल',
+    'Revenue Processed': 'संसाधित राजस्व',
+    'Avg Mandi Wait Time': 'औसत मंडी प्रतीक्षा समय',
+    'State-Wise Activity Heat Map': 'राज्यवार गतिविधि हीट मैप',
+    'Real-Time Mandi Alerts Feed': 'रीयल-टाइम मंडी अलर्ट',
+    'Top 5 Mandis Today (By Volume)': 'आज की शीर्ष 5 मंडियां (मात्रा अनुसार)',
+    'Recent Admin Actions Audit Trail': 'हाल की व्यवस्थापक गतिविधियां',
+  },
+  pa: {
+    'Home': 'ਹੋਮ',
+    'Bookings': 'ਬੁਕਿੰਗਾਂ',
+    'Book Slot': 'ਸਲਾਟ ਬੁੱਕ ਕਰੋ',
+    'Scan QR': 'QR ਸਕੈਨ',
+    'Scan': 'ਸਕੈਨ',
+    'Live Queue': 'ਲਾਈਵ ਕਤਾਰ',
+    'Reports': 'ਰਿਪੋਰਟਾਂ',
+    'Analytics': 'ਵਿਸ਼ਲੇਸ਼ਣ',
+    'Mandi Hubs': 'ਮੰਡੀ ਹੱਬ',
+    'MSP Master': 'MSP ਮਾਸਟਰ',
+    'Centres': 'ਕੇਂਦਰ',
+    'Payments': 'ਭੁਗਤਾਨ',
+    'Profile': 'ਪ੍ਰੋਫਾਈਲ',
+    'MANDI DESK': 'ਮੰਡੀ ਡੈਸਕ',
+    'Gate QR Check-In': 'ਗੇਟ QR ਚੈੱਕ-ਇਨ',
+    'Intake & Weighment': 'ਤੋਲ ਅਤੇ ਆਮਦ',
+    'Operator Daily Report': 'ਆਪਰੇਟਰ ਰੋਜ਼ਾਨਾ ਰਿਪੋਰਟ',
+    'Deep Analytics Hub': 'ਐਨਾਲਿਟਿਕਸ ਹੱਬ',
+    'Mandi Centres Master': 'ਮੰਡੀ ਕੇਂਦਰ ਮਾਸਟਰ',
+    'MSP Crops Master': 'MSP ਫ਼ਸਲ ਮਾਸਟਰ',
+    'Checked-In': 'ਚੈੱਕ-ਇਨ',
+    'In Queue': 'ਕਤਾਰ ਵਿੱਚ',
+    'Processed Today': 'ਅੱਜ ਪ੍ਰੋਸੈਸ ਕੀਤਾ',
+    'Avg Wait Time': 'ਔਸਤ ਉਡੀਕ ਸਮਾਂ',
+  },
+  mr: {
+    'Home': 'मुख्यपृष्ठ',
+    'Bookings': 'बुकिंग',
+    'Book Slot': 'स्लॉट बुक करा',
+    'Scan QR': 'QR स्कॅन',
+    'Scan': 'स्कॅन',
+    'Live Queue': 'थेट रांग',
+    'Reports': 'अहवाल',
+    'Analytics': 'विश्लेषण',
+    'Mandi Hubs': 'मार्केट हब',
+    'MSP Master': 'MSP मास्टर',
+    'Centres': 'केंद्रे',
+    'Payments': 'पेमेंट्स',
+    'Profile': 'प्रोफाइल',
+    'MANDI DESK': 'मंडी डेस्क',
+    'Gate QR Check-In': 'गेट QR चेक-इन',
+    'Intake & Weighment': 'वजन आणि आवक',
+    'Checked-In': 'चेक-इन',
+    'In Queue': 'रांगेत',
+    'Processed Today': 'आज पूर्ण झाले',
+    'Avg Wait Time': 'सरासरी प्रतीक्षा वेळ',
+  },
+  gu: {
+    'Home': 'હોમ',
+    'Bookings': 'બુકિંગ',
+    'Book Slot': 'સ્લોટ બુક કરો',
+    'Scan QR': 'QR સ્કેન',
+    'Scan': 'સ્કેન',
+    'Live Queue': 'લાઈવ કતાર',
+    'Reports': 'અહેવાલો',
+    'Analytics': 'વિશ્લેષણ',
+    'Mandi Hubs': 'માર્કેટ હબ',
+    'MSP Master': 'MSP માસ્ટર',
+    'Centres': 'કેન્દ્રો',
+    'Payments': 'ચુકવણી',
+    'Profile': 'પ્રોફાઇલ',
+    'MANDI DESK': 'મંડી ડેસ્ક',
+    'Gate QR Check-In': 'ગેટ QR ચેક-ઇન',
+    'Intake & Weighment': 'વજન અને આવક',
+    'Checked-In': 'ચેક-ઇન',
+    'In Queue': 'કતારમાં',
+    'Processed Today': 'આજે પ્રોસેસ થયેલ',
+    'Avg Wait Time': 'સરેરાશ રાહ જોવાનો સમય',
+  },
+  te: {
+    'Home': 'హోమ్',
+    'Bookings': 'బుకింగ్స్',
+    'Book Slot': 'స్లాట్ బుక్ చేయండి',
+    'Scan QR': 'QR స్కాన్',
+    'Scan': 'స్కాన్',
+    'Live Queue': 'లైవ్ క్యూ',
+    'Reports': 'నివేదికలు',
+    'Analytics': 'విశ్లేషణ',
+    'Mandi Hubs': 'మార్కెట్ హబ్‌లు',
+    'MSP Master': 'MSP మాస్టర్',
+    'Centres': 'కేంద్రాలు',
+    'Payments': 'చెల్లింపులు',
+    'Profile': 'ప్రొఫైల్',
+    'MANDI DESK': 'మండి డెస్క్',
+    'Checked-In': 'చెక్-ఇన్',
+    'In Queue': 'క్యూలో ఉంది',
+    'Processed Today': 'ఈరోజు ప్రాసెస్ చేయబడింది',
+    'Avg Wait Time': 'సగటు నిరీక్షణ సమయం',
+  },
+  bn: {
+    'Home': 'হোম',
+    'Bookings': 'বুকিং',
+    'Book Slot': 'স্লট বুক করুন',
+    'Scan QR': 'QR স্ক্যান',
+    'Scan': 'স্ক্যান',
+    'Live Queue': 'লাইভ সারি',
+    'Reports': 'প্রতিবেদন',
+    'Analytics': 'বিশ্লেষণ',
+    'Mandi Hubs': 'মান্ডি হাব',
+    'MSP Master': 'MSP মাস্টার',
+    'Centres': 'কেন্দ্রগুলি',
+    'Payments': 'পেমেন্ট',
+    'Profile': 'প্রোফাইল',
+    'MANDI DESK': 'মান্ডি ডেস্ক',
+    'Checked-In': 'চেক-ইন',
+    'In Queue': 'সারিতে',
+    'Processed Today': 'আজ প্রক্রিয়াধীন',
+    'Avg Wait Time': 'গড় অপেক্ষার সময়',
+  },
+  ta: {
+    'Home': 'முகப்பு',
+    'Bookings': 'முன்பதிவுகள்',
+    'Book Slot': 'ஸ்லாட் பதிவு செய்',
+    'Scan QR': 'QR ஸ்கேன்',
+    'Scan': 'ஸ்கேன்',
+    'Live Queue': 'நேரலை வரிசை',
+    'Reports': 'அறிக்கைகள்',
+    'Analytics': 'பகுப்பாய்வு',
+    'Mandi Hubs': 'மண்டி மையங்கள்',
+    'MSP Master': 'MSP மாஸ்டர்',
+    'Centres': 'மையங்கள்',
+    'Payments': 'பணம் செலுத்துதல்',
+    'Profile': 'சுயவிவரம்',
+    'MANDI DESK': 'மண்டி டெஸ்க்',
+    'Checked-In': 'செக்-இன்',
+    'In Queue': 'வரிசையில்',
+    'Processed Today': 'இன்று முடிந்தது',
+    'Avg Wait Time': 'சராசரி காத்திருப்பு நேரம்',
+  },
+  kn: {
+    'Home': 'ಮುಖಪುಟ',
+    'Bookings': 'ಬುಕಿಂಗ್‌ಗಳು',
+    'Book Slot': 'ಸ್ಲಾಟ್ ಬುಕ್ ಮಾಡಿ',
+    'Scan QR': 'QR ಸ್ಕ್ಯಾನ್',
+    'Scan': 'ಸ್ಕ್ಯಾನ್',
+    'Live Queue': 'ಲೈವ್ ಸರತಿ',
+    'Reports': 'ವರದಿಗಳು',
+    'Analytics': 'ವಿಶ್ಲೇಷಣೆ',
+    'Mandi Hubs': 'ಮಂಡಿ ಹಬ್',
+    'MSP Master': 'MSP ಮಾಸ್ಟರ್',
+    'Centres': 'ಕೇಂದ್ರಗಳು',
+    'Payments': 'ಪಾವತಿಗಳು',
+    'Profile': 'ಪ್ರೊಫೈಲ್',
+    'MANDI DESK': 'ಮಂಡಿ ಡೆಸ್ಕ್',
+    'Checked-In': 'ಚೆಕ್-ಇನ್',
+    'In Queue': 'ಸರತಿಯಲ್ಲಿ',
+    'Processed Today': 'ಇಂದು ಪ್ರಕ್ರಿಯೆಗೊಂಡಿದೆ',
+    'Avg Wait Time': 'ಸರಾಸರಿ ಕಾಯುವ ಸಮಯ',
+  },
+  ml: {
+    'Home': 'ഹോം',
+    'Bookings': 'ബുക്കിംഗുകൾ',
+    'Book Slot': 'സ്ലോട്ട് ബുക്ക് ചെയ്യുക',
+    'Scan QR': 'QR സ്കാൻ',
+    'Scan': 'സ്കാൻ',
+    'Live Queue': 'തത്സമയ ക്യൂ',
+    'Reports': 'റിപ്പോർട്ടുകൾ',
+    'Analytics': 'വിശകലനം',
+    'Mandi Hubs': 'മാർക്കറ്റ് ഹബ്ബുകൾ',
+    'MSP Master': 'MSP മാസ്റ്റർ',
+    'Centres': 'കേന്ദ്രങ്ങൾ',
+    'Payments': 'പേയ്മെന്റുകൾ',
+    'Profile': 'പ്രൊഫൈൽ',
+    'MANDI DESK': 'മണ്ടി ഡെസ്ക്',
+    'Checked-In': 'ചെക്ക്-ഇൻ',
+    'In Queue': 'ക്യൂവിൽ',
+    'Processed Today': 'ഇന്ന് പ്രോസസ്സ് ചെയ്തത്',
+    'Avg Wait Time': 'ശരാശരി കാത്തിരിപ്പ് സമയം',
+  },
+  or: {
+    'Home': 'ହୋମ',
+    'Bookings': 'ବୁକିଂ',
+    'Book Slot': 'ସ୍ଲଟ୍ ବୁକ୍ କରନ୍ତୁ',
+    'Scan QR': 'QR ସ୍କାନ',
+    'Scan': 'ସ୍କାନ',
+    'Live Queue': 'ଲାଇଭ୍ ଧାଡ଼ି',
+    'Reports': 'ରିପୋର୍ଟ',
+    'Analytics': 'ବିଶ୍ଳେଷଣ',
+    'Mandi Hubs': 'ମଣ୍ଡି ହବ୍',
+    'MSP Master': 'MSP ମାଷ୍ଟର',
+    'Centres': 'କେନ୍ଦ୍ରଗୁଡ଼ିକ',
+    'Payments': 'ଦେୟ',
+    'Profile': 'ପ୍ରୋଫାଇଲ୍',
+    'MANDI DESK': 'ମଣ୍ଡି ଡେସ୍କ',
+    'Checked-In': 'ଚେକ୍-ଇନ୍',
+    'In Queue': 'ଧାଡ଼ିରେ',
+    'Processed Today': 'ଆଜି ପ୍ରକ୍ରିୟାକରଣ',
+    'Avg Wait Time': 'ହାରାହାରି ଅପେକ୍ଷା ସମୟ',
   },
 };
 
@@ -1603,6 +1822,7 @@ interface LanguageContextType {
   t: (keyOrText: TranslationKey | string) => string;
   translateDynamic: (text: string) => Promise<string>;
   isReady: boolean;
+  version: number;
 }
 
 const defaultLangInfo = INDIAN_LANGUAGES[0];
@@ -1614,12 +1834,13 @@ const LanguageContext = createContext<LanguageContextType>({
   t: (keyOrText: TranslationKey | string) => keyOrText,
   translateDynamic: async (text: string) => text,
   isReady: false,
+  version: 0,
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguageState] = useState<string>('en');
   const [isReady, setIsReady] = useState(false);
-  const [, setVersion] = useState(0);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     async function init() {
@@ -1642,6 +1863,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setCurrentLanguageState(langCode);
     await Storage.setItem('kisan_lang', langCode);
     await initLanguageCache(langCode);
+    setVersion((v) => v + 1);
   };
 
   const activeLanguageInfo =
@@ -1658,25 +1880,34 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return (langDict as any)[keyOrText];
     }
 
-    // 2. Dynamic translation cache (from Google Translate API)
+    // 2. Common phrase dictionary lookup (e.g. 'Home', 'Scan QR', 'Reports', etc.)
+    const commonDict = COMMON_STRINGS[currentLanguage];
+    if (commonDict && commonDict[keyOrText]) {
+      return commonDict[keyOrText];
+    }
+
+    // 3. Dynamic translation cache (from Google Translate API)
     const cached = getCachedTranslation(keyOrText, currentLanguage);
     if (cached) {
       return cached;
     }
 
-    // 3. Trigger dynamic Google Translate in background without blocking UI
+    // 4. Trigger dynamic Google Translate in background without blocking UI
     translateText(keyOrText, currentLanguage).then((translated) => {
       if (translated && translated !== keyOrText) {
         setVersion((v) => v + 1);
       }
     });
 
-    // 4. Hindi fallback for Indian languages if exact key is missing
+    // 5. Hindi fallback for Indian languages if exact key is missing
+    if (COMMON_STRINGS.hi && COMMON_STRINGS.hi[keyOrText]) {
+      return COMMON_STRINGS.hi[keyOrText];
+    }
     if (TRANSLATIONS.hi && (TRANSLATIONS.hi as any)[keyOrText]) {
       return (TRANSLATIONS.hi as any)[keyOrText];
     }
 
-    // 5. English master fallback
+    // 6. English master fallback
     return (TRANSLATIONS.en as any)?.[keyOrText] || keyOrText;
   };
 
@@ -1693,6 +1924,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         t,
         translateDynamic,
         isReady,
+        version,
       }}
     >
       {children}

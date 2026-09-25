@@ -27,6 +27,7 @@ import {
   ArrowLeft,
 } from 'lucide-react-native';
 import Colors from '../../../src/theme/colors';
+import { useLanguage } from '../../../src/context/LanguageContext';
 import { fetchAdminCentres, createAdminCentre, AdminCentre } from '../../../src/services/adminService';
 
 const MOCK_CENTRES = [
@@ -40,6 +41,7 @@ const MOCK_CENTRES = [
 
 export default function AdminCentresListScreen() {
   const router = useRouter();
+  const { t, version } = useLanguage();
   const [search, setSearch] = useState('');
   const [selectedState, setSelectedState] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -146,18 +148,18 @@ export default function AdminCentresListScreen() {
           </TouchableOpacity>
           <View>
             <View style={styles.titleBadgeRow}>
-              <Text style={styles.headerTitle}>Mandi Hub Centres</Text>
+              <Text style={styles.headerTitle}>{t('Mandi Hub Centres')}</Text>
               <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{centres.length} Active</Text>
+                <Text style={styles.countBadgeText}>{centres.length} {t('Active')}</Text>
               </View>
             </View>
-            <Text style={styles.headerSubtitle}>APMC Procurement & Capacity Management</Text>
+            <Text style={styles.headerSubtitle}>{t('APMC Procurement & Capacity Management')}</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.addHeaderBtn} onPress={() => setIsAddModalOpen(true)} activeOpacity={0.85}>
           <Plus size={16} color="#FFFFFF" strokeWidth={2.5} />
-          <Text style={styles.addHeaderBtnText}>Add Mandi</Text>
+          <Text style={styles.addHeaderBtnText}>{t('Add Mandi')}</Text>
         </TouchableOpacity>
       </View>
 

@@ -30,6 +30,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import {
   fetchOperatorRoster,
   type RosterItem,
@@ -43,6 +44,7 @@ import {
 export default function OperatorQueueScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, version } = useLanguage();
 
   const centreId = user?.operator?.centreId || 'cmtsmdosz0000ykidfgsuu0ki';
   const centreName = user?.operator?.centre?.name || 'APMC Mandi Procurement Complex';
@@ -202,7 +204,7 @@ export default function OperatorQueueScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Queue Control Desk</Text>
+          <Text style={styles.headerTitle}>{t('Queue Control Desk')}</Text>
           <Text style={styles.headerSubtitle} numberOfLines={1}>
             {centreName}
           </Text>
@@ -231,7 +233,7 @@ export default function OperatorQueueScreen() {
             <Text style={styles.statVal}>
               {centreQueue?.waitingCount ?? waitingList.length}
             </Text>
-            <Text style={styles.statLabel}>In Yard</Text>
+            <Text style={styles.statLabel}>{t('In Yard')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>

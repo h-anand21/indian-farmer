@@ -33,6 +33,7 @@ import {
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import { updateBookingStatus, getBookingByToken } from '../../src/lib/bookingStore';
 import {
   fetchBookingDetails,
@@ -44,6 +45,7 @@ import {
 export default function OperatorIntakeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t, version } = useLanguage();
   const params = useLocalSearchParams<{
     token?: string;
     name?: string;
@@ -319,7 +321,7 @@ export default function OperatorIntakeScreen() {
         </TouchableOpacity>
 
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.headerTitle}>Intake & Weighment</Text>
+          <Text style={styles.headerTitle}>{t('Intake & Weighment')}</Text>
           <Text style={styles.headerSubtitle}>
             Gate #2 Weighbridge • Scale Counter B
           </Text>
@@ -327,7 +329,7 @@ export default function OperatorIntakeScreen() {
 
         <View style={styles.liveScaleBadge}>
           <View style={styles.pulseDot} />
-          <Text style={styles.liveScaleText}>LIVE SCALE</Text>
+          <Text style={styles.liveScaleText}>{t('LIVE SCALE')}</Text>
         </View>
       </View>
 
@@ -340,7 +342,7 @@ export default function OperatorIntakeScreen() {
           <View style={styles.yardSelectorBox}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <Text style={styles.yardSelectorTitle}>
-                VEHICLES IN YARD ({yardRoster.length})
+                {t('VEHICLES IN YARD')} ({yardRoster.length})
               </Text>
               <TouchableOpacity onPress={loadYardRoster}>
                 <RefreshCw size={14} color={Colors.light.primary} />
@@ -402,7 +404,7 @@ export default function OperatorIntakeScreen() {
         {/* Current Farmer Profile Card */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardSectionTag}>CURRENT SERVING</Text>
+            <Text style={styles.cardSectionTag}>{t('CURRENT SERVING')}</Text>
             <View style={styles.tokenPill}>
               <Text style={styles.tokenPillText}>#{tokenInput || 'SELECT TOKEN'}</Text>
             </View>
@@ -435,7 +437,7 @@ export default function OperatorIntakeScreen() {
         {/* Weighment Scale Form */}
         <View style={styles.card}>
           <View style={styles.cardHeaderRow}>
-            <Text style={styles.cardSectionTag}>SCALE WEIGHT RECORDING</Text>
+            <Text style={styles.cardSectionTag}>{t('SCALE WEIGHT RECORDING')}</Text>
             <Scale size={18} color="#E66919" />
           </View>
 

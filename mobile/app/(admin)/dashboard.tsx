@@ -34,6 +34,8 @@ import {
   Radio,
 } from 'lucide-react-native';
 import Colors from '../../src/theme/colors';
+import { useAuth } from '../../src/context/AuthContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import { fetchAdminMetrics, AdminMetrics } from '../../src/services/adminService';
 
 const { width } = Dimensions.get('window');
@@ -100,6 +102,7 @@ import AdminDrawer from '../../src/components/AdminDrawer';
 
 export default function AdminDashboardScreen() {
   const router = useRouter();
+  const { t, version } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedHeatState, setSelectedHeatState] = useState<string | null>(null);
@@ -175,8 +178,8 @@ export default function AdminDashboardScreen() {
             <Menu size={22} color="#1F291E" />
           </TouchableOpacity>
           <View>
-            <Text style={styles.headerTitle}>Pan-India Mandi Control</Text>
-            <Text style={styles.headerSubtitle}>Dept. of Food & Public Distribution</Text>
+            <Text style={styles.headerTitle}>{t('Pan-India Mandi Control')}</Text>
+            <Text style={styles.headerSubtitle}>{t('Dept. of Food & Public Distribution')}</Text>
           </View>
         </View>
 
@@ -196,29 +199,29 @@ export default function AdminDashboardScreen() {
           <View style={styles.heroHeader}>
             <View style={styles.liveBadge}>
               <Radio size={14} color="#2E7D32" />
-              <Text style={styles.liveBadgeText}>NATIONAL LIVE MONITORING</Text>
+              <Text style={styles.liveBadgeText}>{t('NATIONAL LIVE MONITORING')}</Text>
             </View>
             <Text style={styles.heroDate}>RABI MARKETING SEASON 2026</Text>
           </View>
           
           <Text style={styles.heroMainVal}>4,82,950 Qtl</Text>
-          <Text style={styles.heroSubText}>Total Harvested Procurement Processed Today</Text>
+          <Text style={styles.heroSubText}>{t('Total Harvested Procurement Processed Today')}</Text>
 
           <View style={styles.heroStatsRow}>
             <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatLabel}>Total Direct DBT Disbursed</Text>
+              <Text style={styles.heroStatLabel}>{t('Total Direct DBT Disbursed')}</Text>
               <Text style={styles.heroStatValue}>₹109.87 Cr</Text>
             </View>
             <View style={styles.vDivider} />
             <View style={styles.heroStatItem}>
-              <Text style={styles.heroStatLabel}>Beneficiary Farmers</Text>
+              <Text style={styles.heroStatLabel}>{t('Beneficiary Farmers')}</Text>
               <Text style={styles.heroStatValue}>34,120 Verified</Text>
             </View>
           </View>
         </View>
 
         {/* 6 KPI Cards Grid */}
-        <Text style={styles.sectionTitle}>Key Operational Metrics (Pan-India)</Text>
+        <Text style={styles.sectionTitle}>{t('Key Operational Metrics (Pan-India)')}</Text>
         
         <View style={styles.kpiGrid}>
           {/* KPI 1 */}
@@ -227,7 +230,7 @@ export default function AdminDashboardScreen() {
               <Building2 size={20} color="#3B7A1E" />
             </View>
             <Text style={styles.kpiValue}>{metrics.totalCentres}</Text>
-            <Text style={styles.kpiLabel}>Total Mandi Centres</Text>
+            <Text style={styles.kpiLabel}>{t('Total Mandi Centres')}</Text>
           </TouchableOpacity>
 
           {/* KPI 2 */}
@@ -236,7 +239,7 @@ export default function AdminDashboardScreen() {
               <CheckCircle2 size={20} color="#2E7D32" />
             </View>
             <Text style={styles.kpiValue}>{metrics.activeToday}</Text>
-            <Text style={styles.kpiLabel}>Active Centres Today</Text>
+            <Text style={styles.kpiLabel}>{t('Active Centres Today')}</Text>
           </TouchableOpacity>
 
           {/* KPI 3 */}
@@ -245,7 +248,7 @@ export default function AdminDashboardScreen() {
               <Users size={20} color="#E66919" />
             </View>
             <Text style={styles.kpiValue}>{metrics.farmersRegistered.toLocaleString('en-IN')}</Text>
-            <Text style={styles.kpiLabel}>Farmers Registered</Text>
+            <Text style={styles.kpiLabel}>{t('Farmers Registered')}</Text>
           </TouchableOpacity>
 
           {/* KPI 4 */}
@@ -254,7 +257,7 @@ export default function AdminDashboardScreen() {
               <Activity size={20} color="#B58A00" />
             </View>
             <Text style={styles.kpiValue}>{metrics.todaysFootfall.toLocaleString('en-IN')}</Text>
-            <Text style={styles.kpiLabel}>Today's Footfall</Text>
+            <Text style={styles.kpiLabel}>{t("Today's Footfall")}</Text>
           </TouchableOpacity>
 
           {/* KPI 5 */}
@@ -263,7 +266,7 @@ export default function AdminDashboardScreen() {
               <DollarSign size={20} color="#2563EB" />
             </View>
             <Text style={styles.kpiValue}>{metrics.revenueToday}</Text>
-            <Text style={styles.kpiLabel}>Revenue Processed</Text>
+            <Text style={styles.kpiLabel}>{t('Revenue Processed')}</Text>
           </TouchableOpacity>
 
           {/* KPI 6 */}
@@ -272,13 +275,13 @@ export default function AdminDashboardScreen() {
               <Clock size={20} color="#DC2626" />
             </View>
             <Text style={styles.kpiValue}>{metrics.avgWait}</Text>
-            <Text style={styles.kpiLabel}>Avg Mandi Wait Time</Text>
+            <Text style={styles.kpiLabel}>{t('Avg Mandi Wait Time')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* State-wise Activity India Heat Map */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>State-Wise Activity Heat Map</Text>
+          <Text style={styles.sectionTitle}>{t('State-Wise Activity Heat Map')}</Text>
           <TouchableOpacity onPress={() => router.push('/(admin)/analytics')}>
             <Text style={styles.viewLinkText}>Full Map →</Text>
           </TouchableOpacity>
@@ -288,15 +291,15 @@ export default function AdminDashboardScreen() {
           <View style={styles.heatLegend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#2E7D32' }]} />
-              <Text style={styles.legendText}>High Activity</Text>
+              <Text style={styles.legendText}>{t('High Activity')}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
-              <Text style={styles.legendText}>Moderate</Text>
+              <Text style={styles.legendText}>{t('Moderate')}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-              <Text style={styles.legendText}>Congested / Low</Text>
+              <Text style={styles.legendText}>{t('Congested / Low')}</Text>
             </View>
           </View>
 
@@ -329,7 +332,7 @@ export default function AdminDashboardScreen() {
 
         {/* Live Alerts Feed */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Real-Time Mandi Alerts Feed</Text>
+          <Text style={styles.sectionTitle}>{t('Real-Time Mandi Alerts Feed')}</Text>
           <View style={styles.pulseDot} />
         </View>
 
@@ -362,7 +365,7 @@ export default function AdminDashboardScreen() {
 
         {/* Top Mandis Leaderboard */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Top 5 Mandis Today (By Volume)</Text>
+          <Text style={styles.sectionTitle}>{t('Top 5 Mandis Today (By Volume)')}</Text>
           <TouchableOpacity onPress={() => router.push('/(admin)/centres')}>
             <Text style={styles.viewLinkText}>All Mandis →</Text>
           </TouchableOpacity>

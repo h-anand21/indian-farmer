@@ -47,6 +47,10 @@ function schedulePersist(langCode: string) {
   }, 1000);
 }
 
+const GOOGLE_API_KEY =
+  process.env.EXPO_PUBLIC_GOOGLE_TRANSLATE_API_KEY ||
+  process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
+
 /**
  * Translate any arbitrary text string dynamically via Google Translate API
  */
@@ -69,31 +73,79 @@ export async function translateText(text: string, targetLang: string): Promise<s
     return existingRequest;
   }
 
-  // 3. Fetch from Google Translate service
+  // 3. Fetch from Translation service (Google Cloud API if enabled -> MyMemory -> GTx fallback)
   const fetchPromise = (async () => {
+    // Provider 0: Official Google Cloud Translation API (if enabled with API key)
+    if (GOOGLE_API_KEY) {
+      try {
+        const cloudUrl = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_API_KEY}`;
+        const cloudRes = await fetch(cloudUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: cleanText, target: targetLang, format: 'text' }),
+        });
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          const translated = cloudData?.data?.translations?.[0]?.translatedText;
+          if (translated && translated.trim() !== '') {
+            if (!memoryCache[targetLang]) memoryCache[targetLang] = {};
+            memoryCache[targetLang][cleanText] = translated;
+            schedulePersist(targetLang);
+            return translated;
+          }
+        }
+      } catch {}
+    }
+
     try {
+      // Provider 1: MyMemory Translated API (unmetered, fast, no bot blocking)
+      const myMemoryUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+        cleanText
+      )}&langpair=en|${encodeURIComponent(targetLang)}`;
+
+      const res1 = await fetch(myMemoryUrl);
+      if (res1.ok) {
+        const data1 = await res1.json();
+        const translated1 = data1?.responseData?.translatedText;
+        if (
+          translated1 &&
+          typeof translated1 === 'string' &&
+          translated1.trim() !== '' &&
+          !translated1.includes('MYMEMORY WARNING') &&
+          translated1 !== cleanText
+        ) {
+          if (!memoryCache[targetLang]) {
+            memoryCache[targetLang] = {};
+          }
+          memoryCache[targetLang][cleanText] = translated1;
+          schedulePersist(targetLang);
+          return translated1;
+        }
+      }
+    } catch {}
+
+    try {
+      // Provider 2: Google Translate GTx fallback
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(
         targetLang
       )}&dt=t&q=${encodeURIComponent(cleanText)}`;
 
       const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`Translation API error: ${res.status}`);
-      }
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          const translated = data[0]
+            .map((chunk: any) => (chunk && chunk[0] ? chunk[0] : ''))
+            .join('');
 
-      const data = await res.json();
-      if (Array.isArray(data) && Array.isArray(data[0])) {
-        const translated = data[0]
-          .map((chunk: any) => (chunk && chunk[0] ? chunk[0] : ''))
-          .join('');
-
-        if (translated && translated.trim().length > 0) {
-          if (!memoryCache[targetLang]) {
-            memoryCache[targetLang] = {};
+          if (translated && translated.trim().length > 0) {
+            if (!memoryCache[targetLang]) {
+              memoryCache[targetLang] = {};
+            }
+            memoryCache[targetLang][cleanText] = translated;
+            schedulePersist(targetLang);
+            return translated;
           }
-          memoryCache[targetLang][cleanText] = translated;
-          schedulePersist(targetLang);
-          return translated;
         }
       }
     } catch (err) {
