@@ -18,6 +18,7 @@ import {
   Bell,
   Navigation,
   X,
+  ChevronDown,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import Colors from '../../src/theme/colors';
@@ -26,11 +27,20 @@ import OperatorQueueScreen from '../(operator)/queue';
 import AdminAnalyticsScreen from '../(admin)/analytics';
 import { getBookings, BookingRecord } from '../../src/lib/bookingStore';
 import { fetchMyBookings } from '../../src/services/bookingService';
+import {
+  fetchCentreQueue,
+  fetchMyQueuePosition,
+  CentreQueueState,
+  FarmerQueuePosition,
+} from '../../src/services/queueService';
 
 export default function LiveQueueScreen() {
   const { role, user } = useAuth();
   const [showTurnAlert, setShowTurnAlert] = useState(false);
   const [myBookings, setMyBookings] = useState<BookingRecord[]>([]);
+  const [selectedBookingIndex, setSelectedBookingIndex] = useState(0);
+  const [queuePosData, setQueuePosData] = useState<FarmerQueuePosition | null>(null);
+  const [centreQueueState, setCentreQueueState] = useState<CentreQueueState | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -91,6 +101,43 @@ export default function LiveQueueScreen() {
     return () => clearInterval(interval);
   }, [user]);
 
+  // Fetch real position details for selected active booking
+  useEffect(() => {
+    const activeBooking = myBookings[selectedBookingIndex] || myBookings[0];
+    if (!activeBooking) return;
+
+    async function loadQueueDetails() {
+      try {
+        if (activeBooking.id) {
+          const pos = await fetchMyQueuePosition(activeBooking.id);
+          if (pos) {
+            setQueuePosData(pos);
+            if (pos.isProximityAlert || pos.status === 'CALLED' || pos.status === 'IN_PROCUREMENT') {
+              setShowTurnAlert(true);
+            }
+          }
+        }
+      } catch (e) {
+        // Fallback to local
+      }
+
+      try {
+        if (activeBooking.mandiId) {
+          const centreQ = await fetchCentreQueue(activeBooking.mandiId);
+          if (centreQ) {
+            setCentreQueueState(centreQ);
+          }
+        }
+      } catch (e) {
+        // Fallback to local
+      }
+    }
+
+    loadQueueDetails();
+    const timer = setInterval(loadQueueDetails, 10000);
+    return () => clearInterval(timer);
+  }, [myBookings, selectedBookingIndex]);
+
   // If Operator is active, show the Operator Queue Controller!
   if (role === 'OPERATOR') {
     return <OperatorQueueScreen />;
@@ -101,8 +148,11 @@ export default function LiveQueueScreen() {
     return <AdminAnalyticsScreen />;
   }
 
-  const primaryBooking = myBookings[0] || null;
+  const primaryBooking = myBookings[selectedBookingIndex] || myBookings[0] || null;
   const myToken = primaryBooking ? `#${primaryBooking.token}` : 'N/A';
+  const displayPos = queuePosData?.position ? `#${queuePosData.position}` : '#1';
+  const tokensAheadCount = queuePosData?.tokensAhead ?? Math.max(0, myBookings.length - 1);
+  const nowServingTokenStr = centreQueueState?.nowServingToken || primaryBooking?.token || 'KQ-1048';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -134,6 +184,35 @@ export default function LiveQueueScreen() {
           {primaryBooking ? `Live status for ${primaryBooking.mandi}` : 'Real-time mandi queue updates'}
         </Text>
 
+        {/* Active Booking Switcher Pill Row (if farmer has multiple active bookings) */}
+        {myBookings.length > 1 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {myBookings.map((b, idx) => {
+                const isSel = idx === selectedBookingIndex;
+                return (
+                  <TouchableOpacity
+                    key={b.id}
+                    onPress={() => setSelectedBookingIndex(idx)}
+                    style={{
+                      paddingVertical: 6,
+                      paddingHorizontal: 12,
+                      borderRadius: 20,
+                      backgroundColor: isSel ? Colors.light.primary : '#FFFFFF',
+                      borderWidth: 1,
+                      borderColor: isSel ? Colors.light.primary : '#E8E4D8',
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: isSel ? '#FFFFFF' : Colors.light.textPrimary }}>
+                      Token #{b.token} ({b.mandi})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
+
         {/* Mandi Gate & Weighbridge Status Row */}
         <View style={styles.mandiStatusRow}>
           <View style={styles.mandiStatusCard}>
@@ -147,7 +226,7 @@ export default function LiveQueueScreen() {
 
           <View style={styles.mandiStatusCard}>
             <Text style={styles.mandiStatusLabel}>Weighbridges</Text>
-            <Text style={styles.statusValText}>2 / 3 Active</Text>
+            <Text style={styles.statusValText}>{centreQueueState?.totalCounters ? `${centreQueueState.totalCounters} Active` : '2 / 3 Active'}</Text>
             <Text style={styles.statusSub}>Operational</Text>
           </View>
         </View>
@@ -167,17 +246,11 @@ export default function LiveQueueScreen() {
 
               <View style={styles.posGaugeRight}>
                 <View style={styles.gaugeCircle}>
-                  <Text style={styles.gaugeNum}>#1</Text>
-                  <Text style={styles.gaugeSub}>{myBookings.length} Active</Text>
+                  <Text style={styles.gaugeNum}>{displayPos}</Text>
+                  <Text style={styles.gaugeSub}>{tokensAheadCount} Ahead</Text>
                 </View>
               </View>
             </View>
-
-            {/* Test Alert Button */}
-            <TouchableOpacity style={styles.testAlertPill} onPress={() => setShowTurnAlert(true)}>
-              <Bell size={16} color="#FFFFFF" />
-              <Text style={styles.testAlertText}>Simulate "Aapki Baari Aa Gayi!" Alert</Text>
-            </TouchableOpacity>
 
             {/* Now Serving Banner */}
             <View style={styles.nowServingBanner}>
@@ -186,7 +259,7 @@ export default function LiveQueueScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.nowServingLabel}>Currently In Queue</Text>
-                <Text style={styles.nowServingToken}>Token #{primaryBooking.token} ({user?.name || primaryBooking.farmerName})</Text>
+                <Text style={styles.nowServingToken}>Token #{nowServingTokenStr}</Text>
                 <Text style={styles.nowServingSub}>{primaryBooking.crop} • {primaryBooking.mandi}</Text>
               </View>
               <View style={styles.servingTimeBadge}>
@@ -198,11 +271,13 @@ export default function LiveQueueScreen() {
             <Text style={styles.sectionTitle}>My Queued Passes ({myBookings.length})</Text>
             <View style={styles.queueList}>
               {myBookings.map((b, idx) => (
-                <View
+                <TouchableOpacity
                   key={b.id}
+                  onPress={() => setSelectedBookingIndex(idx)}
                   style={[
                     styles.queueItem,
                     styles.youItem,
+                    idx === selectedBookingIndex && { borderColor: Colors.light.primary, borderWidth: 2 },
                   ]}
                 >
                   <View style={[styles.posBadge, styles.youPosBadge]}>
@@ -221,7 +296,7 @@ export default function LiveQueueScreen() {
                   </View>
 
                   <Text style={styles.qTime}>{b.time}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </>

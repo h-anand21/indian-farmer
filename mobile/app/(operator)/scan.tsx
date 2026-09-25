@@ -200,23 +200,19 @@ export default function GateScanScreen() {
       }
 
       if (!fetchedFarmer) {
-        fetchedFarmer = SAMPLE_FARMERS[tokenId] || {
-          token: tokenId,
-          name: 'Gurdeep Singh',
-          phone: '+91 98140 55432',
-          aadhaar: 'XXXX-XXXX-9102',
-          crop: 'Wheat (Sharbati)',
-          quantity: '45.0 Quintals',
-          slot: 'Today, 08:00 - 10:00 AM (ACTIVE)',
-          vehicle: 'PB-10-AZ-4921 (Tractor)',
-          quotaRemaining: '50.0 Qt Remaining / 100 Qt Limit',
-        };
+        Toast.show({
+          type: 'error',
+          text1: 'Booking Not Found ❌',
+          text2: `Token #${tokenId} is invalid or not registered at this centre.`,
+        });
+        setIsScanningActive(true);
+        return;
       }
 
       Toast.show({
         type: 'success',
         text1: 'QR Code Scanned! ✅',
-        text2: `Token #${fetchedFarmer.token} matched for ${fetchedFarmer.name}`,
+        text2: `Token #${fetchedFarmer.token} verified for ${fetchedFarmer.name}`,
       });
 
       setScannedResult(fetchedFarmer);
@@ -259,21 +255,21 @@ export default function GateScanScreen() {
       setIsProcessing(true);
       const centreId = user?.operator?.centreId || 'cmtsmdosz0000ykidfgsuu0ki';
       
-      const res = await operatorGateCheckIn({
-        centreId,
-        tokenOrCode: scannedResult.token,
-      });
+      let assignedPos = 1;
+      try {
+        const res = await operatorGateCheckIn({
+          centreId,
+          tokenOrCode: scannedResult.token,
+        });
 
-      if (res && res.data) {
-        const queuePos = res.data.queueEntry?.position || res.data.queuePosition || 1;
-        setAssignedQueueNo(queuePos);
-      } else {
-        setAssignedQueueNo(Math.floor(Math.random() * 3) + 1);
+        if (res && res.data) {
+          assignedPos = res.data.queueEntry?.position || res.data.queuePosition || 1;
+        }
+      } catch (err: any) {
+        console.warn('Backend check-in sync error:', err);
       }
 
-      await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
-      setShowSuccessModal(true);
-    } catch (err: any) {
+      setAssignedQueueNo(assignedPos);
       await updateBookingStatus(scannedResult.token, 'CHECKED_IN');
       setShowSuccessModal(true);
     } finally {
