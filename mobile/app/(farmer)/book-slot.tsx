@@ -211,12 +211,49 @@ export default function BookSlotScreen() {
       });
 
       if (apiRes) {
+        // Also sync local store for offline cache consistency
+        await createBooking({
+          mandi: selectedMandi.name,
+          mandiId: selectedMandi.id,
+          date: selectedDate,
+          time: selectedSlot.window,
+          crop: cropType,
+          quantity: `${quantity} Qt`,
+          vehicle: vehicleNo || 'Tractor Trolley',
+          farmerName: user?.name || 'Sardar Gurdeep Singh',
+          farmerPhone: user?.phone || '+91 98140 12345',
+        });
+
         setGeneratedToken(apiRes.token);
         setShowSuccessModal(true);
+
+        // Re-fetch slots from Render backend so capacity decreases on screen immediately
+        try {
+          const today = new Date();
+          const idx = availableDates.findIndex((d) => d.id === selectedDateObj.id);
+          const targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + (idx >= 0 ? idx : 0));
+          const isoDate = targetDate.toISOString().split('T')[0];
+          const freshSlots = await fetchSlots(selectedMandi.id, isoDate);
+          if (Array.isArray(freshSlots) && freshSlots.length > 0) {
+            const mapped = freshSlots.map((s: any) => {
+              const available = s.availableCapacity ?? (s.capacity - (s.booked || s.bookedCount || 0));
+              const isFull = s.isFull || available <= 0;
+              return {
+                id: s.id,
+                window: `${s.startTime || '06:00'} - ${s.endTime || '08:00'}`,
+                status: isFull ? 'Fully Booked' : `${available} slots available`,
+                type: isFull ? 'FULL' : available <= 5 ? 'FEW' : 'AVAILABLE',
+              };
+            });
+            setSlotList(mapped);
+          }
+        } catch (e) {}
+
         Toast.show({
           type: 'success',
           text1: 'Booking Slot Generated! 🎟️',
-          text2: `Token #${apiRes.token} created for ${selectedMandi.name}`,
+          text2: `Token #${apiRes.token} created on Render DB for ${selectedMandi.name}`,
         });
         return;
       }
