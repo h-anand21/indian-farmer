@@ -340,8 +340,8 @@ export default function DynamicDashboard() {
 
         {/* MSP Rates Ticker (Today) */}
         <View style={styles.spotlightHeader}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.sectionTitle}>MSP Rates (Season 2026-27)</Text>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', paddingRight: 8 }}>
+            <Text style={styles.sectionTitle}>MSP Rates (2026-27)</Text>
             <View style={styles.liveBadgeMini}>
               <Text style={styles.liveBadgeMiniText}>13 Sep 2026</Text>
             </View>
